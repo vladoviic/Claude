@@ -757,11 +757,13 @@ def overlay_chyron(c, l, seg, lt, w, h):
 
 # ============================================================ l'écran ========
 def superellipse(w, h, n=5.0, aa=1.4, bulge=0.0):
-    """Masque de tube cathodique : rectangle arrondi dont les côtés bombent
-    légèrement vers l'extérieur (bulge), comme les écrans de la référence."""
+    """Masque d'écran : rectangle à coins arrondis (n grand = coins vifs).
+    bulge > 0 : côtés bombés vers l'extérieur ; bulge < 0 : côtés concaves,
+    pincés au milieu (écrans de la référence)."""
     u, v = uv(w, h)
-    ue = u * (1 + bulge) / (1 + bulge * (1 - v * v))
-    ve = v * (1 + bulge) / (1 + bulge * (1 - u * u))
+    up = 1 + max(bulge, 0.0)
+    ue = u * up / (1 + bulge * (1 - v * v))
+    ve = v * up / (1 + bulge * (1 - u * u))
     r = (np.abs(ue) ** n + np.abs(ve) ** n) ** (1 / n)
     d = (1 - r) * min(w, h) / 2
     return np.clip(d / aa + 0.5, 0, 1).astype(np.float32), r
@@ -773,7 +775,7 @@ class Screen:
         if style == "crt":
             self.gw, self.gh = w, h
             self.gx, self.gy = int(cx - w / 2), int(cy - h / 2)
-            self.mask, r = superellipse(w, h, 9.0, 1.2, bulge=0.035)
+            self.mask, r = superellipse(w, h, 16.0, 1.2, bulge=-0.035)
         else:  # téléviseur à façade claire : dalle plus petite, cadre blanc
             self.gw, self.gh = int(w * 0.74), int(h * 0.50)
             self.gx, self.gy = int(cx - self.gw / 2 - w * 0.03), int(cy - self.gh / 2 + h * 0.03)
