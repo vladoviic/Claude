@@ -37,15 +37,21 @@ PAD = 140                  # marge du « monde » autour du cadre (pour la déri
 # ------------------------------------------------------- direction artistique
 # Gradient map luminance -> RGB. Tout passe par là : c'est ce qui unifie
 # des sources hétérogènes (smartphone, presse, archives) dans la même teinte.
+# Valeurs relevées sur l'image de référence : noirs bruns, rouge écran
+# (210,48,25) quasi uniforme, hautes lumières rose très pâle.
 PALETTE = [
-    (0.00, (6, 0, 0)),
-    (0.20, (52, 3, 1)),
-    (0.48, (186, 26, 8)),
-    (0.70, (250, 66, 30)),
-    (0.88, (255, 138, 98)),
-    (1.00, (255, 226, 212)),
+    (0.00, (24, 12, 10)),
+    (0.14, (44, 16, 13)),
+    (0.34, (118, 28, 16)),
+    (0.50, (176, 32, 16)),
+    (0.62, (214, 38, 18)),
+    (0.70, (244, 44, 22)),
+    (0.80, (242, 108, 86)),
+    (0.90, (248, 190, 178)),
+    (1.00, (253, 243, 240)),
 ]
-BG_COLOR = (5, 2, 2)
+BG_COLOR = (20, 10, 8)
+BLANK_L = 0.62             # luminance d'un écran allumé sans signal (-> 210,48,25)
 
 SLOGANS = [
     ["BLOQUONS", "TOUT"],
@@ -325,18 +331,37 @@ def text_block(lines, w, h, target_w=0.86, squash=0.74, gap=0.06):
 # ============================================================ scènes ========
 def sc_blank(c, seg, lt, w, h):
     """Écran allumé sans signal : aplat lumineux + tirets parasites (cf. réf.)."""
-    u, v = uv(w, h)
-    l = 0.70 - 0.12 * (u * u + v * v) + 0.06 * (sample(c.fine, w, h, 40 + lt * 9, lt * 31, 0.5) - 0.5)
-    rows = c.memo(("blankrows", seg["seed"], h), lambda: 1 - 0.035 * (
-        np.random.default_rng(seg["seed"]).random(h) < 0.03).astype(np.float32))
-    l = l * rows[:, None]
-    rng = seg_rng(seg, int(lt * 1.6))
-    for _ in range(rng.integers(0, 4)):
-        y = int(rng.uniform(0.15, 0.85) * h)
-        th = int(rng.integers(2, 6))
-        x0 = int(rng.uniform(0.0, 0.6) * w)
-        ln = int(rng.uniform(0.08, 0.45) * w)
-        l[y:y + th, x0:x0 + ln] = 0.06
+    def build():
+        rng = np.random.default_rng(seg["seed"])
+        u, v = uv(w, h)
+        base = BLANK_L + 0.012 * (1 - u * u - v * v) + rng.uniform(-0.02, 0.025)
+        l = np.array(base, np.float32)
+        # lignes fantômes (rémanence) : rectangles à peine visibles, cf. réf.
+        for _ in range(rng.integers(3, 8)):
+            if rng.random() < 0.6:
+                y = int(rng.uniform(0.1, 0.9) * h)
+                x0, x1 = sorted((rng.uniform(0, 1, 2) * w).astype(int))
+                l[y:y + 2, x0:x1] -= rng.uniform(0.012, 0.03)
+            else:
+                x = int(rng.uniform(0.1, 0.9) * w)
+                y0, y1 = sorted((rng.uniform(0, 1, 2) * h).astype(int))
+                l[y0:y1, x:x + 2] -= rng.uniform(0.012, 0.03)
+        # tirets noirs francs
+        dashes = []
+        for _ in range(rng.choice([0, 1, 2, 2, 3])):
+            y = int(rng.uniform(0.12, 0.88) * h)
+            th = max(3, int(h * rng.uniform(0.012, 0.02)))
+            x0 = int(rng.uniform(-0.1, 0.6) * w)
+            ln = int(rng.uniform(0.12, 0.5) * w)
+            dashes.append((y, th, max(0, x0), max(0, x0 + ln)))
+        return l, dashes
+
+    l0, dashes = c.memo(("blank", seg["seed"], w, h), build)
+    l = l0 + 0.012 * (sample(c.cloud, w, h, seg["seed"] % 400 + lt * 6, lt * 9, 0.5) - 0.5)
+    rng = seg_rng(seg, int(lt * 7))
+    for y, th, x0, x1 in dashes:
+        dy = int(rng.integers(-1, 2)) if rng.random() < 0.15 else 0
+        l[y + dy:y + dy + th, x0:x1] = 0.04
     return l
 
 
@@ -473,7 +498,8 @@ def sc_fire(c, seg, lt, w, h):
 
 
 def sc_silhouette(c, seg, lt, w, h):
-    """Tête et épaules à contre-jour (comme l'écran du haut de la réf.)."""
+    """Tête et épaules à contre-jour sur aplat rouge, cheveux longs en bataille
+    (comme l'écran au-dessus de l'œil dans la réf.)."""
     s = seg["seed"]
     m = 20
 
@@ -483,34 +509,35 @@ def sc_silhouette(c, seg, lt, w, h):
         im = Image.new("L", (W2, H2), 0)
         d = ImageDraw.Draw(im)
         rng = np.random.default_rng(s * 31)
-        cx, cy, r = W2 * 0.5, H2 * 0.42, H2 * 0.17
-        d.ellipse([cx - r * 0.8, cy - r, cx + r * 0.8, cy + r], fill=255)
-        for _ in range(320):  # masse de cheveux en bataille, plus longue sur les côtés
-            ang = rng.uniform(math.pi * 0.8, math.pi * 2.2)
-            side = max(0.0, math.sin(ang))            # 0 en haut, 1 sur les côtés/bas
-            rr = r * rng.uniform(0.8, 1.08)
-            hx = cx + math.cos(ang) * rr * (0.95 + 0.1 * side)
-            hy = cy + math.sin(ang) * rr + side * r * rng.uniform(0, 0.9)
-            k = r * rng.uniform(0.05, 0.12)
-            d.ellipse([hx - k, hy - k * 1.4, hx + k, hy + k * 1.4], fill=255)
-        for _ in range(40):  # quelques mèches fines qui dépassent
-            ang = rng.uniform(math.pi * 1.0, math.pi * 2.0)
-            hx, hy = cx + math.cos(ang) * r * 0.95, cy + math.sin(ang) * r * 1.05
-            ln = r * rng.uniform(0.08, 0.22)
-            d.line([hx, hy, hx + math.cos(ang) * ln, hy + math.sin(ang) * ln], fill=255,
-                   width=max(2, int(r * 0.025)))
-        d.rectangle([cx - r * 0.38, cy + r * 0.6, cx + r * 0.38, cy + r * 1.4], fill=255)
-        d.ellipse([cx - r * 2.6, cy + r * 1.15, cx + r * 2.6, cy + r * 4.2], fill=255)
+        cx, cy, r = W2 * 0.53, H2 * 0.40, H2 * 0.16
+        d.ellipse([cx - r * 0.82, cy - r, cx + r * 0.82, cy + r * 1.02], fill=255)
+        d.polygon([(cx - r * 0.42, cy + r * 0.7), (cx + r * 0.42, cy + r * 0.7),
+                   (cx + r * 0.6, cy + r * 1.6), (cx - r * 0.6, cy + r * 1.6)], fill=255)
+        d.ellipse([cx - r * 3.3, cy + r * 1.35, cx + r * 3.3, cy + r * 6.5], fill=255)  # épaules
+        for _ in range(900):  # mèches : marches aléatoires depuis le crâne
+            ang = rng.uniform(math.pi * 0.85, math.pi * 2.15)
+            x = cx + math.cos(ang) * r * 0.78
+            y = cy + math.sin(ang) * r * 0.95
+            dirx, diry = math.cos(ang), math.sin(ang)
+            side = max(0.0, math.cos(ang) ** 2)
+            wd = max(1, int(r * rng.uniform(0.015, 0.04)))
+            pts = [(x, y)]
+            for _ in range(int(rng.integers(4, 9 + int(8 * side)))):
+                diry += 0.18 + 0.25 * side           # gravité, plus forte sur les côtés
+                dirx += rng.normal(0, 0.25)
+                nrm = math.hypot(dirx, diry)
+                step = r * rng.uniform(0.07, 0.14)
+                x += dirx / nrm * step
+                y += diry / nrm * step
+                pts.append((x, y))
+            d.line(pts, fill=255, width=wd, joint="curve")
         return to_l(im.resize((w + 2 * m, h + 2 * m), Image.LANCZOS))
 
     sil = c.memo(("sil", s, w, h), build)
     u, v = uv(w, h)
-    ang = np.arctan2(v, u)
-    beam = np.maximum(0, np.cos(ang - lt * 3.2)) ** 10   # gyrophare
-    l = 0.62 + 0.22 * np.exp(-(u * u + v * v) / 0.9) + 0.18 * beam
-    l = l + 0.06 * (sample(c.fine, w, h, lt * 20, 0, 0.6) - 0.5)
-    a = window(sil, w, h, 5 * math.sin(lt * 0.7 + s), 2 * math.sin(lt * 0.5), m)
-    return np.clip(l, 0, 1) * (1 - a) + 0.02 * a
+    l = 0.70 + 0.015 * (1 - u * u - v * v) + 0.02 * (sample(c.cloud, w, h, lt * 8, s, 0.5) - 0.5)
+    a = window(sil, w, h, 4 * math.sin(lt * 0.6 + s), 1.5 * math.sin(lt * 0.45), m)
+    return l * (1 - a) + 0.03 * a
 
 
 def sc_cracks(c, seg, lt, w, h):
@@ -522,78 +549,95 @@ def sc_cracks(c, seg, lt, w, h):
         roots = [(rng.uniform(0.3, 0.7), 1.02, -math.pi / 2 + rng.uniform(-0.3, 0.3)),
                  (-0.02, rng.uniform(0.4, 0.7), rng.uniform(-0.4, 0.2)),
                  (1.02, rng.uniform(0.3, 0.6), math.pi + rng.uniform(-0.2, 0.4))]
-        return draw_branches(w, h, s, roots, depth=7, length=0.2, spread=0.6, width=2.4)
+        return draw_branches(w, h, s, roots, depth=6, length=0.24, spread=0.55, width=4.0)
 
     dist = c.memo(("cracks", s, w, h), build)
     reveal = lt * h * 0.45
     vis = smoothstep(reveal, reveal - 6, dist)
-    bg = 0.05 + 0.08 * sample(c.cloud, w, h, s * 13, lt * 4, 0.6)
-    fl = 0.85 + 0.15 * math.sin(lt * 23) * math.sin(lt * 7)
-    return bg * (1 - vis) + 0.88 * fl * vis
+    bg = 0.02 + 0.05 * sample(c.cloud, w, h, s * 13, lt * 4, 0.6)
+    fl = 0.97 + 0.03 * math.sin(lt * 23) * math.sin(lt * 7)
+    return bg * (1 - vis) + 0.64 * fl * vis
 
 
 def sc_eye(c, seg, lt, w, h):
-    """Œil en très gros plan : saccades, clignements, iris fibreux."""
+    """Œil en très gros plan, traité « photo » haute clé comme la réf. :
+    peau claire striée, iris sombre marbré, cils, reflet de fenêtre.
+    seg["zoom"] > 1 : macro sur l'iris (ex. 3)."""
     s = seg["seed"]
+    zoom = seg.get("zoom", 1.0)
     u, v = uv(w, h)
-    X = u
-    Y = v * h / w            # repère isotrope (unité = demi-largeur)
 
     rng = np.random.default_rng(s)
     sacc_t = c.memo(("sacc_t", s), lambda: np.cumsum(rng.uniform(0.9, 2.6, 40)))
     sacc_p = c.memo(("sacc_p", s), lambda: np.random.default_rng(s + 1).uniform(-1, 1, (41, 2)))
     k = int(np.searchsorted(sacc_t, lt))
     t0 = sacc_t[k - 1] if k > 0 else 0.0
-    e = smoothstep(0.0, 0.09, lt - t0)
+    e = smoothstep(0.0, 0.08, lt - t0)
     gx, gy = sacc_p[k] * e + sacc_p[max(k - 1, 0)] * (1 - e) if k > 0 else sacc_p[0]
-    blinks = c.memo(("blink", s), lambda: np.cumsum(np.random.default_rng(s + 2).uniform(2.8, 6.0, 20)))
+    blinks = c.memo(("blink", s), lambda: np.cumsum(np.random.default_rng(s + 2).uniform(3.0, 6.5, 20)))
     bd = np.min(np.abs(lt - blinks))
-    open_ = 1 - (1 - smoothstep(0.0, 0.16, bd)) * 0.97
+    open_ = 1 - (1 - smoothstep(0.0, 0.14, bd)) * 0.97 if zoom < 1.5 else 1.0
 
-    L = 1.08
+    icx, icy = gx * 0.22 + 0.08, gy * 0.05 - 0.01
+    X = u / zoom * 1.0 + (icx if zoom > 1 else 0.0)
+    Y = v * h / w / zoom + (icy if zoom > 1 else 0.0)
+
+    L = 1.25
     xx = np.clip(1 - (X / L) ** 2, 0, None)
-    yu = -0.46 * open_ * xx ** 0.75 + 0.02
-    yl = 0.30 * open_ * xx ** 0.95 + 0.02
-    inside = smoothstep(-0.012, 0.012, Y - yu) * smoothstep(-0.012, 0.012, yl - Y)
+    yu = -0.50 * open_ * xx ** 0.7 + 0.03
+    yl = 0.28 * open_ * xx ** 0.9 + 0.03
+    inside = smoothstep(-0.008, 0.008, Y - yu) * smoothstep(-0.008, 0.008, yl - Y)
 
-    icx, icy = gx * 0.28, gy * 0.07 - 0.02
-    R = 0.40
+    R = 0.46
     dx, dy = X - icx, Y - icy
     rr = np.sqrt(dx * dx + dy * dy) / R
     th = np.arctan2(dy, dx)
     n = c.fine.shape[0]
-    fib = c.fine[((rr * 70).astype(np.int64) % n), (((th / (2 * np.pi)) + 0.5) * n * 2).astype(np.int64) % n]
-    fib2 = c.cloud[((rr * 30).astype(np.int64) % n), (((th / (2 * np.pi)) + 0.5) * n).astype(np.int64) % n]
-    pupil = 0.36 + 0.04 * math.sin(lt * 0.8 + s)
-    iris = 0.28 + 0.42 * fib * (0.6 + 0.6 * fib2)
-    iris *= 1 - 0.75 * smoothstep(0.78, 1.0, rr)                  # limbe sombre
-    iris += 0.18 * np.exp(-((rr - pupil - 0.08) ** 2) / 0.004)      # collerette
-    iris = np.where(rr < pupil, 0.02, iris)
-    iris = iris * smoothstep(pupil - 0.02, pupil + 0.02, rr) + 0.02 * (1 - smoothstep(pupil - 0.02, pupil + 0.02, rr))
+    ta = ((th / (2 * np.pi)) + 0.5)
+    fib = c.fine[((rr * 60).astype(np.int64) % n), (ta * n * 3).astype(np.int64) % n]
+    mot = c.cloud[((rr * 90).astype(np.int64) % n), (ta * n * 2).astype(np.int64) % n]
+    pupil = 0.34 + 0.03 * math.sin(lt * 0.8 + s)
+    iris = 0.06 + 0.34 * smoothstep(0.35, 0.85, mot) + 0.16 * smoothstep(0.45, 0.8, fib) * smoothstep(1.0, 0.45, rr)
+    iris += 0.12 * np.exp(-((rr - pupil - 0.12) ** 2) / 0.006)     # collerette
+    iris *= 1 - 0.7 * smoothstep(0.82, 1.0, rr)                     # limbe sombre
+    pm = smoothstep(pupil + 0.015, pupil - 0.015, rr)
+    iris = iris * (1 - pm) + 0.025 * pm
 
-    veins = c.memo(("veins", s, w, h), lambda: draw_branches(
-        w, h, s + 5, [(0.0, 0.5, 0.0), (0.0, 0.45, -0.3), (1.0, 0.52, math.pi),
-                      (1.0, 0.48, math.pi + 0.3)], depth=5, length=0.16, spread=0.7, width=1.6))
-    vein = (veins < 1e8).astype(np.float32) * 0.28
-    sclera = 0.86 - 0.32 * X ** 2 - vein
-    sclera *= 0.55 + 0.45 * smoothstep(yu, yu + 0.22, Y)             # ombre de la paupière
-    eye = np.where(rr < 1.0, iris, sclera)
-    eye = eye * smoothstep(1.0, 0.98, rr) + sclera * (1 - smoothstep(1.0, 0.98, rr)) * (rr >= 0.98)
+    veins = c.memo(("veins", s, w, h, zoom), lambda: draw_branches(
+        w, h, s + 5, [(0.0, 0.5, 0.0), (0.0, 0.42, -0.3), (1.0, 0.55, math.pi),
+                      (1.0, 0.45, math.pi + 0.3)], depth=5, length=0.15, spread=0.7, width=1.4))
+    vein = (veins < 1e8).astype(np.float32) * 0.22
+    sclera = 0.95 - 0.12 * X ** 2 - vein
+    sclera -= 0.38 * smoothstep(yu + 0.16, yu, Y)                    # ombre de paupière
+    ib = smoothstep(1.0, 0.985, rr)
+    eye = iris * ib + sclera * (1 - ib)
 
-    hx, hy = icx - R * 0.28, icy - R * 0.35                         # reflet fenêtre
-    hl = smoothstep(0.06, 0.04, np.abs(X - hx)) * smoothstep(0.05, 0.03, np.abs(Y - hy))
-    eye = np.maximum(eye, hl * open_)
+    hx, hy = icx - R * 0.15, icy - R * 0.42                           # reflet fenêtre
+    hl = smoothstep(0.075, 0.06, np.abs(X - hx)) * smoothstep(0.042, 0.03, np.abs(Y - hy))
+    eye = np.maximum(eye, hl * (rr < 1))
 
-    skin = 0.40 + 0.18 * (sample(c.cloud2, w, h, s * 7, s * 3, 0.7) - 0.5) \
-        + 0.10 * (sample(c.fine, w, h, s * 5, s * 9, 1.0) - 0.5)
-    for k_ in (1, 2, 3):                                            # plis
-        yk = yu - 0.09 * k_ - 0.03 * k_ * xx
-        skin -= 0.10 * np.exp(-((Y - yk) ** 2) / 0.0006) * (xx > 0.05)
-    skin -= 0.08 * np.exp(-((Y - yl - 0.08) ** 2) / 0.0008) * (xx > 0.05)
-    lash = np.exp(-((Y - yu) ** 2) / 0.0012) * (xx > 0.0)
-    skin = skin * (1 - 0.85 * lash)
-    wet = np.exp(-((Y - yl + 0.006) ** 2) / 0.00008) * (xx > 0.1) * 0.35
+    # peau : claire, striée de lignes fines (cf. réf.)
+    ox = s % 300
+    bend = (0.10 * xx * h)                                           # rides qui suivent l'œil
+    nf = c.fine.shape[0]
+    iy = ((np.arange(h)[:, None] + bend) * (2.4 / zoom) + 40).astype(np.int64) % nf
+    ix = ((np.arange(w)[None, :]) * (0.22 / zoom) + ox).astype(np.int64) % nf
+    st1 = c.fine[iy, np.broadcast_to(ix, iy.shape)]
+    st2 = sample(c.fine, w, h, ox + 90, 140, (2.2 / zoom, 2.2 / zoom))
+    lines = smoothstep(0.60, 0.74, st1) * 0.75 + smoothstep(0.66, 0.8, st2) * 0.3
+    skin = 0.90 - 0.32 * lines - 0.10 * sample(c.cloud2, w, h, ox, 7, 0.6 / zoom)
+    crease = yu - 0.12 - 0.05 * xx
+    skin -= 0.32 * np.exp(-((Y - crease) ** 2) / 0.0009) * (xx > 0.02)
+    skin -= 0.18 * np.exp(-((Y - yl - 0.07) ** 2) / 0.0015) * (xx > 0.02)
+    # cils : peigne de traits sombres au-dessus de la paupière supérieure
+    comb = smoothstep(0.55, 0.7, sample(c.fine, w, h, ox * 3, 0, (4.5 / zoom, 0.05 / zoom)))
+    band = smoothstep(yu - 0.08 * (0.3 + xx), yu, Y) * (Y < yu + 0.004) * (xx > 0.01)
+    lash = np.clip(comb * band + np.exp(-((Y - yu) ** 2) / 0.0007) * (xx > 0.0), 0, 1)
+    skin = skin * (1 - 0.88 * lash)
+    lowlash = np.exp(-((Y - yl) ** 2) / 0.0002) * (xx > 0.05) * 0.5
     out = skin * (1 - inside) + eye * inside
+    out -= lowlash * 0.5
+    wet = np.exp(-((Y - yl + 0.008) ** 2) / 0.00006) * (xx > 0.1) * 0.25
     return np.clip(out + wet * inside, 0, 1)
 
 
@@ -712,9 +756,13 @@ def overlay_chyron(c, l, seg, lt, w, h):
 
 
 # ============================================================ l'écran ========
-def superellipse(w, h, n=5.0, aa=1.4):
+def superellipse(w, h, n=5.0, aa=1.4, bulge=0.0):
+    """Masque de tube cathodique : rectangle arrondi dont les côtés bombent
+    légèrement vers l'extérieur (bulge), comme les écrans de la référence."""
     u, v = uv(w, h)
-    r = (np.abs(u) ** n + np.abs(v) ** n) ** (1 / n)
+    ue = u * (1 + bulge) / (1 + bulge * (1 - v * v))
+    ve = v * (1 + bulge) / (1 + bulge * (1 - u * u))
+    r = (np.abs(ue) ** n + np.abs(ve) ** n) ** (1 / n)
     d = (1 - r) * min(w, h) / 2
     return np.clip(d / aa + 0.5, 0, 1).astype(np.float32), r
 
@@ -725,60 +773,48 @@ class Screen:
         if style == "crt":
             self.gw, self.gh = w, h
             self.gx, self.gy = int(cx - w / 2), int(cy - h / 2)
-            self.mask, r = superellipse(w, h, 4.6)
-        else:  # moniteur beige : dalle plus petite dans un boîtier clair
-            self.gw, self.gh = int(w * 0.70), int(h * 0.60)
-            self.gx, self.gy = int(cx - self.gw / 2), int(cy - h / 2 + h * 0.14)
-            self.mask, r = superellipse(self.gw, self.gh, 9.0)
+            self.mask, r = superellipse(w, h, 9.0, 1.2, bulge=0.035)
+        else:  # téléviseur à façade claire : dalle plus petite, cadre blanc
+            self.gw, self.gh = int(w * 0.74), int(h * 0.50)
+            self.gx, self.gy = int(cx - self.gw / 2 - w * 0.03), int(cy - self.gh / 2 + h * 0.03)
+            self.mask, r = superellipse(self.gw, self.gh, 14.0, 1.0, bulge=0.01)
         self.cx, self.cy, self.w, self.h = cx, cy, w, h
         gw, gh = self.gw, self.gh
         u, v = uv(gw, gh)
-        vig = 1 - 0.62 * smoothstep(0.5, 1.02, r)
-        scan = np.where((np.arange(gh) % 3) == 0, 0.80, 1.0).astype(np.float32)[:, None]
+        # ombrage très léger : la réf. est presque plate jusqu'au bord du verre
+        vig = 1 - 0.07 * smoothstep(0.7, 1.0, r) - 0.22 * smoothstep(0.965, 1.0, r)
+        scan = np.where((np.arange(gh) % 3) == 0, 0.975, 1.0).astype(np.float32)[:, None]
         self.shade = (vig * scan).astype(np.float32)
-        self.sheen = (0.13 * np.exp(-((u + 0.45) ** 2 / 0.12 + (v + 0.55) ** 2 / 0.05))
-                      + 0.04 * np.exp(-((u - 0.2) ** 2 / 0.6 + (v + 0.75) ** 2 / 0.02))).astype(np.float32)
-        k = 0.92 + 0.08 * (u * u + v * v)              # bombé du tube
+        self.sheen = (0.012 * np.exp(-((u + 0.3) ** 2 + (v + 0.6) ** 2) / 0.5)).astype(np.float32)
+        k = 0.93 + 0.07 * (u * u + v * v)              # bombé du tube
         self.my = np.clip(((v * k + 1) / 2 * gh), 0, gh - 1).astype(np.int64)
         self.mx = np.clip(((u * k + 1) / 2 * gw), 0, gw - 1).astype(np.int64)
         rng = np.random.default_rng(idx * 101 + 7)
         self.fl_phase = rng.uniform(0, 6.28)
         self.hum_phase = rng.uniform(0, 1)
-        self.gain = rng.uniform(0.9, 1.04)
+        self.gain = rng.uniform(0.96, 1.03)
 
     def draw_casing(self, canvas):
-        ox, oy = PAD, PAD
+        """Les CRT n'ont pas de boîtier visible (fondus dans le noir, cf. réf.).
+        Les téléviseurs clairs ont une façade gris rosé bombée + cadre blanc."""
         if self.style == "crt":
-            cw, ch = self.w + 34, self.h + 34
-            m, r = superellipse(cw, ch, 4.2, 1.6)
-            dpx = (1 - r) * min(cw, ch) / 2
-            rim = np.clip(1 - dpx / 5, 0, 1)
-            vgrad = np.linspace(1.0, 0.55, ch, dtype=np.float32)[:, None]
-            col = np.array([30, 10, 8], np.float32) * vgrad[..., None] \
-                + rim[..., None] * np.array([70, 20, 13], np.float32)
-            inner, _ = superellipse(self.w + 12, self.h + 12, 4.6)
-            x0, y0 = int(self.cx - cw / 2) + ox, int(self.cy - ch / 2) + oy
-            self._paint(canvas, x0, y0, col, m)
-            ix, iy = int(self.cx - (self.w + 12) / 2) + ox, int(self.cy - (self.h + 12) / 2) + oy
-            self._paint(canvas, ix, iy, np.full(inner.shape + (3,), 4, np.float32), inner)
-        else:
-            cw, ch = self.w, self.h
-            im = Image.new("L", (cw * 2, ch * 2), 0)
-            ImageDraw.Draw(im).rounded_rectangle([4, 4, cw * 2 - 4, ch * 2 - 4], radius=44, fill=255)
-            m = to_l(im.resize((cw, ch), Image.LANCZOS))
-            vgrad = np.linspace(1.0, 0.62, ch, dtype=np.float32)[:, None, None]
-            u, v = uv(cw, ch)
-            col = np.array([150, 118, 112], np.float32) * vgrad * (0.85 + 0.15 * (1 - np.abs(u)))[..., None]
-            x0, y0 = int(self.cx - cw / 2) + ox, int(self.cy - ch / 2) + oy
-            self._paint(canvas, x0, y0, col, m)
-            bw, bh = self.gw + 22, self.gh + 22
-            bm, _ = superellipse(bw, bh, 8.0, 1.4)
-            self._paint(canvas, self.gx - 11 + ox, self.gy - 11 + oy,
-                        np.full(bm.shape + (3,), 14, np.float32), bm)
-            for i in range(5):  # grille de ventilation
-                yy = int(self.gy + self.gh + 26 + i * 7 + oy)
-                xx = int(self.cx + cw * 0.18 + ox)
-                canvas[yy:yy + 3, xx:xx + int(cw * 0.22)] = (64, 46, 43)
+            return
+        ox, oy = PAD, PAD
+        cw, ch = self.w, self.h
+        m, r = superellipse(cw, ch, 5.0, 1.2, bulge=0.05)
+        u, v = uv(cw, ch)
+        light = 1.0 + 0.10 * (-v) - 0.06 * np.abs(u) + 0.05 * np.exp(-((u + 0.3) ** 2 + (v + 0.4) ** 2) / 0.3)
+        col = np.array([100, 52, 45], np.float32) * light[..., None]
+        col *= (1 - 0.18 * smoothstep(0.9, 1.0, r))[..., None]
+        self._paint(canvas, int(self.cx - cw / 2) + ox, int(self.cy - ch / 2) + oy, col, m)
+        fw = max(6, int(ch * 0.035))                    # cadre blanc
+        fm, _ = superellipse(self.gw + 2 * fw, self.gh + 2 * fw, 16.0, 1.0)
+        self._paint(canvas, self.gx - fw + ox, self.gy - fw + oy,
+                    np.full(fm.shape + (3,), 1, np.float32) * np.array([188, 160, 154], np.float32), fm)
+        dk = max(3, fw // 2)                            # filet sombre
+        dm, _ = superellipse(self.gw + 2 * dk, self.gh + 2 * dk, 16.0, 1.0)
+        self._paint(canvas, self.gx - dk + ox, self.gy - dk + oy,
+                    np.full(dm.shape + (3,), 1, np.float32) * np.array([30, 14, 12], np.float32), dm)
 
     @staticmethod
     def _paint(canvas, x0, y0, col, m):
@@ -804,7 +840,7 @@ class Screen:
         seg, lt = self.segment_at(t)
         gw, gh = self.gw, self.gh
         try:
-            l = SCENES[seg["kind"]](c, seg, lt, gw, gh)
+            l = SCENES[seg["kind"]](c, seg, lt + seg.get("t0", 0.0), gw, gh)
         except Exception as e:  # un média cassé ne doit pas tuer le rendu
             print(f"[warn] écran {self.idx} {seg.get('src', seg['kind'])}: {e}", file=sys.stderr)
             seg["kind"] = "static"
@@ -843,10 +879,12 @@ class Screen:
 
 
 # ======================================================== mise en page =======
-ROWS = [160, 560, 960, 1360, 1760]
-COLS = [100, 540, 980]
-SW, SH = 400, 345
-MONITORS = {(0, 0), (4, 1), (2, 2)}  # positions des moniteurs beiges
+# Proportions relevées sur la réf. (écran ~4:3, interstice ~11 % de la largeur,
+# colonne centrale légèrement décalée à droite, bords gauche/droit coupés).
+ROWS = [140, 535, 930, 1325, 1720]
+COLS = [110, 600, 1090]
+SW, SH = 435, 340
+MONITORS = {(1, 0), (4, 1)}  # téléviseurs à façade claire
 HERO = (2, 1)
 
 
@@ -857,8 +895,8 @@ def layout():
         for ci, cx in enumerate(COLS):
             style = "mon" if (ri, ci) in MONITORS else "crt"
             hero = (ri, ci) == HERO
-            jx, jy = (0, 0) if hero else rng.integers(-7, 8, 2)
-            jw, jh = (12, 10) if hero else rng.integers(-8, 9, 2)
+            jx, jy = (0, 0) if hero else rng.integers(-3, 4, 2)
+            jw, jh = (0, 0) if hero else rng.integers(-12, 9, 2)
             cells.append(dict(row=ri, col=ci, cx=int(cx + jx), cy=int(cy + jy),
                               w=int(SW + jw), h=int(SH + jh), style=style, hero=hero))
     return cells
@@ -872,6 +910,50 @@ def scan_sources(src):
     hero = [p for p in files if "hero" in p.parts]
     rest = [p for p in files if p not in hero]
     return [str(p) for p in hero], [str(p) for p in rest]
+
+
+def ref_plan(seed):
+    """Démo sans médias : reprend la composition de la référence
+    (œil au centre, silhouette au-dessus, branches en dessous, iris en macro
+    dans le téléviseur clair, le reste en écrans allumés sans signal) et l'anime :
+    zapping ponctuel, tirets qui changent, et un « écho » de l'œil sur
+    plusieurs écrans vers 18 s."""
+    rng = np.random.default_rng(seed)
+    fixed = {
+        (2, 1): [dict(kind="oeil", start=0.0, dur=DUR, seed=4)],
+        (1, 1): [dict(kind="silhouette", start=0.0, dur=DUR, seed=2)],
+        (1, 0): [dict(kind="oeil", zoom=3.2, start=0.0, dur=DUR, seed=9)],
+        (4, 1): [dict(kind="oeil", zoom=2.2, start=0.0, dur=DUR, seed=21)],
+        (3, 1): [dict(kind="fissures", start=3.0, dur=24.5, seed=5),
+                 dict(kind="static", start=27.5, dur=0.5, seed=6),
+                 dict(kind="blank", start=28.0, dur=5.0, seed=7)],
+    }
+    echo = {(2, 0), (2, 2), (1, 2), (3, 0), (3, 2)}
+    ECHO_T, ECHO_D = 18.0, 1.4
+    plan = []
+    for cell in layout():
+        key = (cell["row"], cell["col"])
+        if key in fixed:
+            segs = fixed[key]
+        else:
+            segs, t = [], float(rng.uniform(0, 4))
+            stop = t + DUR
+            while t < stop - 1e-6:
+                end = t + float(rng.uniform(4.5, 10.0))
+                if end > stop - 1.2:
+                    end = stop
+                segs.append(dict(kind="blank", start=round(t % DUR, 3), dur=round(end - t, 3),
+                                 seed=int(rng.integers(1e6))))
+                t = end
+                if t < stop - 1e-6:   # zapping bref
+                    z = float(rng.uniform(0.12, 0.35))
+                    segs.append(dict(kind="static", start=round(t % DUR, 3), dur=round(z, 3),
+                                     seed=int(rng.integers(1e6))))
+                    t += z
+            if key in echo:  # l'écho de l'œil prend le dessus sur la timeline
+                segs.insert(0, dict(kind="oeil", start=ECHO_T, dur=ECHO_D, seed=4, t0=ECHO_T))
+        plan.append(dict(row=cell["row"], col=cell["col"], timeline=segs))
+    return plan
 
 
 def auto_plan(seed, sources):
@@ -961,11 +1043,14 @@ def camera(canvas, t):
     return im.resize((W, H), Image.BICUBIC, box=(cx - hw, cy - hh, cx + hw, cy + hh))
 
 
-FILTER = ("[0:v]format=gbrp,split[a][b];"
-          "[b]scale=270:480,gblur=sigma=9,scale=1080:1920[g];"
-          "[a][g]blend=all_mode=screen:all_opacity=0.5,"
-          "colorlevels=rimin=0.035:gimin=0.035:bimin=0.035,"
-          "vignette=angle=0.62,format=yuv420p,noise=c0s=8:c0f=t[v]")
+# Look « photo de vrais écrans » : halo rouge large + glow serré, image
+# légèrement douce, vignettage discret, grain fin.
+FILTER = ("[0:v]format=gbrp,split=3[a][b][c];"
+          "[b]scale=270:480,gblur=sigma=14,scale=1080:1920[g1];"
+          "[c]scale=540:960,gblur=sigma=5,scale=1080:1920[g2];"
+          "[a][g2]blend=all_mode=screen:all_opacity=0.26[a2];"
+          "[a2][g1]blend=all_mode=screen:all_opacity=0.30,"
+          "gblur=sigma=1.3,vignette=angle=0.45,format=yuv420p,noise=c0s=7:c0f=t[v]")
 
 
 def main():
@@ -986,7 +1071,7 @@ def main():
     if args.plan:
         plan = json.loads(Path(args.plan).read_text())
     else:
-        plan = auto_plan(args.seed, args.sources)
+        plan = auto_plan(args.seed, args.sources) if args.sources else ref_plan(args.seed)
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     (out.parent / "plan_utilise.json").write_text(json.dumps(plan, indent=1, ensure_ascii=False))
@@ -1006,7 +1091,10 @@ def main():
         for ts in args.stills.split(","):
             fi = int(float(ts) * FPS)
             p = out.parent / f"still_{float(ts):05.1f}s.png"
-            frame(fi).save(p)
+            fx = FILTER.replace(",format=yuv420p", ",format=yuv444p")  # même look que la vidéo
+            subprocess.run(["ffmpeg", "-y", "-v", "error", "-f", "rawvideo", "-pix_fmt", "rgb24",
+                            "-s", f"{W}x{H}", "-i", "-", "-filter_complex", fx, "-map", "[v]",
+                            "-frames:v", "1", str(p)], input=frame(fi).tobytes(), check=True)
             print("->", p)
         return
 

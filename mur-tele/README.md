@@ -5,9 +5,14 @@ centre, des écrans allumés sans signal, la silhouette, les branches).
 Il produit un **MP4 1080×1920, 30 i/s, 30 s qui boucle sans couture** (la frame 900
 retombe exactement sur la frame 0), prêt pour Reels / TikTok / Shorts.
 
-- `out/mur_tele.mp4` : rendu de démo **100 % procédural** (aucune image réelle : foule,
-  ligne de CRS, voiture en feu, silhouette, œil, slogans, bandeau « EN DIRECT »,
-  neige, mire). Il sert de maquette d'animation, de rythme et de grade.
+- Sans médias, la démo reprend la composition de la référence : œil au centre,
+  silhouette au-dessus, branches en dessous, macro d'iris dans les téléviseurs
+  clairs, écrans allumés sans signal avec tirets, zapping ponctuel, et un « écho »
+  de l'œil sur 5 écrans vers 18 s. Couleurs, interstices et façades sont calibrés
+  sur les pixels de la réf. (écran vide ≈ 210/48/25, noirs bruns ≈ 30/14/12).
+- Les scènes dessinées « manif », « crs », « feu », « slogan » existent toujours
+  (clé `kind` du plan) mais ne sont plus dans la démo : elles font illustration.
+  Pour s'approcher de la réf., il faut des photos ou des vidéos réelles.
 - Dépose tes vrais médias dans `sources/` et relance : ils remplacent les scènes
   procédurales et passent automatiquement dans la même teinte rouge.
 
