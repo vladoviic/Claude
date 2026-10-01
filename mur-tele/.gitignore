@@ -1,0 +1,8 @@
+out/
+sources/**/*.*
+!sources/README.md
+!sources/hero/.gitkeep
+!sources/credits.txt
+fonts/*.ttf
+fonts/*.otf
+__pycache__/
