@@ -136,6 +136,14 @@ def shapes(bodies, links, t, free_stretch=True):
     return out
 
 
+def recoil(t, ti, amp):
+    """Recul (action / réaction) : le corps part à l'opposé de la goutte expulsée puis revient sur un ressort."""
+    tau = t - ti
+    if tau <= 0:
+        return 0.0
+    return amp * (1 - math.exp(-tau / 0.03)) * math.exp(-tau / 0.2) * math.cos(TAU * tau / 0.6)
+
+
 def pulse(tau, dur=F(9)):
     """Onde de taille : gonfle, revient, petit creux (ressort)."""
     u = tau / dur
@@ -204,7 +212,8 @@ def intro_bodies(t):
     br = breathe(t, 0.03, 1.1)
     po = plunge_out(t)
     b = {
-        "A": (CX, A_R(t) * wave("A", t) * br, 0.0),
+        "A": (CX + recoil(t, F(21), 26) - recoil(t, F(31), 26) + recoil(t, F(40), 18),   # chaque choc pousse le centre
+              A_R(t) * wave("A", t) * br, 0.0),
         "B": (B_X(t) - po, B_R(t) * wave("B", t) * breathe(t, 0.04, 0.9, 0.3), vel(lambda u: B_X(u) - plunge_out(u), t)),
         "C": (C_X(t) + po, C_R(t) * wave("C", t) * breathe(t, 0.04, 1.0, 0.6), vel(lambda u: C_X(u) + plunge_out(u), t)),
         "D": (D_X(t), D_R(t) * wave("D", t), vel(D_X, t)),
@@ -247,7 +256,7 @@ _iris = Track((F(56), 0.0), (F(62), 1.05, "out_expo"), (F(66), 1.0, "out_cubic")
 def intro(t):
     L = [{"k": "bg", "v": "gradient"}]
     k = cam(t)
-    s = min(1 + 0.02 * cam_speed(t), 1.15)
+    s = min(1 + 0.015 * cam_speed(t), 1.1)
     sq = chain_squash(t)
     gx, gy = k * s, k / s
     for members, d in shapes(intro_bodies(t), intro_links(t), t):
@@ -297,9 +306,9 @@ def a_plongee(t):
 INTRO = Anim("INTRO", 4.0, intro, [
     Beat(F(10), "Première goutte : elle éclot au centre. Elle se contracte 3 images (anticipation), puis jaillit avec 13 % de dépassement.", "out_expo", onion=2, onion_dt=F(2)),
     Beat(F(23), "Une goutte part du bord gauche (coupée à son milieu), recule de 28 px, file sur l'axe, s'écrase contre la première et rebondit : un col naît.", "out_back", ann=a_arrivee("g"), onion=3, onion_dt=F(3)),
-    Beat(F(35), "Troisième goutte, depuis la droite : même choc. La chaîne de 3 (charte 3.5) encaisse l'impact (90 % × 111 %).", "out_back", ann=a_arrivee("d"), onion=3, onion_dt=F(3)),
+    Beat(F(35), "Troisième goutte, depuis la droite : même choc. La chaîne de 3 (charte 3.5) encaisse (90 % × 111 %) et recule de 26 px.", "out_back", ann=a_arrivee("d"), onion=3, onion_dt=F(3)),
     Beat(F(44), "Quatrième goutte, à gauche : elle fond dans sa voisine. Une onde de taille (+17 %) traverse la chaîne, 3 images par maillon, et tend le dernier col.", "out_cubic", ann=a_onde, onion=2, onion_dt=F(2)),
-    Beat(F(53), "La bulle du centre avale la chaîne en 10 images (in_cubic) : +150 % de rayon, il ne reste que deux bosses sur l'axe.", "in_cubic", ann=a_avale, onion=2, onion_dt=F(2)),
+    Beat(F(54), "La bulle du centre avale la chaîne en 10 images (in_cubic) : +150 % de rayon, il ne reste que deux bosses sur l'axe.", "in_cubic", ann=a_avale, onion=2, onion_dt=F(2)),
     Beat(F(61), "Impact (85 % × 118 %, ressort) puis la vidéo perce la bulle depuis le centre en 6 images : c'est la fenêtre, et le zoom commence.", "out_expo", ann=a_coins, onion=0),
     Beat(F(75), "Plongée : zoom ×5,6 depuis le centre. Les deux bosses cassent leur col et filent le long de l'axe, hors champ.", "plongee", ann=a_plongee, onion=2, onion_dt=F(3)),
     Beat(F(96), "Plein cadre vidéo, la poussée continue (+15 %/s) : on raccorde sur un plan en mouvement.", "out_cubic", onion=0),
@@ -322,14 +331,6 @@ T_EXP = (F(34), F(38), F(42))
 def E3_X(t):
     """La troisième goutte naît dans la première (cascade 3.5-02), puis suit sa propre course."""
     return E3_X0(t) + (E1_X(t) + 18 - 1450) * (1 - prog(t, F(42), F(48), "inout_cubic"))
-
-
-def recoil(t, ti, amp):
-    """Recul (action / réaction) : le corps part à l'opposé de la goutte expulsée puis revient sur un ressort."""
-    tau = t - ti
-    if tau <= 0:
-        return 0.0
-    return amp * (1 - math.exp(-tau / 0.03)) * math.exp(-tau / 0.2) * math.cos(TAU * tau / 0.6)
 
 
 def dot_r(t, t0, t1, r0):
@@ -373,7 +374,7 @@ def outro_squash(t):
 def outro(t):
     L = [{"k": "bg", "v": "gradient"}]
     k = _ok(t)
-    s = min(1 + 0.02 * abs(_ok(t + 0.01) - _ok(t - 0.01)) / 0.02, 1.15)
+    s = min(1 + 0.015 * abs(_ok(t + 0.01) - _ok(t - 0.01)) / 0.02, 1.1)
     sq = outro_squash(t)
     bodies = outro_bodies(t)
     logo = []
@@ -441,7 +442,7 @@ OUTRO = Anim("OUTRO", 4.0, outro_full, [
 
 NOTES = [
     ("Pourquoi ça marche", [
-        "C'est ton croquis : chaque goutte est un point gagné, on les compte à l'oreille et à l'œil (4 chocs), sans chiffre ni compteur.",
+        "C'est ton croquis : chaque goutte est un point gagné, on les compte à l'œil (4 chocs), sans chiffre ni compteur.",
         "La chaîne de la charte (3.5) se construit sous nos yeux, puis devient la fenêtre : la récompense est faite de nos points.",
         "La fenêtre est un cache rond : elle marche avec n'importe quelle vidéo.",
     ]),

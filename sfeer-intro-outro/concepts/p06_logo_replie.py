@@ -185,7 +185,7 @@ X_GR = Track((F(41), CX + 150), (F(49), 1250, "out_back"), (F(59), 1010, "inout_
              (F(69), CX, "out_cubic"))
 R_GR = Track((F(41), 0), (F(49), 100, "out_back"), (F(59), 265, "inout_cubic"))
 SNAP_I = F(59)
-_dive = Track((F(60), 1.0), (F(90), 4.5, "plongee"))
+_dive = Track((F(60), 1.0), (F(95), 4.5, "plongee"))
 
 
 def dive(t):

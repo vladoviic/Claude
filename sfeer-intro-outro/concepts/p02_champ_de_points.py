@@ -317,7 +317,7 @@ def intro(t):
     if t < F(52):
         L += field_layers(t, core)
     sx = squash(t, F(49), F(10), 0.24)
-    s = min(1 + 0.02 * cam_speed(t), 1.15)              # étirement horizontal pendant la plongée
+    s = min(1 + 0.015 * cam_speed(t), 1.1)              # étirement horizontal pendant la plongée
     if core > 0.5:
         L.append({"k": "fill", "id": "bulle", "fill": ORANGE, "ghost": core * k < 900,
                   "d": ellipse_rot(CX, CY, core * sx * k * s, core / sx * k / s, 0)})
@@ -515,7 +515,7 @@ def outro(t):
     L = [{"k": "bg", "v": "gradient"}]
     if t < F(33.5):
         k = ok(t)
-        s = min(1 + 0.02 * ok_speed(t), 1.15)
+        s = min(1 + 0.015 * ok_speed(t), 1.1)
         core = outro_core(t)
         sx = squash(t, F(18), F(9), 0.16) * squash(t, F(28), F(8), -0.1)
         L.append({"k": "fill", "id": "bulle", "fill": ORANGE, "ghost": core * k < 900,

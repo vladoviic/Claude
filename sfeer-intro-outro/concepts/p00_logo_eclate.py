@@ -157,7 +157,8 @@ arab_i = Track((F(1), 1), (F(11), 0, "in_cubic"))
 
 # Bulles extérieures (= points du logo qui gonflent). Demi-écart D depuis le centre, rayon r.
 DO_I = Track((0, DG), (F(4), DG), (F(10), DG + 12, "out_cubic"),      # anticipation : recul de 12 px
-             (F(20), 228, "out_cubic"), (F(28), 95, "in_cubic"),       # poussée puis charge l'une vers l'autre
+             (F(18), 245, "out_cubic"), (F(23), 200, "linear"),        # poussée continue sur le mot
+             (F(28), 95, "in_cubic"),                                   # charge l'une vers l'autre
              (F(42), 560, "out_back"),                                  # rebond : éjection (cascade 3.5-02)
              (F(47), 600, "in_cubic"),                                  # tension : les cols s'affinent
              (F(57), 0, "anticipe"))                                    # convergence violente
@@ -169,7 +170,7 @@ DI_I = Track((F(28), 95), (F(36), 110, "out_cubic"), (F(47), 112), (F(57), 0, "i
 RI_I = Track((F(28), 168), (F(36), 135, "out_cubic"), (F(47), 132), (F(57), 270, "in_cubic"))
 
 GREEN_I = Track((F(58), 0.0), (F(65), 1.0, "out_expo"))               # éclosion de la vidéo
-_dive = Track((F(59), 1.0), (F(90), 4.6, "plongee"))
+_dive = Track((F(59), 1.0), (F(95), 4.6, "plongee"))
 R_WIN = 270
 DELAY = F(2)                                                            # la droite suit avec 2 images
 
@@ -273,7 +274,7 @@ def a_dive(t):
 INTRO = Anim("INTRO", 4.0, intro, [
     Beat(F(6), "Logo vivant : l'endossement et l'arabe se referment en 10 images ; les points inspirent (-40 %) et reculent de 12 px.", "in_cubic", onion=2),
     Beat(F(17), "Pop : les points virent à l'orange et gonflent x16 en 12 images (dépassement +10 %). Ils mangent le mot par les bords.", "out_back", ann=a_pop),
-    Beat(F(26), "Charge : les deux bulles foncent l'une vers l'autre (8 images, rampe in_cubic). La droite suit avec 2 images de retard.", "in_cubic", ann=a_charge),
+    Beat(F(26), "Charge : après une poussée continue (9 px/image), les bulles foncent l'une vers l'autre en 5 images (in_cubic). La droite a 2 images de retard.", "in_cubic", ann=a_charge),
     Beat(F(31), "Choc : la cacahuète s'écrase à 82 % de largeur, le mot a disparu. Le rebond va renvoyer les bulles vers les bords.", "ressort_vif", onion=2),
     Beat(F(39), "Cascade 3.5-02 : chaque lobe éjecte une bulle vers l'extérieur (dépassement 10 %). Chaîne de 4, paire chevauchante au centre.", "out_back", ann=a_cascade),
     Beat(F(53), "Tension puis convergence : les cols s'affinent, les bulles reculent de 40 px puis foncent toutes au centre en 10 images.", "anticipe", ann=a_converge),

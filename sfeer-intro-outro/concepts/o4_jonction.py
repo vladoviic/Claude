@@ -1,7 +1,7 @@
 """Concept original O4 : « La Jonction, on entre par le lien ».
 
 Deux bulles égales, jointes par le col de la charte (forme héros 3.1), s'ouvrent chacune sur
-la vidéo : deux plaques, deux regards (inclinés et zoomés en sens contraires). La caméra plonge
+la vidéo : deux plaques, deux regards (décadrés et zoomés en sens contraires). La caméra plonge
 vers leur cou et les bulles se rejoignent pendant la plongée (3.3-01) : les deux regards
 s'alignent comme dans un télémètre de mise au point et la jonction devient le plein cadre.
 Outro : le cadre se pince en deux bulles, la scission rejoue 3.3-01, puis la paire se
@@ -96,12 +96,12 @@ def bubble_d(x, r, sx):
 HATCH = " ".join(f"M{i * 90 - 1200} -1200L{i * 90 + 2400} 2280" for i in range(-40, 75))
 
 
-def plate(uid, cx=CX, zoom=1.0, rot=0.0):
-    """Même plaque que blocks.video, centrée sur sa bulle et inclinée (rot, en degrés) :
-    identique à blocks.video quand cx = 960, rot = 0 et zoom >= 1."""
+def plate(uid, cx=CX, zoom=1.0):
+    """Même plaque que blocks.video, recadrée horizontalement (cx) : identique à blocks.video quand
+    cx = 960 et zoom >= 1. Pas de rotation : la vidéo ne glisse que le long de l'axe."""
     z = max(zoom, 0.05)
     return (f'<g id="{uid}-plaque"><rect x="-2400" y="-1600" width="6720" height="4280" fill="{GREEN}"/>'
-            f'<g transform="translate({f(cx)} {AXIS}) rotate({f(rot)}) scale({f(z)}) translate({f(-CX)} {-AXIS})">'
+            f'<g transform="translate({f(cx)} {AXIS}) scale({f(z)}) translate({f(-CX)} {-AXIS})">'
             f'<path d="{HATCH}" stroke="{GREEN_D}" stroke-width="16" fill="none"/>'
             f'<rect x="{W * .1}" y="{H * .1}" width="{W * .8}" height="{H * .8}" fill="none" stroke="{GREEN_L}" '
             f'stroke-width="6" stroke-dasharray="30 20"/>'
@@ -165,8 +165,8 @@ sq_in = Track((F(6), 1.0), (F(8), 0.86, "out_cubic"), (F(10), 0.86), (F(11), 1.0
 zfull = Track((F(49), 0.56), (F(59), 1.0, "in_cubic"), (F(80), 1.16, "out_cubic"))
 zG_own = Track((F(14), 0.34), (F(49), 0.58, "out_cubic"))
 zD_own = Track((F(17), 0.84), (F(49), 0.54, "out_cubic"))
-rotG_own = Track((F(14), -24.0), (F(49), -5.0, "out_cubic"))
-rotD_own = Track((F(17), 22.0), (F(49), 4.0, "out_cubic"))
+offG_own = Track((F(14), -190.0), (F(49), -40.0, "out_cubic"))         # cadrages décalés : chacun regarde
+offD_own = Track((F(17), 210.0), (F(49), 46.0, "out_cubic"))           # un côté du même monde
 swing = Track((F(22), 0.0), (F(27), 1.0, "inout_cubic"), (F(38), 1.0), (F(46), 0.0, "inout_cubic"))
 openG = Track((F(14), 0.0), (F(21), 1.0, "out_cubic"))
 openD = Track((F(17), 0.0), (F(24), 1.0, "out_cubic"))                  # 3 images de retard sur G
@@ -186,7 +186,7 @@ def intro(t):
         return L
     # étirement : anticipation (X 0,86) puis traînée dans le sens de la scission, écrasement à l'arrivée
     v = abs(speed(E_in, t)) if F(10) <= t <= F(25) else 0.0
-    sx = sq_in(t) * min(1.16, 1 + v / 9000) * squash(t, F(19), F(9), -0.1) * squash(t, F(6), F(6), 0.08)
+    sx = sq_in(t) * min(1.15, 1 + v / 9000) * squash(t, F(19), F(9), -0.1) * squash(t, F(6), F(6), 0.08)
     h = H_in(t) if t >= F(10) else None
     xg, xd = CX - E, CX + E
     if E < 1:                                                              # un seul point
@@ -204,9 +204,9 @@ def intro(t):
         irisG = None if uG >= 1 else (xg + rg - uG * rg, rg * 1.03 * uG)    # la vidéo coule depuis le cou
         irisD = None if uD >= 1 else (xd - rd + uD * rd, rd * 1.03 * uD)
         if uG > 0:
-            L.append(window("fen-g", bubble_d(xg, rg, sx), plate("pg", xg, zg, rotG_own(t) * (1 - k)), irisG, (-50, CX)))
+            L.append(window("fen-g", bubble_d(xg, rg, sx), plate("pg", xg + offG_own(t) * (1 - k), zg), irisG, (-50, CX)))
         if uD > 0:
-            L.append(window("fen-d", bubble_d(xd, rd, sx), plate("pd", xd, zd, rotD_own(t) * (1 - k)), irisD, (CX, W + 50)))
+            L.append(window("fen-d", bubble_d(xd, rd, sx), plate("pd", xd + offD_own(t) * (1 - k), zd), irisD, (CX, W + 50)))
     return L
 
 
@@ -219,8 +219,7 @@ def a_scission(t):
 
 
 def a_regards(t):
-    return curved_arrow(CX - 470, AXIS - 300, CX - 370, AXIS - 330, CX - 270, AXIS - 280) \
-        + curved_arrow(CX + 470, AXIS - 300, CX + 370, AXIS - 330, CX + 270, AXIS - 280)
+    return arrow(CX - 500, AXIS - 150, CX - 290, AXIS - 150) + arrow(CX + 500, AXIS - 150, CX + 290, AXIS - 150)
 
 
 def a_approche(t):
@@ -239,11 +238,11 @@ def a_plongee(t):
 INTRO = Anim("INTRO", 3.2, intro, [
     Beat(F(5), "Un point orange éclot au centre en 7 images, avec 16 % de dépassement, puis s'écrase à 86 % en largeur : il prend son élan.",
          "out_back_fort", ann=a_eclosion, onion=2, onion_dt=F(2)),
-    Beat(F(13), "Scission explosive (3.3-01) : 45 % du trajet en une image, chaque bulle étirée à 116 %. Le col s'affine jusqu'à 7 % du diamètre.",
+    Beat(F(13), "Scission explosive (3.3-01) : 45 % du trajet en une image, chaque bulle étirée à 115 %. Le col s'affine jusqu'à 7 % du diamètre.",
          "emphase", ann=a_scission, onion=3, onion_dt=F(1)),
     Beat(F(19), "La vidéo coule depuis le col dans chaque bulle, la droite 3 images après la gauche. La paire dépasse de 2 % puis revient.",
          "out_cubic", onion=2, onion_dt=F(2)),
-    Beat(F(31), "Deux regards : les plaques tournent en sens contraires (−24° → −5°, +22° → +4°), les bulles respirent en alternance (±7 %).",
+    Beat(F(31), "Deux regards : chaque plaque, décadrée de 200 px vers l'extérieur, glisse vers le centre ; les bulles respirent en alternance (±7 %).",
          "out_cubic", ann=a_regards, onion=0),
     Beat(F(44), "Approche : la paire grossit de 27 % et les bulles se rapprochent. Le col s'élargit comme une porte qui s'entrouvre.",
          "inout_cubic", ann=a_approche, onion=2, onion_dt=F(3)),
@@ -251,7 +250,7 @@ INTRO = Anim("INTRO", 3.2, intro, [
          "inout_cubic", ann=a_tension, onion=2, onion_dt=F(2)),
     Beat(F(54), "Plongée et réunion : la paire fonce vers la caméra et se rejoint en claquant. Les creux du col sortent par le haut et le bas.",
          "plongee", ann=a_plongee, onion=2, onion_dt=F(2)),
-    Beat(F(57), "Mise au point : plein cadre, les deux regards glissent et tournent jusqu'à se superposer. La couture disparaît en 2 images.",
+    Beat(F(57), "Mise au point : plein cadre, les deux regards glissent le long de l'axe jusqu'à se superposer. La couture disparaît.",
          "in_cubic", onion=0),
 ])
 
@@ -287,17 +286,17 @@ def outro(t):
     E, R = E_out(t), R_out(t)
     k = kdiv(t)
     xg, xd = CX - E, CX + E
-    sx = squash(t, F(14), F(10), -0.12) if t < SNAP else squash(t, SNAP, F(10), -0.2)
+    sx = squash(t, F(14), F(10), -0.12) if t < SNAP else squash(t, SNAP, F(10), -0.14)
     if t < SNAP:
         R *= breathe(t, 0.01, 1.2)
         L.append({"k": "fill", "id": "paire", "fill": ORANGE, "d": pair_d(xg, xd, R, sx, H_out(t)),
                   "pts": [(xg, AXIS), (xd, AXIS)]})
         uG, uD = closeG(t), closeD(t)
         if uG < 1:
-            L.append(window("fen-g", bubble_d(xg, R, sx), plate("pg", xg, zG_o(t), -12 * k),
+            L.append(window("fen-g", bubble_d(xg, R, sx), plate("pg", xg - 150 * k, zG_o(t)),
                             (xg, R * 1.03 * (1 - uG)) if uG > 0 else None, (-50, CX)))
         if uD < 1:
-            L.append(window("fen-d", bubble_d(xd, R, sx), plate("pd", xd, zD_o(t), 11 * k),
+            L.append(window("fen-d", bubble_d(xd, R, sx), plate("pd", xd + 170 * k, zD_o(t)),
                             (xd, R * 1.03 * (1 - uD)) if uD > 0 else None, (CX, W + 50)))
         return L
     # rupture : le col casse, les deux moitiés reculent et deviennent les points du logo
@@ -307,6 +306,9 @@ def outro(t):
     rd = lerp(R, DOT_R * breathe(t, 0.2, 1.1, 0.25), bre)
     u = prog(t, SNAP, SNAP + F(5), "out_cubic")
     parts = [bubble_d(xg, rg, sx), bubble_d(xd, rd, sx)]
+    rdrop = 30 * (1 - prog(t, SNAP, SNAP + F(4), "in_cubic"))            # gouttelette du col qui fond
+    if rdrop > 0.5:
+        parts.append(circle_cw(CX, rdrop))
     if u < 1:                                                             # restes du col qui se rétractent
         nub = 0.32 * R * (1 - u)
         parts += [link((xg, rg), (xg + rg + nub, 0.15 * R * (1 - u) + 0.5), 0.06 * R * (1 - u) + 0.5),
@@ -341,13 +343,13 @@ def a_eclate(t):
 OUTRO = Anim("OUTRO", 3.6, outro, [
     Beat(F(7), "Le cadre se pince : deux creux entrent par le haut et le bas au centre et dessinent deux bulles jointes, en 11 images.",
          "out_cubic", ann=a_pincement, onion=2, onion_dt=F(2)),
-    Beat(F(15), "Scission (3.3-01) : les bulles s'écartent et rétrécissent. Les deux regards se séparent : chaque plaque tourne de 12° et dézoome.",
+    Beat(F(15), "Scission (3.3-01) : les bulles s'écartent et rétrécissent. Les deux regards se séparent : les plaques glissent de 160 px vers l'extérieur.",
          "out_cubic", ann=a_scission_o, onion=2, onion_dt=F(2)),
     Beat(F(25), "La vidéo se ferme en orange de l'extérieur vers le centre, la droite 3 images après la gauche.",
          "in_cubic", ann=a_fermeture, onion=0),
     Beat(F(36), "Inspiration : la paire se resserre de 280 px en 6 images et le col gonfle jusqu'à 180 px d'épaisseur, en cacahuète.",
          "inout_cubic", ann=a_resserre, onion=2, onion_dt=F(3)),
-    Beat(F(40), "Rupture nette : le col s'étire, se pince et casse en 2 images. Les deux moitiés reculent, écrasées à 80 % puis rebondissent.",
+    Beat(F(40), "Rupture nette : le col s'étire, se pince et casse en 2 images. Les deux moitiés reculent, écrasées à 86 %, une gouttelette fond au milieu.",
          "out_expo", ann=a_eclate, onion=2, onion_dt=F(1)),
     Beat(F(45), "Les bulles rétrécissent 14 fois en blanchissant et se posent sur les points du logo après 14 % de dépassement.",
          "out_back", onion=2, onion_dt=F(2)),
@@ -370,7 +372,7 @@ NOTES = [
     ]),
     ("Mouvement", [
         "Éclosion avec dépassement, anticipation X 0,86, scission explosive, rebond ; tension avant la plongée.",
-        "Décalage de 3 images entre gauche et droite à l'ouverture et à la fermeture ; plaques en rotations opposées.",
+        "Décalage de 3 images entre gauche et droite à l'ouverture et à la fermeture ; plaques qui glissent en sens opposés le long de l'axe.",
         "Plongée en courbe plongée, plaques en contre-zoom 2 fois plus lent ; plein cadre et carton poussent sans arrêt.",
     ]),
 ]

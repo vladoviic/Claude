@@ -22,7 +22,8 @@ DOT_R = LG["dot_r"]
 HALF = (LG["dot_d"][0] - LG["dot_g"][0]) / 2      # demi-écart des points du logo
 R_ONE = DOT_R * math.sqrt(2)                       # point unique : même surface que les deux points
 BACK6 = back_out(1.25)                             # dépassement ≈ 6 %
-SWAP = bezier(0.65, 0, 0.35, 1)                    # échange de tailles (charte 3.3-02)
+SWAP = bezier(0.45, 0, 0.25, 1)                    # échange de tailles (3.3-02), départ plus vif
+SHRINK = bezier(0.2, 0.62, 0.3, 1)                 # outro : la fenêtre se rétracte d'un seul geste
 JUMP = bezier(0.7, 0, 0.84, 0)                     # saut : accélération pure
 BACK_IN4 = back_in(1.0)                            # anticipation ≈ 4 %
 
@@ -138,7 +139,10 @@ rW = Track((T_SPLIT + F(1), 0), (F(23), 110, BACK6), (T_SWAP0, 102, "out_cubic")
 rO = Track((T_SPLIT, 13), (F(22), 300, BACK6), (T_SWAP0, 306, "out_cubic"),
            (T_SWAP1, 104, SWAP), (T_AIM, 140, "inout_cubic"),
            (T_REC, 132, "in_cubic"), (T_JUMP, 260, JUMP))
-gap = Track((T_SPLIT, -13), (F(22), 20, "out_cubic"), (T_SWAP1, 20), (T_AIM, 25, "linear"))
+gap = Track((T_SPLIT, -13), (F(22), 20, "out_cubic"), (T_SWAP0, 46, "out_cubic"), (F(34), 20, "inout_cubic"),
+            (T_SWAP1, 20), (T_AIM, 25, "linear"))
+# demi-épaisseur du cou : 27,5 (55 px) ; il s'affine quand la paire se tend avant l'échange
+neck_i = Track((F(22), 27.5), (T_SWAP0, 13, "out_cubic"), (F(34), 27.5, "inout_cubic"), (T_SWAP1, 30), (T_AIM, 25))
 # plaque dans la fenêtre : 162 % -> 100 % pendant que la fenêtre grandit (l'image recule), puis poussée
 _zoom = Track((T_SPLIT, 1.66), (T_SWAP0, 1.62, "linear"), (T_SWAP1, 1.0, SWAP), (T_REC, 1.04, "linear"),
               (T_JUMP, 1.15, JUMP), (F(80), 1.27, "out_cubic"))
@@ -162,8 +166,8 @@ def xO(t):
 def pair_sx(t, part="intro"):
     """Écrasement de la paire aux impacts (fin de division, fin d'échange)."""
     if part == "intro":
-        return 1 / squash(t, F(22), F(8), 0.1) / squash(t, T_SWAP1, F(8), 0.05)
-    return 1 / squash(t, T_BACK, F(8), 0.12) / squash(t, T_U1, F(8), 0.05)
+        return 1 / squash(t, F(22), F(8), 0.06) / squash(t, T_SWAP1, F(8), 0.05)
+    return 1 / squash(t, T_U1, F(8), 0.05)
 
 
 def logo_fold(t):
@@ -198,7 +202,7 @@ def intro(t):
     # le point est projeté à gauche pendant le saut : étirement dans le sens de la vitesse
     so = 1 + min(0.3, abs(vel(xO, t)) / 160) if t > T_REC else 1.0
     col = mix_hex(WHITE, ORANGE, prog(t, T_SPLIT, T_SPLIT + F(2)))
-    h = 27.5 + 2.5 * prog(t, T_SWAP0, T_SWAP1) - 2.5 * prog(t, T_SWAP1, T_AIM)
+    h = neck_i(t)
     # point projeté : le cou s'accroche à un cercle intérieur (r / so), l'ellipse étirée le recouvre
     d = squashed(pair_d((pre(xo, sx), ro / so), (pre(xw, sx), rw), h), sx)
     L.append({"k": "fill", "id": "point-fenetre", "fill": col, "d": d, "pts": [(xo, AXIS)], "ghost": so < 1.01})
@@ -247,7 +251,7 @@ INTRO = Anim("INTRO", 3.6, intro, [
     Beat(F(6), "Le logo se replie : « sfeer » se referme au centre en 8 images ; les points reculent de 12 px puis foncent l'un vers l'autre.", "in_cubic", ann=a_repli, onion=2, onion_dt=F(2)),
     Beat(F(12), "Ils fusionnent (charte 3.3-01) en un seul point blanc, écrasé à 77 % au choc, qui rebondit puis se contracte : il va se diviser.", "out_back", onion=0),
     Beat(F(18), "Division (3.4-01) : une bulle orange ×23 part à gauche, une petite fenêtre naît à droite. La vidéo s'y allume en 4 images.", "out_back", ann=a_division, onion=2, onion_dt=F(2)),
-    Beat(F(25), "Contre-mouvement : la paire recule de 26 px vers la droite, la fenêtre rétrécit de 7 %. Rapport des tailles 3:1.", "out_cubic", onion=1, onion_dt=F(3)),
+    Beat(F(26), "Contre-mouvement : la paire se tend (écart 20 → 46 px, cou affiné de moitié), la fenêtre rétrécit de 7 %. Rapport 3:1.", "out_cubic", onion=1, onion_dt=F(3)),
     Beat(F(39), "Travelling compensé (3.3-02) : la fenêtre grandit ×3,4 pendant que la plaque dézoome de 160 à 100 %. Vertige.", "inout_cubic", ann=a_vertigo, onion=2, onion_dt=F(4)),
     Beat(F(55), "Visée : la fenêtre se recentre (r 420) ; le point, poussé à gauche, la retient par un cou de 50 px.", "out_cubic", onion=2, onion_dt=F(3)),
     Beat(F(64), "Saut en 8 images : la fenêtre jaillit ×2,8 hors cadre, le point est projeté à gauche, étiré à 130 %, coupé sur sa médiane.", "in_expo", ann=a_saut, onion=2, onion_dt=F(2)),
@@ -256,18 +260,20 @@ INTRO = Anim("INTRO", 3.6, intro, [
 
 
 # ================================================================= OUTRO (4,0 s)
-T_BACK, T_U0, T_U1, T_J0, T_J1, T_DOT, T_LOGO = F(11), F(13), F(29), F(31), F(40), F(44), F(46)
-oxW = Track((T_BACK, CX), (T_U0, 946, "out_cubic"), (T_U1, 1222, SWAP), (T_J0, 1210, "out_cubic"),
-            (T_J1, CX, BACK_IN4))
-orW = Track((F(2), 1150), (T_BACK, 420, "out_expo"), (T_U0, 436, "out_cubic"), (T_U1, 104, SWAP),
-            (T_J0, 110, "out_cubic"), (T_J1, 0, BACK_IN4))
-orO = Track((F(2), 260), (T_BACK, 140, "out_expo"), (T_U0, 130, "out_cubic"), (T_U1, 318, SWAP),
-            (T_J0, 300, "out_cubic"), (T_J1, R_ONE, BACK_IN4))
-ogap = Track((T_BACK, 25), (T_U1, 20, "linear"), (T_J0, 20), (T_J1, -R_ONE, BACK_IN4))
-_ozoom = Track((0, 1.26), (F(2), 1.22, "linear"), (T_BACK, 1.04, "out_expo"), (T_U1, 1.6, SWAP), (T_J0, 1.66, "linear"))
-orange_close = Track((F(25), 0), (F(29), 1, "out_cubic"))
-dot_r = Track((T_J1, R_ONE), (F(42), 20, "out_back"), (T_DOT, 14, "inout_cubic"))
-split_dx = Track((T_DOT, 0), (F(46), 16, "out_cubic"), (F(52), HALF, BACK6))
+T_BACK, T_U1, T_J0, T_J1, T_DOT, T_LOGO = F(10), F(27), F(32), F(39), F(43), F(45)
+# la fenêtre se rétracte d'un seul geste (1150 -> 104) ; la plaque, elle, change de sens à f10 : vertige inversé
+orW = Track((F(2), 1150), (T_U1, 104, SHRINK), (T_J0, 112, "out_cubic"), (T_J1, 0, "in_cubic"))
+oxW = Track((T_BACK, CX), (T_U1, 1222, "inout_cubic"), (T_J0, 1234, "out_cubic"), (T_J1, CX, "in_cubic"))
+orO = Track((F(2), 260), (T_BACK, 140, "out_cubic"), (T_U1, 318, "inout_cubic"), (T_J0, 300, "out_cubic"),
+            (T_J1, R_ONE, "in_cubic"))
+# anticipation de la réunion : la paire se tend (écart 20 -> 52 px, cou qui s'affine) puis claque au centre
+ogap = Track((F(2), 25), (T_U1, 20, "linear"), (T_J0, 52, "out_cubic"), (T_J1, -R_ONE, "in_cubic"))
+oneck = Track((T_U1, 27.5), (T_J0, 12, "out_cubic"), (T_J1, 27.5, "in_cubic"))
+_ozoom = Track((0, 1.26), (F(2), 1.22, "linear"), (T_BACK, 1.04, "out_cubic"), (T_U1, 1.6, "inout_cubic"),
+               (F(30), 1.66, "linear"))
+orange_close = Track((F(23), 0), (T_U1, 1, "out_cubic"))
+dot_r = Track((T_J1, R_ONE), (F(41), 20, "out_back"), (T_DOT, 14, "inout_cubic"))
+split_dx = Track((T_DOT, 0), (F(45), 16, "out_cubic"), (F(51), HALF, BACK6))
 
 
 def oxO(t):
@@ -284,9 +290,9 @@ def outro_shapes(t):
     if t < T_J1:
         xw, ro, xo = oxW(t), orO(t), oxO(t)
         sx = pair_sx(t, "outro")
-        so = 1 + min(0.3, abs(vel(oxO, t)) / 160) if t < T_BACK else 1.0
+        so = 1 + min(0.3, abs(vel(oxO, t)) / 160) if t < T_BACK + F(2) else 1.0
         col = mix_hex(ORANGE, WHITE, prog(t, T_J1 - F(2), T_J1))
-        d = squashed(pair_d((pre(xo, sx), ro / so), (pre(xw, sx), rw), 27.5), sx)
+        d = squashed(pair_d((pre(xo, sx), ro / so), (pre(xw, sx), rw), oneck(t)), sx)
         L.append({"k": "fill", "id": "point-fenetre", "fill": col, "d": d, "pts": [(xo, AXIS), (xw, AXIS)], "ghost": so < 1.01})
         if so > 1.01 and xo + ro * so > 0:
             L.append({"k": "fill", "id": "point-etire", "fill": col, "d": ellipse_d(xo, AXIS, ro * so, ro / so)})
@@ -307,9 +313,9 @@ def logo_points(t):
     if t < T_DOT:
         return []
     dx = split_dx(t)
-    u = prog(t, T_DOT, F(49))
+    u = prog(t, T_DOT, F(48))
     r = 14 + (DOT_R - 14) * u
-    if t > F(52):
+    if t > F(51):
         out = []
         for i, s in enumerate((-1, 1)):
             rr = DOT_R * breathe(t, 0.2, 1.1, phase=0.25 * i)
@@ -342,14 +348,14 @@ def a_logo(t):
 
 
 OUTRO = Anim("OUTRO", 3.6, outro_full, [
-    Beat(F(6), "Le plan recule dans la fenêtre (r 1150 → 420, out_expo) ; le point rentre par la gauche, déjà attaché, étiré à 130 %.", "out_expo", ann=a_aspire, onion=2, onion_dt=F(2)),
-    Beat(F(12), "Impact : le point s'écrase à 84 % ; la fenêtre inspire (+3 %) et glisse de 12 px à gauche avant l'échange.", "out_cubic", onion=2, onion_dt=F(2)),
-    Beat(F(21), "Travelling compensé inversé : la fenêtre rétrécit ×4 pendant que la plaque rezoome de 104 à 160 % ; le point regrossit.", "inout_cubic", ann=a_vertigo_inv, onion=2, onion_dt=F(4)),
-    Beat(F(28), "Un iris orange referme la vidéo en 5 images : on retrouve la paire de la charte 3.4-01, rapport 3:1.", "out_cubic", onion=0),
-    Beat(F(37), "Réunion et contraction en même temps (anticipation 4 %) : jamais de grand disque seul au centre.", "in_back", ann=a_fusion, onion=2, onion_dt=F(2)),
-    Beat(F(41), "Il ne reste qu'un point blanc : écrasé à 77 % à l'impact, il rebondit (×1,3) puis se contracte.", "out_back", onion=0),
-    Beat(F(49), "3.4-02 : le point se divise, le cou casse, les points filent à leur place (dépassement 6 %) ; « sfeer » s'ouvre au centre.", "out_back", ann=a_logo, onion=2, onion_dt=F(2)),
-    Beat(F(82), "Tenue vivante : points qui respirent (±20 %), poussée lente de 7,5 %/s ; l'arabe s'est écrit de droite à gauche.", "emphase", onion=0),
+    Beat(F(5), "Le plan recule dans la fenêtre (r 1150 → 470) ; le point rentre par la gauche, déjà attaché, étiré à 130 %.", "out_expo", ann=a_aspire, onion=2, onion_dt=F(2)),
+    Beat(F(11), "Le point se cale. La fenêtre continue de rétrécir, mais la plaque change de sens : elle rezoome.", "out_cubic", onion=2, onion_dt=F(2)),
+    Beat(F(19), "Travelling compensé inversé : la fenêtre rétrécit ×4 pendant que la plaque rezoome de 104 à 160 % ; le point regrossit.", "inout_cubic", ann=a_vertigo_inv, onion=2, onion_dt=F(4)),
+    Beat(F(30), "Un iris orange a refermé la vidéo (4 images). Anticipation : la paire se tend, l'écart passe de 20 à 52 px, le cou s'affine.", "out_cubic", onion=1, onion_dt=F(3)),
+    Beat(F(36), "Puis la paire claque au centre : réunion et contraction en même temps (7 images), jamais de grand disque seul.", "in_cubic", ann=a_fusion, onion=2, onion_dt=F(2)),
+    Beat(F(40), "Il ne reste qu'un point blanc : écrasé à 77 % à l'impact, il rebondit (×1,3) puis se contracte.", "out_back", onion=0),
+    Beat(F(48), "3.4-02 : le point se divise, le cou casse, les points filent à leur place (dépassement 6 %) ; « sfeer » s'ouvre au centre.", "out_back", ann=a_logo, onion=2, onion_dt=F(2)),
+    Beat(F(80), "Tenue vivante : points qui respirent (±20 %), poussée lente de 7,5 %/s ; l'arabe s'est écrit de droite à gauche.", "emphase", onion=0),
 ])
 
 
@@ -366,7 +372,7 @@ NOTES = [
     ]),
     ("Mouvement", [
         "Le vertige : la fenêtre ×3,4 pendant que la plaque, centrée sur elle, dézoome de 160 à 100 % (et l'inverse en outro).",
-        "Anticipations de 3 à 4 images avant chaque geste, dépassements de 6 %, écrasements aux impacts ; saut en 8 images in_expo.",
+        "Avant chaque geste, la paire se tend : le cou s'affine (anticipation de 4 à 5 images). Dépassements de 6 %, saut en 8 images in_expo.",
         "AE : deux cercles et un cou, nombre de sommets constant ; plaque parentée au centre de la fenêtre. Natif en Lottie.",
     ]),
 ]

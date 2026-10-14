@@ -132,7 +132,7 @@ def speed(fn, t, dt=0.02):
     return (fn(t + dt) - fn(t - dt)) / (2 * dt)
 
 
-def stretch(fn, t, k=7000.0, cap=1.16, v0=900.0):
+def stretch(fn, t, k=7000.0, cap=1.15, v0=900.0):
     """Étirement dans le sens de la vitesse horizontale (px/s) au-delà de v0, plafonné."""
     return min(cap, 1 + max(0.0, abs(speed(fn, t)) - v0) / k)
 
@@ -154,10 +154,10 @@ sxA_t = Track((F(9), 1.0), (F(13), 0.9, "inout_cubic"), (F(19), 1.0, "out_back")
 xB_t = Track((F(13), 190), (F(22), 615, "out_back"),
              (F(25), 596, "out_cubic"), (F(30), 615, "out_back"),                 # recul quand C part (3 %)
              (F(32), 615), (F(46), 0, "inout_cubic"),                              # le relais : B glisse au bord
-             (F(61), 0), (F(64), 0), (F(75), -700, "in_cubic"))                    # arrachée hors champ au saut
+             (F(61), 0), (F(64), 0), (F(73), -700, "in_cubic"))                    # arrachée hors champ au saut
 rB_t = Track((F(13), 0), (F(19), 168, "out_cubic"), (F(24), 150, "inout_cubic"),
              (F(32), 150), (F(46), 250, "inout_cubic"), (F(60), 330, "inout_cubic"),
-             (F(64), 348, "inout_cubic"), (F(75), 380, "in_cubic"))
+             (F(64), 348, "inout_cubic"), (F(73), 380, "in_cubic"))
 sxB_t = Track((F(20), 1.0), (F(23), 0.9, "inout_cubic"), (F(28), 1.0, "out_back"))  # inspire avant C
 
 # C : naît de B, fenêtre ; s'approche, inspire, saute vers la caméra
@@ -197,7 +197,7 @@ def intro_state(t):
     sxB = stretch(xB_t, t) * sxB_t(t) * squash(t, F(21), F(9), -0.12)
     sxC = stretch(xC_t, t) * (squash(t, F(30), F(9), -0.12) if t < F(46) else 1.0)
     if t >= F(64):                                   # B arrachée : étirée dans le sens de la traction
-        sxB = 1 + 0.26 * prog(t, F(64), F(72), "in_cubic")
+        sxB = 1 + 0.18 * prog(t, F(64), F(72), "in_cubic")
         sxC = 1.0
     return xA, rA, sxA, xB, rB, sxB, xC, rC, sxC
 
@@ -239,7 +239,8 @@ def intro(t):
 
 
 def a_pop(t):
-    return arrow(40, AXIS, 300, AXIS) + arrow(330, AXIS - 300, 395, AXIS - 360) + arrow(330, AXIS + 300, 395, AXIS + 360)
+    c, si = math.cos(math.radians(40)), math.sin(math.radians(40))
+    return arrow(40, AXIS, 300, AXIS) + "".join(arrow(250 * c, AXIS + dy * 250 * si, 400 * c, AXIS + dy * 400 * si) for dy in (-1, 1))
 
 
 def a_naissance_b(t):
@@ -278,12 +279,12 @@ INTRO = Anim("INTRO", 3.6, intro, [
     Beat(F(37), "Le relais : une gorgée traverse chaque cou de gauche à droite et le receveur gonfle de 16 %. La 2e onde va 1,5 fois plus vite.",
          "inout_cubic", ann=a_gorgee, onion=0),
     Beat(F(45), "A se vide dans B, qui glisse au bord et se recoupe sur sa médiane. C recule de 400 px avec la chaîne : c'est l'élan.",
-         "inout_cubic", ann=a_relais, onion=2, onion_dt=F(4)),
+         "inout_cubic", ann=a_relais, onion=1, onion_dt=F(6)),
     Beat(F(58), "Approche : C file au centre et passe de 290 à 470 px de rayon, tenue par un cou fin. La vidéo dedans grossit 2 fois moins vite.",
          "inout_cubic", ann=a_approche, onion=2, onion_dt=F(4)),
-    Beat(F(67), "Saut : C inspire (−4 %) puis fonce vers la caméra (courbe plongée, plein cadre en 5 images). B, encore liée, est arrachée à gauche.",
+    Beat(F(67), "Saut : C inspire (−8 %) puis fonce vers la caméra (courbe plongée, plein cadre en 6 images). B, encore liée, est arrachée à gauche.",
          "plongee", ann=a_saut, onion=2, onion_dt=F(2)),
-    Beat(F(84), "Plein cadre vidéo : la plaque continue de pousser (100 → 116 %) en décélérant. On raccorde sur un plan en mouvement.",
+    Beat(F(84), "Plein cadre vidéo : la plaque continue de pousser (100 → 120 %) en décélérant. On raccorde sur un plan en mouvement.",
          "out_cubic", onion=0),
 ])
 
@@ -322,7 +323,7 @@ def dots_state(t):
     tb = T0_LOGO - F(2)
     col = mix_hex(ORANGE, WHITE, prog(t, F(47), F(57)))
     if t < tb:
-        return [(xC, rC, squash(t, SNAP, F(10), 0.22))], [], col
+        return [(xC, rC, squash(t, SNAP, F(10), 0.15))], [], col
     rD = Track((tb, 0), (tb + F(3), 52, "out_cubic"), (tb + F(14), DOT_R, "inout_cubic"))(t)
 
     def xD_at(s):
@@ -334,8 +335,8 @@ def dots_state(t):
     rD = lerp(rD, DOT_R * breathe(t, 0.2, 1.1, 0.25), bre)
     neck = [min(rC, rD) * 0.35] if t < tb + F(4) else [None]       # le cou C-D casse net à 4 images
     xC -= 8 * pulse(t, tb + F(4), F(4))                            # recul de C à la rupture
-    sxD = stretch(xD_at, t, k=5000, cap=1.3)
-    return [(xC, rC, squash(t, SNAP, F(10), 0.22)), (xD, rD, sxD)], neck, col
+    sxD = stretch(xD_at, t, k=5000, cap=1.2)
+    return [(xC, rC, squash(t, SNAP, F(10), 0.15)), (xD, rD, sxD)], neck, col
 
 
 def outro_shapes(t):
@@ -374,6 +375,10 @@ def outro_shapes(t):
     if xB + rB > 0:
         nub = [(xB + rB * 0.8 + 70 * (1 - u), 14 * (1 - u) + 0.1, 1.0)] if u < 1 else []
         L.append(blob([(xB, rB * breathe(t, 0.012, 1.0), 1.0)] + nub, [8 * (1 - u) + 1] if nub else [], "bulle-b"))
+    rdrop = 18 * (1 - prog(t, SNAP, SNAP + F(5), "in_cubic"))             # gouttelette du cou qui fond
+    if rdrop > 0.5:
+        L.append({"k": "fill", "id": "gouttelette", "fill": ORANGE, "ghost": False,
+                  "d": circle_cw(470 + 60 * prog(t, SNAP, SNAP + F(5), "out_cubic"), rdrop)})
     return L
 
 
@@ -430,13 +435,13 @@ OUTRO = Anim("OUTRO", 4.0, outro, [
          "in_cubic", ann=a_fermeture, onion=0),
     Beat(F(41), "Merci (3.3-02) : C regonfle de 36 % et B cède 5 %, puis tout revient. Le cou s'affine jusqu'à 5 px : tension.",
          "inout_cubic", ann=a_merci, onion=2, onion_dt=F(3)),
-    Beat(F(48), "Rupture nette : le cou casse. B recule et sort à gauche en 8 images, C rebondit vers la droite et s'écrase à 122 %.",
+    Beat(F(48), "Rupture nette : le cou casse. B recule et sort à gauche en 8 images, C rebondit à droite (écrasée 115 %), une gouttelette fond.",
          "out_back", ann=a_rupture, onion=2, onion_dt=F(2)),
-    Beat(F(53), "C blanchit et fait naître D (3.5-02 en petit) : le cou casse à la 4e image, D file vers la droite, étirée à 130 %.",
+    Beat(F(53), "C blanchit et fait naître D (3.5-02 en petit) : le cou casse à la 4e image, D file vers la droite, étirée à 120 %.",
          "emphase", ann=a_ecrit, onion=2, onion_dt=F(1)),
     Beat(F(59), "D écrit le mot en filant devant lui : « sfeer » se révèle de gauche à droite en 14 images, l'arabe suit de droite à gauche.",
          "emphase", onion=2, onion_dt=F(2)),
-    Beat(F(92), "Tenue vivante : les deux points respirent (±20 %), poussée lente de 7,5 %/s ; « Powered by RIYADH AIR » est posé en bas.",
+    Beat(F(92), "Tenue vivante : les deux points respirent (±20 %), poussée lente de 12,5 %/s ; « Powered by RIYADH AIR » est posé en bas.",
          "emphase", onion=0),
 ])
 
