@@ -23,6 +23,7 @@ META = {
     "id": "p10_le_balayage",
     "num": "P10",
     "title": "Le balayage",
+    "principe": "Une bulle géante entre par le bord, se lie à la petite par un long cou, puis balaie le cadre avec la vidéo.",
     "logline": "Piste 10 de la DA. Des points se fondent en une bulle qui tremble ; une géante entre par le bord, la relie "
                "par un long cou tendu, puis claque et balaie tout le cadre en emportant la vidéo.",
 }

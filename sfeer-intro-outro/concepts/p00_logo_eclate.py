@@ -29,6 +29,7 @@ META = {
     "id": "p00_logo_eclate",
     "num": "PØ",
     "title": "Le logo éclaté",
+    "principe": "Les points du logo gonflent en bulles, se percutent et se rassemblent en une bulle qui ouvre la fenêtre.",
     "logline": "Piste Ø de la DA. Les points du logo gonflent en bulles qui mangent le mot, se percutent, rebondissent "
                "en chaîne de 4, puis tout claque au centre : la bulle unique éclot en vidéo et la caméra plonge.",
 }

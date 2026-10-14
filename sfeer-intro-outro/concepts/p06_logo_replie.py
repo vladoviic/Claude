@@ -39,6 +39,7 @@ META = {
     "id": "p06_logo_replie",
     "num": "P6",
     "title": "Le logo replié",
+    "principe": "Le logo se referme en un seul point, qui échange sa taille avec la fenêtre : la charte 3.4 jouée à rebours.",
     "logline": "Piste 6 de la DA. Le mot se referme comme une fermeture éclair dont les points sont les curseurs ; "
                "les points fusionnent, virent à l'orange, gonflent et échangent leur taille avec la fenêtre où l'on plonge.",
 }

@@ -28,6 +28,7 @@ META = {
     "id": "p07_la_goutte",
     "num": "P7",
     "title": "La goutte",
+    "principe": "Une molécule de bulles se vide dans une seule goutte dont le cou file hors cadre : la goutte est la fenêtre.",
     "logline": "Piste 7 de la DA. Un point se multiplie en molécule qui palpite ; la bulle du centre aspire toutes "
                "les autres, enfle en goutte dont le cou file hors cadre à droite. La vidéo éclot dedans, on plonge.",
 }

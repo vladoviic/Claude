@@ -26,6 +26,7 @@ META = {
     "id": "p04_le_doigt",
     "num": "P4",
     "title": "Le doigt",
+    "principe": "Un doigt touche une bulle et en tire une autre : la bulle tirée devient la fenêtre, comme dans une app.",
     "logline": "Piste 4 de la DA. Un doigt appuie sur une bulle, glisse et en tire une seconde par un cou élastique : "
                "elle claque, gonfle et devient la fenêtre, décentrée ; la caméra plonge dedans.",
 }

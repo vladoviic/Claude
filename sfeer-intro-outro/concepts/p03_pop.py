@@ -25,6 +25,7 @@ META = {
     "id": "p03_pop",
     "num": "P3",
     "title": "Pop !",
+    "principe": "Une bulle claque et se multiplie de plus en plus vite, puis tout se tasse en une masse qui s'ouvre sur le film.",
     "logline": "Piste 3 de la DA. Une bulle gonfle et claque : 1, 2, 4, 8, de plus en plus vite, puis le motif 3.6 "
                "se déroule. Tout est aspiré en une masse bosselée qui se lisse en fenêtre verte, et l'on plonge.",
 }

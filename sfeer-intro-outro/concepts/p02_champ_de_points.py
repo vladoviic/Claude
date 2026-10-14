@@ -25,6 +25,7 @@ META = {
     "id": "p02_champ_de_points",
     "num": "P2",
     "title": "Le champ de points",
+    "principe": "Un champ de points de fidélité est aspiré en une seule bulle : la fenêtre se gagne point par point.",
     "logline": "Piste 2 de la DA. Des centaines de points SFEER éclosent et respirent ; un tourbillon les aspire au centre "
                "en une seule bulle, qui claque, s'ouvre sur la vidéo et nous avale. En outro, elle éclate en points.",
 }

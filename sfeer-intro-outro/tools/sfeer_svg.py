@@ -616,7 +616,7 @@ class Board:
                     f"<defs>{defs}</defs>{inner}</svg>"
                 )
                 body.append(f'<rect x="{f(x0)}" y="{f(y0)}" width="{f(self.tw)}" height="{f(self.th)}" fill="none" stroke="{INDIGO}" stroke-width="2"/>')
-                body.append(f'<circle cx="{f(x0 + 30)}" cy="{f(y0 + 30)}" r="20" fill="{ORANGE}"/>')
+                body.append(f'<circle cx="{f(x0 + 30)}" cy="{f(y0 + 30)}" r="20" fill="{ORANGE}" stroke="{WHITE}" stroke-width="3"/>')
                 body.append(f'<text x="{f(x0 + 30)}" y="{f(y0 + 38)}" font-family="{FONT}" font-size="22" font-weight="700" fill="{INDIGO}" text-anchor="middle">{k + 1}</text>')
                 body.append(f'<text x="{f(x0)}" y="{f(y0 + self.th + 38)}" font-family="{FONT}" font-size="24" font-weight="700" fill="{ORANGE}">{escape(fr.get("tc", ""))}</text>')
                 if fr.get("curve"):
