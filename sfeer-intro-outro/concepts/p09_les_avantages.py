@@ -14,8 +14,8 @@ import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "tools"))
-from motion import F, FPS, Anim, Beat, Track, back_out, breathe, prog, render_layers  # noqa: E402
-from blocks import LG, arabic, drift, endorse, hold_drift, logo_dots, video, word  # noqa: E402
+from motion import F, FPS, Anim, Beat, Track, breathe, prog, render_layers  # noqa: E402
+from blocks import LG, arabic, drift, endcard, video, word  # noqa: E402
 from sfeer_svg import (AXIS, FONT, H, ORANGE, WHITE, W, arrow, bridge_d, circle_d,  # noqa: E402
                        curved_arrow, ellipse_d, f, mix_hex)
 
@@ -266,86 +266,66 @@ INTRO = Anim("INTRO", 4.4, intro, [
 ])
 
 
-# ----------------------------------------------------------------- OUTRO (4,4 s)
-o_win = Track((F(4), 3.6), (F(20), 1.0, "emphase"))                  # le plein cadre se referme en bulle
-o_pull = Track((0, 1.25), (F(20), 1.0, "out_cubic"))
-o_orange = Track((F(22), 0.0), (F(32), 1.0, "out_expo"))             # la bulle redevient orange
-o_trio = Track((F(22), 0.0), (F(34), 1.0, "out_back"))               # les bulles du haut et du bas sortent
-o_shrink = Track((F(34), 0.0), (F(44), 1.0, "in_cubic"))             # trio -> puces, la liste repousse
-o_bloom = Track((F(40), 0.0), (F(50), 1.0, "out_expo"))
-# défilement vers le bas : accélère (in_cubic), puis freine avec un léger dépassement et se cale sur K
-_rest = Track((F(42), 14 * SP), (F(56), 9 * SP, "in_cubic"), (F(84), 0, back_out(0.8)))
-
-
-def scroll_out(n):
-    return K * SP + _rest(n / FPS)
-
-
-o_link = Track((F(84), 0.0), (F(90), 1.0, "in_expo"))                 # la puce se lie au point du logo
-o_gather = Track((F(86), 0.0), (F(94), 1.0, "in_expo"))               # la liste part, il reste le logo
-o_center = Track((F(93), DX), (F(106), 0, "emphase"))                  # le logo glisse au centre
-o_word = Track((F(56), 0.0), (F(70), 1.0, "emphase"))
-o_ar = Track((F(62), 0.0), (F(74), 1.0, "emphase"))
-o_endo = Track((F(98), 0.0), (F(108), 1.0, "emphase"))
+# ----------------------------------------------------------------- OUTRO (3,6 s)
+# Pas de liste : la grosse bulle devient le mot « sfeer », les deux bulles du haut et du bas
+# font un quart de tour autour du centre et deviennent les points du logo (gauche et droite).
+o_win = Track((F(2), 3.6), (F(18), 1.0, "emphase"))                  # le plein cadre se referme en bulle
+o_pull = Track((0, 1.25), (F(18), 1.0, "out_cubic"))
+o_orange = Track((F(18), 0.0), (F(28), 1.0, "out_expo"))             # la bulle redevient orange
+o_trio = Track((F(18), 0.0), (F(30), 1.0, "out_back"))               # les bulles du haut et du bas jaillissent
+o_turn = Track((F(30), 0.0), (F(52), 1.0, "inout_expo"))             # quart de tour : haut -> gauche, bas -> droite
+o_pill = Track((F(30), 0.0), (F(44), 1.0, "anticipe"))               # la bulle s'aplatit en pilule de la largeur du mot
+o_word = Track((F(44), 0.0), (F(54), 1.0, "emphase"))                # la pilule devient le mot
+LOGO_T0 = F(46)
+ORBIT0, ORBIT1 = 440, CX - LG["dot_g"][0]                           # rayon d'orbite : du trio aux points du logo
 
 
 def outro(t):
     n = t * FPS
     L = []
-    if n < 20:
-        L.append(video(o_pull(t), ghost=False))
+    if n < 18:
         r = 620 * o_win(t)
-        L.insert(0, {"k": "bg", "v": "gradient"})
-        L[-1] = video(o_pull(t), circle_d(CX, AXIS, r), ghost=r < 1500)
-        return L
+        return [{"k": "bg", "v": "gradient"}, video(o_pull(t), circle_d(CX, AXIS, r), ghost=r < 1500)]
     L.append({"k": "bg", "v": "gradient"})
-    if n < 44:
-        rc = 620 * (1 - 0.35 * o_trio(t)) * (1 - 0.8 * o_shrink(t))
-        u = o_trio(t) * (1 - o_shrink(t))
-        for sign in (-1, 1):
-            y = AXIS + sign * 440 * o_trio(t)
-            xa, ya, _, _ = item_pos(sign * SP)
-            y = y + (ya - y) * o_shrink(t)
-            r = 82 * u + RB * o_shrink(t)
-            if o_trio(t) > 0.02:
-                L.append({"k": "fill", "id": f"trio-{'hb'[sign > 0]}", "fill": ORANGE, "d": circle_d(CX + (xa - CX) * o_shrink(t), y, max(r, 2)), "pts": [(CX, y)]})
-        x = CX + (XB - CX) * o_shrink(t)
-        L.append({"k": "fill", "id": "bulle-centre", "fill": ORANGE, "d": circle_d(x, AXIS, max(rc, RB))})
+    # la grosse bulle : ronde -> pilule horizontale -> mot (orange -> blanc)
+    rc = 620 * (1 - 0.35 * o_trio(t))
+    p = o_pill(t)
+    w = o_word(t)
+    if w < 1:
+        rx = rc + (LG["word_w"] / 2 + 20 - rc) * p
+        ry = rc + (46 - rc) * p
+        ry = ry * (1 - w)
+        col = mix_hex(ORANGE, WHITE, prog(t, F(38), F(48)))
+        if ry > 1:
+            L.append({"k": "fill", "id": "bulle-centre", "fill": col, "d": ellipse_d(CX, AXIS, rx, ry), "ghost": p < 0.95})
         if o_orange(t) < 1:
-            L.append(video(1.0 + drift(t, F(20), 0.4), circle_d(x, AXIS, max(rc, RB) * (1 - o_orange(t))), ghost=False))
-        return L
-    # la liste repousse depuis les puces, défile vers le bas puis s'arrête
-    s = scroll_out(n)
-    v = speed(scroll_out, n)
-    gather = o_gather(t)
-    bloom = o_bloom(t)
-    if gather < 1:
-        rows_up = [i for i in range(K - 9, K + 9) if i < K]
-        rows_dn = [i for i in range(K - 9, K + 9) if i > K]
-        L += [{"k": "group", "dy": -1100 * gather, "layers": list_layers(n, s, v, bloom, bloom * (1 - gather), rows=rows_up, uid="ou")},
-              {"k": "group", "dy": 1100 * gather, "layers": list_layers(n, s, v, bloom, bloom * (1 - gather), rows=rows_dn, uid="od")}]
-        if o_link(t) == 0:
-            L += list_layers(n, s, v, bloom, bloom, rows=[K], uid="ok")
-    # logo à gauche, qui glisse ensuite au centre
-    dx = o_center(t)
-    logo_l = word(o_word(t)) + arabic(o_ar(t))
-    lk = o_link(t)
-    yK = AXIS + K * SP - s
-    dots = logo_dots(t)
-    if lk > 0:
-        # la puce K (sur l'axe) se lie au point droit du logo puis s'y fond
-        xd = LG["dot_d"][0] + dx
-        xb = XB + (xd - XB) * o_gather(t)
-        rb_ = RB * (1 - 0.3 * o_gather(t))
-        if xb - xd > 6:
-            d = bridge_d((xd, AXIS, LG["dot_r"] * (1 + lk * 0.4)), (xb, AXIS, rb_), 3 + 3 * lk)
-            L.append({"k": "fill", "id": "lien", "fill": mix_hex(ORANGE, WHITE, o_gather(t)), "d": d, "pts": [(xb, AXIS)]})
-        rk = 1 - prog(t, F(84), F(90), "in_cubic")
-        if rk > 0:
-            L += list_layers(n, s, 0, 1, rk, rows=[K], uid="okt", ry_scale=lambda i: 0)
-    drift_s = hold_drift(t, F(104))
-    L.append({"k": "group", "s": drift_s, "layers": [{"k": "group", "dx": dx, "layers": logo_l + dots}]})
-    L += endorse(o_endo(t))
+            L.append(video(1.0 + drift(t, F(18), 0.4), circle_d(CX, AXIS, rc * (1 - o_orange(t))), ghost=False))
+    # les deux bulles : quart de tour autour du centre, rétrécissent en points blancs
+    u = o_turn(t)
+    dots = []
+    for sign, a0, a1 in ((-1, -90.0, -180.0), (1, 90.0, 0.0)):
+        if o_trio(t) <= 0.02:
+            continue
+        a = math.radians(a0 + (a1 - a0) * u)
+        rad = (ORBIT0 * o_trio(t)) * (1 - u) + ORBIT1 * u
+        x, y = CX + rad * math.cos(a), AXIS + rad * math.sin(a)
+        r = 82 * min(1.0, o_trio(t)) * (1 - u) + LG["dot_r"] * u
+        spd = abs(o_turn(t + 0.02) - o_turn(t - 0.02)) / 0.04            # étirement dans le sens de la rotation
+        st = min(1.35, 1 + 0.18 * spd)
+        col = mix_hex(ORANGE, WHITE, prog(t, F(40), F(52)))
+        if u >= 1:
+            r = LG["dot_r"] * breathe(t, 0.2, 1.1, 0.25 * (sign > 0))
+            dots.append({"k": "fill", "id": f"logo-point-{'gd'[sign > 0]}", "fill": WHITE, "d": circle_d(x, y, r), "ghost": False})
+        else:
+            tang = math.degrees(a) + 90
+            d = ellipse_d(0, 0, r * st, r / st)
+            L.append({"k": "raw", "svg": f'<path transform="translate({f(x)} {f(y)}) rotate({f(tang)})" d="{d}" fill="{col}"/>'})
+            L.append({"k": "fill", "id": f"orbite-{'hb'[sign > 0]}", "fill": "none", "d": circle_d(x, y, 1), "pts": [(x, y)], "ghost": False})
+    # carton : le mot remplace la pilule, l'arabe et l'endossement suivent, poussée lente continue
+    if t >= LOGO_T0:
+        L += endcard(t, LOGO_T0, dots=False, extra=dots)
+    else:
+        L += dots
     return L
 
 
@@ -353,23 +333,20 @@ def a_referme(t):
     return "".join(arrow(CX + dx * 880, AXIS + dy * 480, CX + dx * 520, AXIS + dy * 300) for dx in (-1, 1) for dy in (-1, 1))
 
 
-def a_defile_bas(t):
-    return arrow(1880, 260, 1880, 820) + arrow(1830, 360, 1830, 820)
+def a_tour(t):
+    return (curved_arrow(CX - 60, AXIS - 470, CX - 330, AXIS - 400, CX - 400, AXIS - 120) +
+            curved_arrow(CX + 60, AXIS + 470, CX + 330, AXIS + 400, CX + 400, AXIS + 120))
 
 
-def a_glisse(t):
-    return arrow(560, 820, 900, 820)
-
-
-OUTRO = Anim("OUTRO", 4.4, outro, [
-    Beat(F(10), "Fin du plan : la vidéo se referme en une grande bulle centrée (zoom arrière 125 % -> 100 %).", "emphase", ann=a_referme),
-    Beat(F(28), "La bulle redevient orange depuis le centre ; deux bulles jaillissent en haut et en bas (le trio revient).", "out_back"),
-    Beat(F(42), "Le trio rétrécit en puces et se range dans la colonne ; le logo commence à s'ouvrir à gauche.", "in_cubic"),
-    Beat(F(56), "La liste repousse depuis les puces et part vers le bas en accélérant (traits de vitesse, puces étirées).", "in_cubic", ann=a_defile_bas, onion=0),
-    Beat(F(76), "Freinage machine à sous : la liste ralentit, le texte redevient lisible, léger dépassement puis retour sur l'axe.", "out_back", onion=2, onion_dt=F(4)),
-    Beat(F(87), "La puce arrêtée sur l'axe se lie au point droit du logo par un cou horizontal.", "in_expo"),
-    Beat(F(97), "La liste est sortie ; la puce s'est fondue dans le point du logo, qui glisse vers le centre (13 images).", "emphase", ann=a_glisse),
-    Beat(F(108), "Carton : logo centré, arabe révélé, endossement en bas ; points qui respirent et poussée lente continue.", "emphase"),
+OUTRO = Anim("OUTRO", 3.6, outro, [
+    Beat(F(8), "Fin du plan : la vidéo se referme en une grande bulle centrée (zoom arrière 125 % -> 100 %).", "emphase", ann=a_referme),
+    Beat(F(24), "La bulle redevient orange depuis le centre ; deux bulles jaillissent en haut et en bas avec dépassement (le trio revient).", "out_back"),
+    Beat(F(34), "Anticipation : la grosse bulle se gonfle d'abord un peu, puis s'aplatit en pilule horizontale.", "anticipe"),
+    Beat(F(40), "Quart de tour : les bulles du haut et du bas tournent autour du centre en accélérant, étirées par la vitesse.", "inout_expo", ann=a_tour),
+    Beat(F(46), "La pilule a la largeur du mot et vire au blanc ; les bulles arrivent sur l'axe, à gauche et à droite.", "inout_expo"),
+    Beat(F(50), "La pilule s'affine et devient « sfeer » ; les bulles se posent en points du logo, blanches.", "emphase"),
+    Beat(F(62), "L'arabe se révèle de droite à gauche, l'endossement se pose en bas.", "emphase"),
+    Beat(F(86), "Tenue vivante : points qui respirent (±20 %), poussée lente continue de 7,5 %/s.", "emphase"),
 ])
 
 NOTES = [
@@ -386,6 +363,6 @@ NOTES = [
     ("Mouvement", [
         "La liste court sur un arc (rayon 820 px) : lignes en éventail, items qui rapetissent vers le haut et le bas, comme un tambour.",
         "Vitesse raccordée : 47 px/image puis freinage « back out » qui part à la même vitesse ; au-delà de 10 px/image, le texte devient des traits.",
-        "Asymétrie : la liste du haut et celle du bas partent avec la même accélération mais le trio se recale en 2 temps.",
+        "Outro sans liste : la grosse bulle devient le mot, les deux bulles du trio font un quart de tour et deviennent les points du logo.",
     ]),
 ]
