@@ -16,7 +16,7 @@ import re
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "tools"))
-from motion import F, Anim, Beat, Track, breathe, prog  # noqa: E402
+from motion import F, Anim, Beat, Track, bezier, breathe, prog  # noqa: E402
 from blocks import LG, arabic, endcard, squash, video, word  # noqa: E402
 from sfeer_svg import (AXIS, ORANGE, WHITE, W, arrow, bridge_d, ellipse_d, f,  # noqa: E402
                        label, mix_hex, waist_h)
@@ -322,7 +322,7 @@ INTRO = Anim("INTRO", 4.0, intro, [
     Beat(F(16), "Le point droit éclate en bobine à l'impact (écrasement 82 %). Le mot est entièrement enroulé dans la bobine gauche.", "inout_cubic", onion=2, onion_dt=F(2)),
     Beat(F(24), "La bobine gauche claque au bord (dépassement 48 px). La bobine droite déroule une pellicule de bulles vers la gauche.", "in_cubic", ann=a_deroule, onion=0),
     Beat(F(33), "Pleine vitesse : 150 px par image, bulles étirées à 135 % × 74 %. Chaque bulle grossit de 50 % en passant au centre.", "linear", ann=a_vitesse, onion=0),
-    Beat(F(51), "Cran : la grande bulle dépasse le centre de 55 px, revient sur un ressort et gonfle de 18 %. Écrasement 82 %, les bobines tressautent.", "ressort", ann=a_cran, onion=1, onion_dt=F(3)),
+    Beat(F(51), "Cran : la grande bulle dépasse le centre de 55 px, revient sur un ressort et gonfle de 18 %. Écrasement 82 %, les bobines tressautent.", "ressort", ann=a_cran, onion=0),
     Beat(F(56), "Rupture : les cous cassent (gauche f53, droite f55), les moitiés reculent dans les bobines. Iris vert en 4 images.", "out_expo", ann=a_rupture, onion=2, onion_dt=F(2)),
     Beat(F(74), "Plongée : la fenêtre a gonflé ×2,8 (+10 %), la caméra zoome depuis le centre ; la plaque verte zoome plus lentement.", "plongee", ann=a_plongee, onion=2, onion_dt=F(3)),
 ])
@@ -330,7 +330,7 @@ INTRO = Anim("INTRO", 4.0, intro, [
 
 # ================================================================= OUTRO (4,0 s)
 pull = Track((0, 3.6), (F(3), 3.35, "linear"), (F(16), 0.965, "out_expo"), (F(22), 1.0, "ressort_mou"))
-win_r = Track((F(7), RWIN), (F(19), RB * (1 + LENS), "anticipe"))
+win_r = Track((F(5), RWIN), (F(19), RB * (1 + LENS), bezier(0.4, 0, 0.3, 1)))
 orange_in = Track((F(16), 0), (F(20), 1, "out_cubic"))
 grp_L = Track((F(20), -1150), (F(28), 0, "out_back"))
 grp_R = Track((F(22), 1150), (F(30), 0, "out_back"))
@@ -465,7 +465,7 @@ def a_division(t):
 OUTRO = Anim("OUTRO", 4.0, outro_full, [
     Beat(F(6), "Aspiration : la vidéo plein cadre se rétracte en bulle (zoom radial 335 % → 100 % en 13 images), la plaque recule aussi.", "out_expo", ann=a_aspire, onion=2, onion_dt=F(2)),
     Beat(F(15), "Les bobines reviennent aux bords et dépassent de 3,5 % avant de se caler sur leur milieu (la droite 2 images après).", "ressort_mou", ann=a_retour, onion=2, onion_dt=F(2)),
-    Beat(F(21), "La fenêtre inspire (+6 %) puis se contracte ×2,8 ; un iris orange referme la vidéo en 4 images, avec écrasement.", "anticipe", onion=2, onion_dt=F(2)),
+    Beat(F(20), "La fenêtre continue de se contracter (×2,8 en 14 images) ; un iris orange referme la vidéo en 4 images, avec écrasement 85 %.", "out_cubic", onion=2, onion_dt=F(2)),
     Beat(F(27), "Les deux moitiés de pellicule ressortent des bobines (décalage 2 images) et se ressoudent à la bulle centrale.", "out_back", ann=a_rejoint, onion=0),
     Beat(F(45), "Défilement inverse : recul de 40 px, puis la pellicule file à droite à 125 px par image ; chaque bulle grossit au centre.", "in_cubic", ann=a_inverse, onion=0),
     Beat(F(51), "Coup sec : la queue de la pellicule se détache et freine (écrasement) ; le reste est aspiré dans la bobine droite (+7 %).", "out_cubic", ann=a_depose, onion=2, onion_dt=F(2)),

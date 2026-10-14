@@ -8,7 +8,6 @@ dans le film. L'outro rejoue le geste à l'envers jusqu'au logo.
 """
 import math
 import os
-import re
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "tools"))
@@ -37,39 +36,6 @@ META = {
 
 
 # ================================================================= OUTILS DE FORME
-_TOK = re.compile(r"[MLAaZz]|-?\d*\.?\d+")
-
-
-def stretch_d(d, sx, sy, cx=CX, cy=AXIS):
-    """Étire un tracé (M, L, A, a, Z) autour de (cx, cy). Un arc de cercle devient un arc d'ellipse."""
-    if abs(sx - 1) < 1e-4 and abs(sy - 1) < 1e-4:
-        return d
-    tok = _TOK.findall(d)
-    out, i, cmd = [], 0, None
-    while i < len(tok):
-        t = tok[i]
-        if t in "MLAaZz":
-            cmd = t
-            out.append(t)
-            i += 1
-            continue
-        if cmd in ("M", "L"):
-            x, y = float(tok[i]), float(tok[i + 1])
-            out.append(f"{f(cx + (x - cx) * sx)} {f(cy + (y - cy) * sy)}")
-            i += 2
-        elif cmd in ("A", "a"):
-            rx, ry, rot, la, sw, x, y = tok[i:i + 7]
-            if cmd == "A":
-                x, y = f(cx + (float(x) - cx) * sx), f(cy + (float(y) - cy) * sy)
-            else:
-                x, y = f(float(x) * sx), f(float(y) * sy)
-            out.append(f"{f(float(rx) * sx)} {f(float(ry) * sy)} {rot} {la} {sw} {x} {y}")
-            i += 7
-        else:
-            i += 1
-    return " ".join(out)
-
-
 def circ(cx, r, cy=AXIS):
     """Cercle tracé dans le sens horaire (même sens que bridge_d)."""
     return (f"M{f(cx - r)} {f(cy)}A{f(r)} {f(r)} 0 1 1 {f(cx + r)} {f(cy)}"
@@ -97,17 +63,25 @@ def pair_d(c1, c2, h):
     return bridge_d(a, b, min(h, 0.95 * min(r1, r2)))
 
 
-def squashed(d, sx):
-    """Écrasement / étirement horizontal d'un groupe de bulles, centres conservés (tracé en espace « pré-étiré »)."""
-    return d if abs(sx - 1) < 1e-3 else stretch_d(d, sx, 1 / sx)
-
-
-def pre(x, sx):
-    return CX + (x - CX) / sx
-
-
 def vel(fn, t):
     return (fn(t + 0.02) - fn(t - 0.02)) / 0.04 / 25
+
+
+def pair_layers(xo, ro, so, xw, rw, sw, h, col, zoom, green=1.0, iris=0.0):
+    """Point + cou + fenêtre. so / sw : déformation horizontale propre à chaque bulle (étirement, écrasement).
+    Le cou s'accroche à un cercle intérieur ; l'ellipse déformée le recouvre (même couleur ou plaque verte)."""
+    ko, kw = min(so, 1 / so), min(sw, 1 / sw)
+    L = [{"k": "fill", "id": "point-fenetre", "fill": col, "d": pair_d((xo, ro * ko), (xw, rw * kw), h),
+          "pts": [(xo, AXIS)], "ghost": abs(so - 1) < 0.01}]
+    if abs(so - 1) > 0.01 and xo + ro * so > -5:
+        L.append({"k": "fill", "id": "point-deforme", "fill": col, "d": ellipse_d(xo, AXIS, ro * so, ro / so)})
+    if abs(sw - 1) > 0.01 and green < 1:
+        L.append({"k": "fill", "id": "fenetre-deformee", "fill": col, "d": ellipse_d(xw, AXIS, rw * sw, rw / sw), "ghost": False})
+    if green > 0:
+        L += window_layers(xw, rw * green, sw, zoom)
+    if iris > 0:   # iris orange qui referme la fenêtre (une forme, pas un fondu)
+        L.append({"k": "fill", "id": "iris", "fill": ORANGE, "d": ellipse_d(xw, AXIS, rw * iris * sw, rw * iris / sw), "ghost": False})
+    return L
 
 
 def window_layers(xw, rw, sx, zoom, gid="fenetre"):
@@ -163,13 +137,6 @@ def xO(t):
     return xW(t) - rW(t) - gap(t) - rO(t)
 
 
-def pair_sx(t, part="intro"):
-    """Écrasement de la paire aux impacts (fin de division, fin d'échange)."""
-    if part == "intro":
-        return 1 / squash(t, F(22), F(8), 0.06) / squash(t, T_SWAP1, F(8), 0.05)
-    return 1 / squash(t, T_U1, F(8), 0.05)
-
-
 def logo_fold(t):
     """Le logo se replie : le mot se referme au centre, les deux points se précipitent et fusionnent."""
     L = []
@@ -198,18 +165,13 @@ def intro(t):
     xw, rw, ro, xo = xW(t), rW(t), rO(t), xO(t)
     rw *= alive(t, F(22), T_REC, 0.5)
     ro *= alive(t, F(22), T_REC)
-    sx = pair_sx(t)
-    # le point est projeté à gauche pendant le saut : étirement dans le sens de la vitesse
+    # point projeté à gauche pendant le saut : étirement dans le sens de la vitesse (jusqu'à 130 %)
     so = 1 + min(0.3, abs(vel(xO, t)) / 160) if t > T_REC else 1.0
+    so /= squash(t, T_SWAP1, F(8), 0.15)                       # le point (petit) encaisse la fin de l'échange
+    sw = 1 / squash(t, F(23), F(8), 0.2) / squash(t, T_SWAP1, F(8), 0.04)   # la fenêtre se pose
     col = mix_hex(WHITE, ORANGE, prog(t, T_SPLIT, T_SPLIT + F(2)))
-    h = neck_i(t)
-    # point projeté : le cou s'accroche à un cercle intérieur (r / so), l'ellipse étirée le recouvre
-    d = squashed(pair_d((pre(xo, sx), ro / so), (pre(xw, sx), rw), h), sx)
-    L.append({"k": "fill", "id": "point-fenetre", "fill": col, "d": d, "pts": [(xo, AXIS)], "ghost": so < 1.01})
-    if so > 1.01:
-        L.append({"k": "fill", "id": "point-etire", "fill": col, "d": ellipse_d(xo, AXIS, ro * so, ro / so)})
     g = prog(t, T_SPLIT + F(2), T_SPLIT + F(6), "out_cubic")
-    L += window_layers(xw, rw * g, sx, zoom_in(t))
+    L += pair_layers(xo, ro, so, xw, rw, sw, neck_i(t), col, zoom_in(t), green=g)
     return L
 
 
@@ -289,18 +251,13 @@ def outro_shapes(t):
     L.append({"k": "bg", "v": "gradient"})
     if t < T_J1:
         xw, ro, xo = oxW(t), orO(t), oxO(t)
-        sx = pair_sx(t, "outro")
         so = 1 + min(0.3, abs(vel(oxO, t)) / 160) if t < T_BACK + F(2) else 1.0
+        so /= squash(t, T_BACK, F(8), 0.18) * squash(t, T_U1, F(8), 0.04)   # le point se pose, puis encaisse
+        sw = 1 / squash(t, T_U1, F(8), 0.18)                                  # la petite fenêtre se pose
         col = mix_hex(ORANGE, WHITE, prog(t, T_J1 - F(2), T_J1))
-        d = squashed(pair_d((pre(xo, sx), ro / so), (pre(xw, sx), rw), oneck(t)), sx)
-        L.append({"k": "fill", "id": "point-fenetre", "fill": col, "d": d, "pts": [(xo, AXIS), (xw, AXIS)], "ghost": so < 1.01})
-        if so > 1.01 and xo + ro * so > 0:
-            L.append({"k": "fill", "id": "point-etire", "fill": col, "d": ellipse_d(xo, AXIS, ro * so, ro / so)})
         o = orange_close(t)
-        if o < 1:
-            L += window_layers(xw, rw, sx, _ozoom(t))
-            if o > 0:   # iris orange qui referme la fenêtre (forme, pas de fondu)
-                L.append({"k": "fill", "id": "iris", "fill": ORANGE, "d": ellipse_d(xw, AXIS, rw * o * sx, rw * o / sx), "ghost": False})
+        L += pair_layers(xo, ro, so, xw, rw, sw, oneck(t), col, _ozoom(t), green=1.0 if o < 1 else 0.0,
+                         iris=o if o < 1 else 0.0)
     elif t < T_DOT:
         sq = 1 / squash(t, T_J1, F(6), 0.3)
         r = dot_r(t)
@@ -349,7 +306,7 @@ def a_logo(t):
 
 OUTRO = Anim("OUTRO", 3.6, outro_full, [
     Beat(F(5), "Le plan recule dans la fenêtre (r 1150 → 470) ; le point rentre par la gauche, déjà attaché, étiré à 130 %.", "out_expo", ann=a_aspire, onion=2, onion_dt=F(2)),
-    Beat(F(11), "Le point se cale. La fenêtre continue de rétrécir, mais la plaque change de sens : elle rezoome.", "out_cubic", onion=2, onion_dt=F(2)),
+    Beat(F(11), "Le point se pose (écrasé à 85 %). La fenêtre continue de rétrécir, mais la plaque change de sens : elle rezoome.", "out_cubic", onion=2, onion_dt=F(2)),
     Beat(F(19), "Travelling compensé inversé : la fenêtre rétrécit ×4 pendant que la plaque rezoome de 104 à 160 % ; le point regrossit.", "inout_cubic", ann=a_vertigo_inv, onion=2, onion_dt=F(4)),
     Beat(F(30), "Un iris orange a refermé la vidéo (4 images). Anticipation : la paire se tend, l'écart passe de 20 à 52 px, le cou s'affine.", "out_cubic", onion=1, onion_dt=F(3)),
     Beat(F(36), "Puis la paire claque au centre : réunion et contraction en même temps (7 images), jamais de grand disque seul.", "in_cubic", ann=a_fusion, onion=2, onion_dt=F(2)),
