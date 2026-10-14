@@ -641,3 +641,73 @@ class Board:
             f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {f(width)} {f(y)}" width="{f(width)}" height="{f(y)}">'
             f'<defs>{defs_gradient()}</defs><rect width="100%" height="100%" fill="{WHITE}"/>{"".join(body)}</svg>'
         )
+
+
+# --- Ajouts pour les pistes dessinées par la DA ------------------------------
+def hand(x: float, y: float, s: float = 1.0, color: str = INDIGO, cuff: str | None = COSTUME,
+         hid: str = "main") -> str:
+    """Main aplat, index tendu vers le haut. (x, y) = bout de l'index. s=1 -> main ~ 520 px de haut."""
+    t = f"translate({f(x)} {f(y)}) scale({f(s)})"
+    p = [
+        # index
+        f'<rect x="-34" y="0" width="68" height="250" rx="34" fill="{color}"/>',
+        # paume + doigts repliés
+        f'<path d="M-40 170 Q-44 140 -10 140 L120 150 Q170 156 172 200 L176 330 Q180 430 90 470 '
+        f'L-20 480 Q-110 470 -120 380 L-128 260 Q-130 220 -96 214 Q-60 210 -52 240Z" fill="{color}"/>',
+        f'<path d="M30 230 Q100 222 150 236" stroke="{LAVENDER}" stroke-width="6" fill="none" opacity="0.5"/>',
+        f'<path d="M30 300 Q100 292 156 306" stroke="{LAVENDER}" stroke-width="6" fill="none" opacity="0.5"/>',
+        f'<path d="M34 370 Q96 362 150 374" stroke="{LAVENDER}" stroke-width="6" fill="none" opacity="0.5"/>',
+    ]
+    if cuff:
+        p.append(f'<path d="M-110 460 L160 440 L190 640 L-90 660Z" fill="{cuff}"/>')
+    return f'<g id="{hid}" transform="{t}">{"".join(p)}</g>'
+
+
+def drop_d(cx: float, cy: float, r: float, side: str = "right", h: float | None = None,
+           reach: float = 1.0) -> str:
+    """Grande bulle dont le col sort du cadre (gabarit portrait de la charte 2.47).
+
+    Le col se prolonge vers une bulle virtuelle hors champ, sur l'axe horizontal.
+    reach : 0 = col à peine amorcé, 1 = col qui touche le bord du cadre.
+    """
+    h = r * 0.16 if h is None else h
+    r2 = r * 0.85
+    edge = W if side == "right" else 0
+    sign = 1 if side == "right" else -1
+    gap = abs(edge - cx) - r
+    x2 = cx + sign * (r + gap * (0.25 + 1.1 * reach) + r2)
+    c1, c2 = (cx, cy, r), (x2, cy, r2)
+    return bridge_d(c1, c2, h) if side == "right" else bridge_d(c2, c1, h)
+
+
+def edge_bubbles(r: float, cy: float = AXIS, fill: str = INDIGO, spread: float = 0.0,
+                 sid: str = "bulles-bord") -> str:
+    """Deux bulles coupées à leur milieu vertical par les bords gauche et droit du cadre.
+
+    spread > 0 les repousse hors champ (en diagonale si combiné à un zoom).
+    L'espace entre elles (le « lien ») est la fenêtre de la piste 5.
+    """
+    return (f'<g id="{sid}"><circle cx="{f(-spread)}" cy="{f(cy)}" r="{f(r)}" fill="{fill}"/>'
+            f'<circle cx="{f(W + spread)}" cy="{f(cy)}" r="{f(r)}" fill="{fill}"/></g>')
+
+
+def dots_field(n_cols: int = 24, n_rows: int = 13, r: float = 6, fill: str = ORANGE, jitter: float = 0.35,
+               seed: int = 2, pull: float = 0.0, cx: float = W / 2, cy: float = AXIS, grow: float = 1.0) -> str:
+    """Champ de points (piste 2) ; pull de 0 à 1 les attire vers (cx, cy)."""
+    import random
+    rnd = random.Random(seed)
+    out = []
+    sx, sy = W / n_cols, H / n_rows
+    for i in range(n_cols):
+        for j in range(n_rows):
+            x = (i + 0.5 + rnd.uniform(-jitter, jitter)) * sx
+            y = (j + 0.5 + rnd.uniform(-jitter, jitter)) * sy
+            rr = r * grow * rnd.uniform(0.6, 1.4)
+            x, y = x + (cx - x) * pull, y + (cy - y) * pull
+            out.append(f'<circle cx="{f(x)}" cy="{f(y)}" r="{f(rr)}" fill="{fill}"/>')
+    return "".join(out)
+
+
+def film(scene_key: str = "s01", zoom: float = 1.0, dx: float = 0, dy: float = 0) -> str:
+    """Plan du film (décor aplat) avec zoom caméra autour du centre."""
+    return scaled(SCENES[scene_key](), zoom, dx=dx, dy=dy)
