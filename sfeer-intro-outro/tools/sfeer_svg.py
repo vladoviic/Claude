@@ -55,11 +55,14 @@ def f(v: float) -> str:
 # --- Fonds -----------------------------------------------------------------
 def defs_gradient(gid: str = "sfeerGrad") -> str:
     """Dégradé principal indigo -> lavande, point milieu à 70 % (charte 2.37)."""
+    stops = (f'<stop offset="0" stop-color="{INDIGO}"/>'
+             f'<stop offset="0.7" stop-color="{MID}"/>'
+             f'<stop offset="1" stop-color="{LAVENDER}"/>')
+    # {gid} : relatif à la boîte (fonds plein cadre, en-têtes de planches)
+    # {gid}U : en coordonnées d'image, pour remplir des bulles qui « montrent » le fond
     return (
-        f'<linearGradient id="{gid}" x1="0" y1="0" x2="1" y2="0">'
-        f'<stop offset="0" stop-color="{INDIGO}"/>'
-        f'<stop offset="0.7" stop-color="{MID}"/>'
-        f'<stop offset="1" stop-color="{LAVENDER}"/></linearGradient>'
+        f'<linearGradient id="{gid}" x1="0" y1="0" x2="1" y2="0">{stops}</linearGradient>'
+        f'<linearGradient id="{gid}U" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="{W}" y2="0">{stops}</linearGradient>'
     )
 
 
@@ -602,7 +605,7 @@ class Board:
                 x0 = pad + c * (self.tw + gap)
                 y0 = y + r * (self.th + cap_h + gap)
                 uid += 1
-                inner = fr["inner"].replace('id="', f'id="f{uid}-').replace("url(#", f"url(#f{uid}-").replace("url(#f%d-sfeerGrad)" % uid, "url(#sfeerGrad)")
+                inner = fr["inner"].replace('id="', f'id="f{uid}-').replace("url(#", f"url(#f{uid}-").replace("url(#f%d-sfeerGrad" % uid, "url(#sfeerGrad")
                 defs = fr.get("defs", "").replace('id="', f'id="f{uid}-').replace("url(#", f"url(#f{uid}-")
                 body.append(
                     f'<svg x="{f(x0)}" y="{f(y0)}" width="{f(self.tw)}" height="{f(self.th)}" viewBox="0 0 {W} {H}" overflow="hidden">'
@@ -612,6 +615,14 @@ class Board:
                 body.append(f'<circle cx="{f(x0 + 30)}" cy="{f(y0 + 30)}" r="20" fill="{ORANGE}"/>')
                 body.append(f'<text x="{f(x0 + 30)}" y="{f(y0 + 38)}" font-family="{FONT}" font-size="22" font-weight="700" fill="{INDIGO}" text-anchor="middle">{k + 1}</text>')
                 body.append(f'<text x="{f(x0)}" y="{f(y0 + self.th + 38)}" font-family="{FONT}" font-size="24" font-weight="700" fill="{ORANGE}">{escape(fr.get("tc", ""))}</text>')
+                if fr.get("curve"):
+                    gw, gh = 96, 40
+                    gx, gy = x0 + self.tw - gw, y0 + self.th + 8
+                    pts = " ".join(f"{f(gx + px * gw)},{f(gy + gh - py * gh)}" for px, py in fr["curve"])
+                    body.append(f'<rect x="{f(gx)}" y="{f(gy)}" width="{gw}" height="{gh}" fill="none" stroke="{INDIGO}" stroke-width="1" opacity="0.25"/>')
+                    body.append(f'<polyline points="{pts}" fill="none" stroke="{ORANGE}" stroke-width="3"/>')
+                    if fr.get("curve_name"):
+                        body.append(f'<text x="{f(gx - 8)}" y="{f(gy + gh - 4)}" font-family="{FONT}" font-size="17" fill="{INDIGO}" opacity="0.7" text-anchor="end">{escape(fr["curve_name"])}</text>')
                 for li, ln in enumerate(wrap(fr.get("cap", ""), int(self.tw / 13.2))[:cap_lines]):
                     body.append(f'<text x="{f(x0)}" y="{f(y0 + self.th + 74 + li * 32)}" font-family="{FONT}" font-size="23" fill="{INDIGO}">{escape(ln)}</text>')
             rows = math.ceil(len(frames) / self.cols)
@@ -711,3 +722,33 @@ def dots_field(n_cols: int = 24, n_rows: int = 13, r: float = 6, fill: str = ORA
 def film(scene_key: str = "s01", zoom: float = 1.0, dx: float = 0, dy: float = 0) -> str:
     """Plan du film (décor aplat) avec zoom caméra autour du centre."""
     return scaled(SCENES[scene_key](), zoom, dx=dx, dy=dy)
+
+
+def ellipse_d(cx: float, cy: float, rx: float, ry: float) -> str:
+    """Bulle déformée (étirement / écrasement) : ellipse sur l'axe horizontal."""
+    return (f"M{f(cx - rx)} {f(cy)}a{f(rx)} {f(ry)} 0 1 0 {f(2 * rx)} 0"
+            f"a{f(rx)} {f(ry)} 0 1 0 {f(-2 * rx)} 0Z")
+
+
+def mix_hex(a: str, b: str, u: float) -> str:
+    """Mélange de deux couleurs hexadécimales (changement de couleur en mouvement)."""
+    u = max(0.0, min(1.0, u))
+    pa = [int(a[i:i + 2], 16) for i in (1, 3, 5)]
+    pb = [int(b[i:i + 2], 16) for i in (1, 3, 5)]
+    return "#" + "".join(f"{round(x + (y - x) * u):02X}" for x, y in zip(pa, pb))
+
+
+def logo_geometry(size: float = 1.0, cx: float = W / 2, cy: float = AXIS) -> dict:
+    """Positions des deux points du logo centré (anchor='c'), pour y faire atterrir des bulles."""
+    fs = 64 * size
+    word_w, dot_r, gap = 3.55 * fs, 0.085 * fs, 0.32 * fs
+    total = word_w + 2 * (gap + 2 * dot_r)
+    x0 = cx - total / 2
+    return {
+        "dot_r": dot_r,
+        "dot_g": (x0 + dot_r, cy),
+        "dot_d": (x0 + 2 * dot_r + gap + word_w + gap + dot_r, cy),
+        "word_x": x0 + 2 * dot_r + gap,
+        "word_w": word_w,
+        "fs": fs,
+    }
