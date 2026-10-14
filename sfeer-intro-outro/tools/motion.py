@@ -223,6 +223,12 @@ def render_layers(layers, uid="i") -> str:
                 out.append(plate)
         elif k == "raw":
             out.append(L["svg"])
+        elif k == "group":
+            # groupe transformé (caméra locale) : {"k": "group", "s": échelle, "cx", "cy", "dx", "dy", "layers": [...]}
+            cx, cy = L.get("cx", W / 2), L.get("cy", H / 2)
+            tr = (f'translate({f(cx + L.get("dx", 0))} {f(cy + L.get("dy", 0))}) scale({f(L.get("s", 1))}) '
+                  f'translate({f(-cx)} {f(-cy)})')
+            out.append(f'<g transform="{tr}">{render_layers(L["layers"], uid=f"{uid}g{n}")}</g>')
     return "".join(out)
 
 
