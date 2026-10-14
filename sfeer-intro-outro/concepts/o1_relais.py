@@ -22,6 +22,7 @@ META = {
     "id": "o1_relais",
     "num": "O1",
     "title": "Le Relais",
+    "principe": "La valeur passe de bulle en bulle par le cou ; la dernière s'ouvre sur le film, on y plonge sans lâcher le lien.",
     "logline": "Une grande bulle rognée au bord gauche donne de sa matière : une bulle naît, puis une troisième qui "
                "s'ouvre sur la vidéo. La valeur circule dans les cous, et on plonge dans la fenêtre sans lâcher le lien.",
 }
@@ -144,20 +145,20 @@ def bead(x0, x1, h, u):
 
 # =================================================================== INTRO (3,6 s)
 # A : grande bulle coupée par le bord gauche (centre x = 0)
-rA_t = Track((0, 0), (F(3), 74, "out_cubic"), (F(5), 54, "inout_cubic"),       # pointe puis recule (anticipation)
-             (F(13), 330, "out_back"),                                             # éclosion, dépassement 10 %
+rA_t = Track((0, 110), (F(3), 215, "out_back"), (F(5), 180, "inout_cubic"),    # surgit dès l'image 0, recule 2 images
+             (F(12), 330, "out_back"),                                             # jaillit, dépassement 10 %
              (F(21), 300, "inout_cubic"), (F(30), 280, "inout_cubic"),             # donne à B puis à C
              (F(46), 0, "inout_cubic"))                                            # se vide entièrement dans B
-sxA_t = Track((F(9), 1.0), (F(13), 0.9, "inout_cubic"), (F(19), 1.0, "out_back"))  # inspire avant de donner
+sxA_t = Track((F(11), 1.0), (F(14), 0.9, "inout_cubic"), (F(19), 1.0, "out_back"))  # inspire avant de donner
 
 # B : naît du flanc de A, puis prend sa place au bord
 xB_t = Track((F(13), 190), (F(22), 615, "out_back"),
              (F(25), 596, "out_cubic"), (F(30), 615, "out_back"),                 # recul quand C part (3 %)
              (F(32), 615), (F(46), 0, "inout_cubic"),                              # le relais : B glisse au bord
-             (F(61), 0), (F(64), 0), (F(73), -700, "in_cubic"))                    # arrachée hors champ au saut
+             (F(61), 0), (F(64), 12, "inout_cubic"), (F(72), -820, "plongee"))   # tirée vers C, puis arrachée à gauche
 rB_t = Track((F(13), 0), (F(19), 168, "out_cubic"), (F(24), 150, "inout_cubic"),
              (F(32), 150), (F(46), 250, "inout_cubic"), (F(60), 330, "inout_cubic"),
-             (F(64), 348, "inout_cubic"), (F(73), 380, "in_cubic"))
+             (F(64), 348, "inout_cubic"), (F(72), 560, "plongee"))                 # grossit avec la caméra
 sxB_t = Track((F(20), 1.0), (F(23), 0.9, "inout_cubic"), (F(28), 1.0, "out_back"))  # inspire avant C
 
 # C : naît de B, fenêtre ; s'approche, inspire, saute vers la caméra
@@ -270,19 +271,19 @@ def a_saut(t):
 
 
 INTRO = Anim("INTRO", 3.6, intro, [
-    Beat(F(9), "Une grande bulle orange éclot au bord gauche, coupée à son milieu : pointe, recule 2 images, puis jaillit avec 10 % de dépassement.",
+    Beat(F(8), "Dès l'image 0, une demi-bulle orange surgit au bord gauche (×2 en 3 images), recule 2 images, puis jaillit avec 10 % de dépassement.",
          "out_back", ann=a_pop, onion=3, onion_dt=F(2)),
-    Beat(F(18), "A inspire (écrasée à 90 % sur 4 images) puis donne : B jaillit de son flanc vers la droite, étirée à 115 % dans sa course.",
+    Beat(F(18), "A inspire (écrasée à 90 % sur 3 images) puis donne : B jaillit de son flanc vers la droite, étirée à 115 % dans sa course.",
          "out_back", ann=a_naissance_b, onion=3, onion_dt=F(2)),
     Beat(F(28), "B fait naître C (3.5-02) et recule de 3 % : action, réaction. La vidéo coule du cou dans C et la remplit en 7 images.",
          "out_cubic", ann=a_naissance_c, onion=2, onion_dt=F(3)),
-    Beat(F(37), "Le relais : une gorgée traverse chaque cou de gauche à droite et le receveur gonfle de 16 %. La 2e onde va 1,5 fois plus vite.",
+    Beat(F(34), "Le relais : une gorgée traverse chaque cou de gauche à droite et le receveur gonfle de 16 %. La 2e onde va 1,5 fois plus vite.",
          "inout_cubic", ann=a_gorgee, onion=0),
     Beat(F(45), "A se vide dans B, qui glisse au bord et se recoupe sur sa médiane. C recule de 400 px avec la chaîne : c'est l'élan.",
          "inout_cubic", ann=a_relais, onion=1, onion_dt=F(6)),
     Beat(F(58), "Approche : C file au centre et passe de 290 à 470 px de rayon, tenue par un cou fin. La vidéo dedans grossit 2 fois moins vite.",
          "inout_cubic", ann=a_approche, onion=2, onion_dt=F(4)),
-    Beat(F(67), "Saut : C inspire (−8 %) puis fonce vers la caméra (courbe plongée, plein cadre en 6 images). B, encore liée, est arrachée à gauche.",
+    Beat(F(67), "Saut : C inspire (−8 %) puis fonce vers la caméra (courbe plongée, plein cadre en 6 images). B, tirée puis arrachée, sort à gauche.",
          "plongee", ann=a_saut, onion=2, onion_dt=F(2)),
     Beat(F(84), "Plein cadre vidéo : la plaque continue de pousser (100 → 120 %) en décélérant. On raccorde sur un plan en mouvement.",
          "out_cubic", onion=0),
@@ -294,14 +295,14 @@ T0_LOGO = F(52)                      # début du carton (mot révélé de gauche
 DOT_R = LG["dot_r"]
 XG, XD = LG["dot_g"][0], LG["dot_d"][0]
 
-zO_t = Track((0, 1.10), (F(4), 1.17, "linear"), (F(15), 0.6, "out_cubic"), (F(30), 0.5, "linear"))
-rCo_t = Track((F(4), 1160), (F(14), 470, "out_cubic"), (F(15), 470), (F(36), 110, "inout_cubic"))
-xCo_t = Track((F(4), CX), (F(14), 1010, "out_cubic"), (F(15), 1010), (F(36), 640, "inout_cubic"),
+zO_t = Track((0, 1.12), (F(2), 1.16, "out_cubic"), (F(14), 0.6, "out_cubic"), (F(30), 0.5, "linear"))
+rCo_t = Track((F(2), 1160), (F(12), 470, "out_back"), (F(15), 470), (F(36), 110, "inout_cubic"))  # aspiration, dépassement
+xCo_t = Track((F(2), CX), (F(12), 1010, "out_cubic"), (F(15), 1010), (F(36), 640, "inout_cubic"),
               (F(46), 662, "in_cubic"), (F(55), XG, "out_back"))
-rBo_t = Track((F(5), 400), (F(15), 330, "out_cubic"), (F(36), 372, "inout_cubic"))
-xBo_t = Track((F(4), -620), (F(15), 0, "out_back"), (F(46), 0), (F(54), -470, "out_cubic"))
+rBo_t = Track((F(3), 400), (F(13), 330, "out_cubic"), (F(36), 372, "inout_cubic"))
+xBo_t = Track((F(2), -620), (F(13), 0, "out_back"), (F(46), 0), (F(54), -470, "out_cubic"))
 closeC = Track((F(17), 0.0), (F(28), 1.0, "in_cubic"))      # la vidéo est aspirée vers le cou
-hBCo_t = Track((F(4), 10), (F(15), 22, "out_cubic"), (F(36), 20), (F(46), 2.5, "in_cubic"))
+hBCo_t = Track((F(2), 10), (F(13), 22, "out_cubic"), (F(36), 20), (F(46), 2.5, "in_cubic"))
 SNAP = F(46)
 WAVES_OUT = [(16, 6, 19, 6), (24, 5, 27, 5), (31, 3, 33, 4)]   # (C donne, durée, B reçoit, durée)
 
@@ -340,7 +341,7 @@ def dots_state(t):
 
 
 def outro_shapes(t):
-    if t < F(4):
+    if t < F(2):                                   # 2 images de poussée (anticipation), puis aspiration
         return [video(zO_t(t), ghost=False)]
     L = [{"k": "bg", "v": "gradient"}]
     xB, rB = xBo_t(t), rBo_t(t)
@@ -361,7 +362,7 @@ def outro_shapes(t):
                 cn.append(h)
                 break
         cn.append(h)
-        sxC = squash(t, F(13), F(9), -0.1) * stretch(xCo_t, t, k=7000, cap=1.12)
+        sxC = squash(t, F(11), F(9), -0.1) * stretch(xCo_t, t, k=7000, cap=1.12)
         chain.append((xC, rC, sxC))
         L.append(blob(chain, cn, "chaine", track=[0, len(chain) - 1]))
         u = closeC(t)
@@ -396,8 +397,10 @@ def outro(t):
         track = None
     pts_layer = blob(bubs, neck, "points-logo", fill=col, track=track)
     card = endcard(t, T0_LOGO, dots=False, word_mode="gauche", extra=[pts_layer])
-    # poussée supplémentaire (+5 %/s) : le carton ne s'arrête jamais
-    return L + [{"k": "group", "s": 1 + 0.05 * max(0.0, t - T0_LOGO), "layers": card}]
+    # poussée supplémentaire (+5 %/s) sur le logo seul : l'endossement reste calé en bas
+    logo = [x for x in card if x["k"] != "raw"]
+    endo = [x for x in card if x["k"] == "raw"]
+    return L + [{"k": "group", "s": 1 + 0.05 * max(0.0, t - T0_LOGO), "layers": logo}] + endo
 
 
 def a_aspiration(t):
@@ -427,7 +430,7 @@ def a_ecrit(t):
 
 
 OUTRO = Anim("OUTRO", 4.0, outro, [
-    Beat(F(7), "Aspiration : la vidéo plein cadre est avalée par la bulle C (rayon 1160 → 470 px en 10 images). B rentre par la gauche, déjà liée.",
+    Beat(F(7), "Aspiration dès l'image 2 : la vidéo plein cadre est avalée par C (1160 → 470 px en 10 images, dépassement 10 %). B rentre, déjà liée.",
          "out_cubic", ann=a_aspiration, onion=2, onion_dt=F(2)),
     Beat(F(19), "La valeur repart vers la gauche : 3 gorgées de C vers B, chacune plus rapide (6, 5 puis 3 images). C fond de 470 à 110 px.",
          "inout_cubic", ann=a_retour, onion=0),
@@ -437,11 +440,11 @@ OUTRO = Anim("OUTRO", 4.0, outro, [
          "inout_cubic", ann=a_merci, onion=2, onion_dt=F(3)),
     Beat(F(48), "Rupture nette : le cou casse. B recule et sort à gauche en 8 images, C rebondit à droite (écrasée 115 %), une gouttelette fond.",
          "out_back", ann=a_rupture, onion=2, onion_dt=F(2)),
-    Beat(F(53), "C blanchit et fait naître D (3.5-02 en petit) : le cou casse à la 4e image, D file vers la droite, étirée à 120 %.",
+    Beat(F(52), "C blanchit et fait naître D (3.5-02 en petit) : le cou casse à la 4e image, D file vers la droite, étirée à 120 %.",
          "emphase", ann=a_ecrit, onion=2, onion_dt=F(1)),
-    Beat(F(59), "D écrit le mot en filant devant lui : « sfeer » se révèle de gauche à droite en 14 images, l'arabe suit de droite à gauche.",
+    Beat(F(57), "D écrit le mot en filant devant lui : « sfeer » se révèle de gauche à droite en 14 images, l'arabe suit de droite à gauche.",
          "emphase", onion=2, onion_dt=F(2)),
-    Beat(F(92), "Tenue vivante : les deux points respirent (±20 %), poussée lente de 12,5 %/s ; « Powered by RIYADH AIR » est posé en bas.",
+    Beat(F(92), "Tenue vivante : les deux points respirent (±20 %), le logo pousse de 12,5 %/s ; « Powered by RIYADH AIR » reste calé en bas.",
          "emphase", onion=0),
 ])
 
@@ -453,7 +456,7 @@ NOTES = [
     ]),
     ("Charte et corrections", [
         "Chaîne 3.5-02 depuis la gauche, échange de tailles 3.3-02, porte-image avec cou hors champ (2.50). Centres toujours sur y = 540.",
-        "A puis B coupées pile sur leur médiane au bord gauche (2.48). Écarts à valider : B dépasse sa médiane 8 images au saut et à la sortie.",
+        "A puis B coupées pile sur leur médiane au bord gauche (2.48). Écart à valider : B dépasse sa médiane 4 images au saut, 5 à l'entrée.",
         "Cous de la charte (épaisseur 5 à 10 % du diamètre) ; carton 3.4-02 centré, l'arabe se révèle de droite à gauche.",
     ]),
     ("Mouvement", [

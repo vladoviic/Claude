@@ -1,0 +1,546 @@
+{
+ "springs": [
+  {
+   "name": "M3 standard spatial fast",
+   "zeta": 0.9,
+   "k": 1400,
+   "src": "Compose StandardMotionTokens / @material/web md-sys-motion",
+   "overshoot_pct": 0.15,
+   "t_peak_ms": 193,
+   "f_peak": 4.8,
+   "t90_ms": 91,
+   "f90": 2.3,
+   "settle2_ms": 126,
+   "f_settle2": 3.1
+  },
+  {
+   "name": "M3 standard spatial default",
+   "zeta": 0.9,
+   "k": 700,
+   "src": "idem",
+   "overshoot_pct": 0.15,
+   "t_peak_ms": 272,
+   "f_peak": 6.8,
+   "t90_ms": 129,
+   "f90": 3.2,
+   "settle2_ms": 178,
+   "f_settle2": 4.4
+  },
+  {
+   "name": "M3 standard spatial slow",
+   "zeta": 0.9,
+   "k": 300,
+   "src": "idem",
+   "overshoot_pct": 0.15,
+   "t_peak_ms": 416,
+   "f_peak": 10.4,
+   "t90_ms": 197,
+   "f90": 4.9,
+   "settle2_ms": 271,
+   "f_settle2": 6.8
+  },
+  {
+   "name": "M3 expressive spatial fast",
+   "zeta": 0.6,
+   "k": 800,
+   "src": "Compose ExpressiveMotionTokens",
+   "overshoot_pct": 9.48,
+   "t_peak_ms": 139,
+   "f_peak": 3.5,
+   "t90_ms": 83,
+   "f90": 2.1,
+   "settle2_ms": 210,
+   "f_settle2": 5.3
+  },
+  {
+   "name": "M3 expressive spatial default",
+   "zeta": 0.8,
+   "k": 380,
+   "src": "idem",
+   "overshoot_pct": 1.52,
+   "t_peak_ms": 269,
+   "f_peak": 6.7,
+   "t90_ms": 153,
+   "f90": 3.8,
+   "settle2_ms": 193,
+   "f_settle2": 4.8
+  },
+  {
+   "name": "M3 expressive spatial slow",
+   "zeta": 0.8,
+   "k": 200,
+   "src": "idem",
+   "overshoot_pct": 1.52,
+   "t_peak_ms": 370,
+   "f_peak": 9.3,
+   "t90_ms": 211,
+   "f90": 5.3,
+   "settle2_ms": 266,
+   "f_settle2": 6.6
+  },
+  {
+   "name": "M3 effects default (std+expr)",
+   "zeta": 1.0,
+   "k": 1600,
+   "src": "idem",
+   "overshoot_pct": 0.0,
+   "t_peak_ms": null,
+   "f_peak": null,
+   "t90_ms": 97,
+   "f90": 2.4,
+   "settle2_ms": 146,
+   "f_settle2": 3.6
+  },
+  {
+   "name": "M3E LoadingIndicator morph",
+   "zeta": 0.6,
+   "k": 200,
+   "src": "Compose LoadingIndicator.kt (morph toutes les 650 ms)",
+   "overshoot_pct": 9.48,
+   "t_peak_ms": 278,
+   "f_peak": 6.9,
+   "t90_ms": 166,
+   "f90": 4.2,
+   "settle2_ms": 420,
+   "f_settle2": 10.5
+  },
+  {
+   "name": "Apple .smooth (0.5 s, bounce 0)",
+   "zeta": 1.0,
+   "k": 157.9,
+   "src": "developer.apple.com Spring / WWDC23 10158",
+   "overshoot_pct": 0.0,
+   "t_peak_ms": null,
+   "f_peak": null,
+   "t90_ms": 310,
+   "f90": 7.7,
+   "settle2_ms": 464,
+   "f_settle2": 11.6
+  },
+  {
+   "name": "Apple .snappy (0.5 s, bounce 0.15)",
+   "zeta": 0.85,
+   "k": 157.9,
+   "src": "developer.apple.com Spring / WWDC23 10158",
+   "overshoot_pct": 0.63,
+   "t_peak_ms": 475,
+   "f_peak": 11.9,
+   "t90_ms": 253,
+   "f90": 6.3,
+   "settle2_ms": 333,
+   "f_settle2": 8.3
+  },
+  {
+   "name": "Apple .bouncy (0.5 s, bounce 0.3)",
+   "zeta": 0.7,
+   "k": 157.9,
+   "src": "developer.apple.com Spring / WWDC23 10158",
+   "overshoot_pct": 4.6,
+   "t_peak_ms": 350,
+   "f_peak": 8.8,
+   "t90_ms": 209,
+   "f90": 5.2,
+   "settle2_ms": 476,
+   "f_settle2": 11.9
+  },
+  {
+   "name": "Apple spring(duration .6, bounce .2) WWDC23",
+   "zeta": 0.8,
+   "k": 109.7,
+   "src": "developer.apple.com Spring / WWDC23 10158",
+   "overshoot_pct": 1.52,
+   "t_peak_ms": 500,
+   "f_peak": 12.5,
+   "t90_ms": 285,
+   "f90": 7.1,
+   "settle2_ms": 359,
+   "f_settle2": 9.0
+  },
+  {
+   "name": "Apple .spring() defaut (response .5, dampingFraction .825)",
+   "zeta": 0.825,
+   "k": 157.9,
+   "src": "developer.apple.com Animation.spring(response:dampingFraction:)",
+   "overshoot_pct": 1.02,
+   "t_peak_ms": 442,
+   "f_peak": 11.1,
+   "t90_ms": 245,
+   "f90": 6.1,
+   "settle2_ms": 315,
+   "f_settle2": 7.9
+  },
+  {
+   "name": "Apple interactiveSpring (response .15, damping .86)",
+   "zeta": 0.86,
+   "k": 1754.6,
+   "src": "idem",
+   "overshoot_pct": 0.5,
+   "t_peak_ms": 147,
+   "f_peak": 3.7,
+   "t90_ms": 77,
+   "f90": 1.9,
+   "settle2_ms": 102,
+   "f_settle2": 2.6
+  },
+  {
+   "name": "Apple 'fluid' 80 % damping (swipe Now Playing), response .5",
+   "zeta": 0.8,
+   "k": 157.9,
+   "src": "WWDC18 803 (response suppose .5)",
+   "overshoot_pct": 1.52,
+   "t_peak_ms": 417,
+   "f_peak": 10.4,
+   "t90_ms": 237,
+   "f90": 5.9,
+   "settle2_ms": 299,
+   "f_settle2": 7.5
+  }
+ ],
+ "penner": [
+  {
+   "s": 1.0,
+   "overshoot_pct": 3.7,
+   "t_peak": 0.667
+  },
+  {
+   "s": 1.70158,
+   "overshoot_pct": 10.0,
+   "t_peak": 0.58
+  },
+  {
+   "s": 2.5949095,
+   "overshoot_pct": 20.03,
+   "t_peak": 0.519
+  },
+  {
+   "s": 3.0,
+   "overshoot_pct": 25.0,
+   "t_peak": 0.5
+  },
+  {
+   "s": 4.0,
+   "overshoot_pct": 37.93,
+   "t_peak": 0.467
+  }
+ ],
+ "penner_targets": {
+  "3%": 0.9012,
+  "5%": 1.1653,
+  "8%": 1.5,
+  "10%": 1.7015,
+  "15%": 2.1643,
+  "20%": 2.5924
+ },
+ "curves": [
+  {
+   "name": "M3 emphasized (path)",
+   "t10": 0.103,
+   "t50": 0.177,
+   "t90": 0.377,
+   "y_at_25": 0.773,
+   "y_at_50": 0.951
+  },
+  {
+   "name": "M3 standard (0.2,0,0,1)",
+   "t10": 0.083,
+   "t50": 0.2,
+   "t90": 0.539,
+   "y_at_25": 0.607,
+   "y_at_50": 0.878
+  },
+  {
+   "name": "M3 emphasized decelerate (0.05,0.7,0.1,1)",
+   "t10": 0.007,
+   "t50": 0.062,
+   "t90": 0.359,
+   "y_at_25": 0.832,
+   "y_at_50": 0.95
+  },
+  {
+   "name": "M3 emphasized accelerate (0.3,0,0.8,0.15)",
+   "t10": 0.411,
+   "t50": 0.81,
+   "t90": 0.974,
+   "y_at_25": 0.035,
+   "y_at_50": 0.154
+  },
+  {
+   "name": "M2 / MUI easeInOut (0.4,0,0.2,1)",
+   "t10": 0.178,
+   "t50": 0.35,
+   "t90": 0.633,
+   "y_at_25": 0.237,
+   "y_at_50": 0.776
+  },
+  {
+   "name": "Carbon expressive standard (0.4,0.14,0.3,1)",
+   "t10": 0.145,
+   "t50": 0.363,
+   "t90": 0.652,
+   "y_at_25": 0.258,
+   "y_at_50": 0.747
+  },
+  {
+   "name": "Carbon expressive entrance (0,0,0.3,1)",
+   "t10": 0.035,
+   "t50": 0.238,
+   "t90": 0.634,
+   "y_at_25": 0.519,
+   "y_at_50": 0.805
+  },
+  {
+   "name": "Carbon productive standard (0.2,0,0.38,0.9)",
+   "t10": 0.125,
+   "t50": 0.366,
+   "t90": 0.738,
+   "y_at_25": 0.306,
+   "y_at_50": 0.685
+  },
+  {
+   "name": "Fluent easyEaseMax (0.8,0,0.2,1)",
+   "t10": 0.33,
+   "t50": 0.5,
+   "t90": 0.67,
+   "y_at_25": 0.048,
+   "y_at_50": 0.5
+  },
+  {
+   "name": "Fluent decelerateMax (0.1,0.9,0.2,1)",
+   "t10": 0.012,
+   "t50": 0.077,
+   "t90": 0.319,
+   "y_at_25": 0.849,
+   "y_at_50": 0.966
+  },
+  {
+   "name": "Polaris ease-out (0.19,0.91,0.38,1)",
+   "t10": 0.022,
+   "t50": 0.134,
+   "t90": 0.417,
+   "y_at_25": 0.737,
+   "y_at_50": 0.94
+  }
+ ],
+ "spacing15": {
+  "M3 emphasized (path)": [
+   0.0,
+   3.8,
+   19.3,
+   63.6,
+   80.0,
+   87.1,
+   91.2,
+   94.0,
+   95.9,
+   97.3,
+   98.3,
+   99.0,
+   99.5,
+   99.8,
+   99.9,
+   100.0
+  ],
+  "M3 standard (0.2,0,0,1)": [
+   0.0,
+   5.7,
+   28.9,
+   50.0,
+   63.7,
+   73.2,
+   80.2,
+   85.6,
+   89.7,
+   92.9,
+   95.3,
+   97.2,
+   98.5,
+   99.4,
+   99.8,
+   100.0
+  ],
+  "Carbon expressive standard (0.4,0.14,0.3,1)": [
+   0.0,
+   3.2,
+   8.7,
+   17.2,
+   29.1,
+   43.5,
+   57.8,
+   69.8,
+   79.0,
+   85.9,
+   91.0,
+   94.7,
+   97.2,
+   98.8,
+   99.7,
+   100.0
+  ],
+  "Fluent easyEaseMax (0.8,0,0.2,1)": [
+   0.0,
+   0.3,
+   1.1,
+   2.8,
+   5.6,
+   10.3,
+   18.4,
+   35.0,
+   65.0,
+   81.6,
+   89.7,
+   94.4,
+   97.2,
+   98.9,
+   99.7,
+   100.0
+  ],
+  "Apple .bouncy 0.5 s": [
+   0.0,
+   9.9,
+   30.8,
+   53.5,
+   72.9,
+   87.4,
+   96.8,
+   102.0,
+   104.2,
+   104.6,
+   103.9,
+   102.9,
+   101.9,
+   101.1,
+   100.5,
+   100.1
+  ],
+  "M3 expressive spatial fast (0.6/800)": [
+   0.0,
+   38.8,
+   87.4,
+   107.8,
+   108.2,
+   103.1,
+   99.8,
+   99.1,
+   99.5,
+   99.9,
+   100.1,
+   100.1,
+   100.0,
+   100.0,
+   100.0,
+   100.0
+  ],
+  "Penner easeOutBack s=1.70158": [
+   0.0,
+   28.6,
+   51.9,
+   70.6,
+   85.0,
+   95.6,
+   102.9,
+   107.4,
+   109.6,
+   109.9,
+   108.9,
+   107.0,
+   104.6,
+   102.4,
+   100.7,
+   100.0
+  ]
+ },
+ "container_transform_20f": {
+  "fondu contenu (enter)": [
+   0.0,
+   5.0
+  ],
+  "masque de forme (enter)": [
+   0.0,
+   15.0
+  ],
+  "echelle (enter)": [
+   0.0,
+   20.0
+  ],
+  "fondu contenu (enter avec arc)": [
+   2.0,
+   8.0
+  ],
+  "masque de forme (enter avec arc)": [
+   2.0,
+   18.0
+  ],
+  "fondu (return)": [
+   12.0,
+   18.0
+  ],
+  "masque de forme (return)": [
+   6.0,
+   18.0
+  ]
+ },
+ "ibm": [
+  {
+   "d": 50,
+   "productive_ms": 96,
+   "expressive_ms": 117
+  },
+  {
+   "d": 100,
+   "productive_ms": 98,
+   "expressive_ms": 122
+  },
+  {
+   "d": 200,
+   "productive_ms": 101,
+   "expressive_ms": 132
+  },
+  {
+   "d": 400,
+   "productive_ms": 107,
+   "expressive_ms": 167
+  },
+  {
+   "d": 800,
+   "productive_ms": 123,
+   "expressive_ms": 222
+  },
+  {
+   "d": 1200,
+   "productive_ms": 141,
+   "expressive_ms": 250
+  },
+  {
+   "d": 1920,
+   "productive_ms": 159,
+   "expressive_ms": 276
+  }
+ ],
+ "mui": [
+  {
+   "px": 100,
+   "ms": 239,
+   "frames": 6.0
+  },
+  {
+   "px": 300,
+   "ms": 312,
+   "frames": 7.8
+  },
+  {
+   "px": 600,
+   "ms": 376,
+   "frames": 9.4
+  },
+  {
+   "px": 1080,
+   "ms": 451,
+   "frames": 11.3
+  },
+  {
+   "px": 1920,
+   "ms": 552,
+   "frames": 13.8
+  }
+ ]
+}
