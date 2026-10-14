@@ -341,7 +341,7 @@ def build(concept, out_root=ROOT, animatic=False, width=960):
     return outs
 
 
-def render_animatic(concept, out_root=ROOT, width=960):
+def render_animatic(concept, out_root=ROOT, width=960, fps=FPS):
     """Rend chaque image (25 i/s) puis assemble intro, outro et une version enchaînée en MP4."""
     cid = concept.META["id"]
     tmp = os.path.join("/tmp/claude-0/animatics", cid)
@@ -352,8 +352,8 @@ def render_animatic(concept, out_root=ROOT, width=960):
     for anim in (concept.INTRO, concept.OUTRO):
         d = os.path.join(tmp, anim.name.lower())
         os.makedirs(d)
-        for i in range(anim.n_frames):
-            t = i / FPS
+        for i in range(int(round(anim.duration * fps))):
+            t = i / fps
             with open(os.path.join(d, f"{i:04d}.svg"), "w") as fh:
                 fh.write(frame_svg(render_layers(anim.frame(t), uid="a")))
         seqs.append((anim.name.lower(), d))
@@ -363,7 +363,7 @@ def render_animatic(concept, out_root=ROOT, width=960):
     outs = []
     for name, d in seqs:
         mp4 = os.path.join(out_dir, f"{cid}_{name}.mp4")
-        subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-framerate", str(FPS), "-i", os.path.join(d, "%04d.png"),
+        subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-framerate", str(fps), "-i", os.path.join(d, "%04d.png"),
                         "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "20", "-movflags", "+faststart", mp4], check=True)
         outs.append(mp4)
     return outs

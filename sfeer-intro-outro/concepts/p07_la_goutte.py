@@ -257,7 +257,7 @@ def sat_state(t, k):
         if tg - F(2) <= t < tg:
             r *= 1 + 0.1 * prog(t, tg - F(2), tg, "out_cubic")              # gonfle avant d'être bue
         if t >= tg:
-            fn = lambda tt: (lerp(x0, XA, ease("in_cubic")(prog(tt, tg, tg + dur))), lerp(y0, AXIS, ease("in_cubic")(prog(tt, tg, tg + dur))))  # noqa: E731
+            fn = lambda tt: (lerp(x0, XA, ease("emphase")(prog(tt, tg, tg + dur))), lerp(y0, AXIS, ease("emphase")(prog(tt, tg, tg + dur))))  # noqa: E731
             x, y = fn(t)
             u = prog(t, tg, tg + dur)
             r = R0 * palp(tg, k, x0, PALP_ON, t_off=PALP_OFF) * 1.1 * (1 - 0.5 * u)
@@ -394,9 +394,9 @@ INTRO = Anim("INTRO", 4.0, intro, [
 
 # =================================================================== OUTRO (4,0 s)
 o_cam = Track((0, 4.8), (F(14), 1.0, "emphase"))
-o_zoom = Track((0, 1.4), (F(14), 1.0, "out_cubic"), (F(22), 0.9, "linear"))
-o_iris = Track((F(10), 0.0), (F(21), 1.0, "in_cubic"))            # la vidéo repart par le cou
-o_neck = Track((F(16), 1.0), (F(28), 0.0, "in_cubic"))            # le cou revient du hors-champ (élastique)
+o_zoom = Track((0, 1.4), (F(14), 1.0, "out_expo"), (F(22), 0.9, "out_cubic"))
+o_iris = Track((F(10), 0.0), (F(21), 1.0, "emphase"))            # la vidéo repart par le cou
+o_neck = Track((F(16), 1.0), (F(28), 0.0, "out_cubic"))            # le cou revient du hors-champ (élastique)
 o_xA = Track((F(19), XA), (F(30), CX, "out_back"))                  # la goutte est tirée (3 i. de retard)
 o_rA = Track((F(16), DROP_R), (F(30), 200, "inout_cubic"), (F(34), 186, "in_cubic"), (F(41), R0, "out_cubic"))
 O_HIT = F(28)
@@ -404,7 +404,7 @@ OPOS = {k: (x - XA + CX, y) for k, (x, y) in POS.items()}         # la molécule
 BURST = {"L": F(34), "UR": F(35), "DL": F(36), "UL": F(37), "DR": F(38)}
 O_PALP = F(40)
 FOLD = {"UL": ("L", F(50), F(4)), "DR": ("R", F(51), F(4)), "DL": ("L", F(52), F(3)), "UR": ("R", F(53), F(3))}
-DRAIN = Track((F(55), 1.0), (F(60), 0.0, "in_cubic"))              # A se vide dans L et R
+DRAIN = Track((F(55), 1.0), (F(60), 0.0, "out_cubic"))              # A se vide dans L et R
 T_DOTS = F(60)
 LOGO_T0 = F(62)
 
@@ -449,7 +449,7 @@ def outro_bubs(t):
         sp, ang = vel2(fn, t)
         if t >= tg:                                                    # repli : bu par L ou R, en diagonale
             tx, ty = OPOS[to]
-            fg = lambda tt, x0=x0, y0=y0, tx=tx, ty=ty, tg=tg, dur=dur: (lerp(x0, tx, ease("in_cubic")(prog(tt, tg, tg + dur))), lerp(y0, ty, ease("in_cubic")(prog(tt, tg, tg + dur))))  # noqa: E731
+            fg = lambda tt, x0=x0, y0=y0, tx=tx, ty=ty, tg=tg, dur=dur: (lerp(x0, tx, ease("emphase")(prog(tt, tg, tg + dur))), lerp(y0, ty, ease("emphase")(prog(tt, tg, tg + dur))))  # noqa: E731
             x, y = fg(t)
             r = R0 * (1.08 - 0.55 * prog(t, tg, tg + dur))
             sp, ang = vel2(fg, t)
@@ -466,7 +466,7 @@ def o_beads(t):
     out = []
     for k in ("L", "R"):
         x1 = OPOS[k][0]
-        out.append((lerp(CX, x1, 0.2 + 0.7 * ease("in_cubic")(u)), AXIS, R0 * 0.33 * math.sin(math.pi * u) + 6, 1.0, 0.0))
+        out.append((lerp(CX, x1, 0.2 + 0.7 * ease("out_cubic")(u)), AXIS, R0 * 0.33 * math.sin(math.pi * u) + 6, 1.0, 0.0))
     return out
 
 
