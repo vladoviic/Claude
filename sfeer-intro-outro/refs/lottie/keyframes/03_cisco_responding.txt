@@ -1,0 +1,74 @@
+# 03 Cisco AI assistant RESPONDING start+loop+end (@momentum-design/animations, MIT)
+# source: md_responding_full.json | 60 ips | ip=0 op=120 | 32x32
+# Format: fA->fB (duree) v0 -> v1 | cubic-bezier(x1,y1,x2,y2) = (o.x, o.y, i.x, i.y) | influence AE sortie = o.x*100, entree = (1-i.x)*100
+
+CALQUE "Rotation Control 2" (ind 1, parent None, in 0 out 120, start 0)
+  .ks.r[0]
+     f0->f30 (30 f @60 = 12.5 f @25) 0 -> 180 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+     f30->f90 (60 f @60 = 25.0 f @25) MAINTIEN a 180
+     f90->f120 (30 f @60 = 12.5 f @25) 180 -> 360 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+CALQUE "Rotation Control" (ind 2, parent None, in 0 out 120, start 0)
+  .ks.r[0]
+     f0->f30 (30 f @60 = 12.5 f @25) 0 -> 360 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+     f30->f90 (60 f @60 = 25.0 f @25) MAINTIEN a 360
+     f90->f120 (30 f @60 = 12.5 f @25) MAINTIEN a 360
+  .ks.p.x[0]
+     f0->f30 (30 f @60 = 12.5 f @25) 19.68 -> 12.32 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+     f30->f90 (60 f @60 = 25.0 f @25) MAINTIEN a 12.32
+     f90->f120 (30 f @60 = 12.5 f @25) 12.32 -> 19.68 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+CALQUE "Ring Inner" (ind 5, parent 7, in 0 out 120, start 0)
+  .ks.o[0]
+     f0->f30 (30 f @60 = 12.5 f @25) 100 -> 0 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+     f30->f90 (60 f @60 = 25.0 f @25) MAINTIEN a 0
+     f90->f120 (30 f @60 = 12.5 f @25) 0 -> 100 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+  .shapes[Group 1].it[Gradient Stroke 1].w[0]
+     f0->f30 (30 f @60 = 12.5 f @25) 5.5 -> 21 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+     f30->f90 (60 f @60 = 25.0 f @25) MAINTIEN a 21
+     f90->f120 (30 f @60 = 12.5 f @25) 21 -> 5.5 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+CALQUE "Scale control" (ind 6, parent 1, in 0 out 120, start 0)
+  .ks.s[0]
+     f0->f16 (16 f @60 = 6.7 f @25) 100 -> 90 | cubic-bezier(0.2, 0, 0.543, 1) | AE influence out 20% / in 45.7% | pic vitesse x1.55 moyenne
+     f16->f30 (14 f @60 = 5.8 f @25) 90 -> 100 | cubic-bezier(0.294, 0, 0.629, 1) | AE influence out 29.4% / in 37.1% | pic vitesse x1.50 moyenne
+     f30->f60 (30 f @60 = 12.5 f @25) 100 -> 52 | cubic-bezier(0.48, 0.04, 0.52, 0.96) | AE influence out 48% / in 48% | pic vitesse x1.85 moyenne
+     f60->f90 (30 f @60 = 12.5 f @25) 52 -> 100 | cubic-bezier(0.48, 0.04, 0.629, 1) | AE influence out 48% / in 37.1% | pic vitesse x1.71 moyenne
+     f90->f104 (14 f @60 = 5.8 f @25) 100 -> 90 | cubic-bezier(0.371, 0, 0.706, 1) | AE influence out 37.1% / in 29.4% | pic vitesse x1.50 moyenne
+     f104->f120 (16 f @60 = 6.7 f @25) 90 -> 100 | cubic-bezier(0.457, 0, 0.8, 1) | AE influence out 45.7% / in 20% | pic vitesse x1.55 moyenne
+  .ks.s[1]
+     f0->f16 (16 f @60 = 6.7 f @25) 100 -> 90 | cubic-bezier(0.2, 0, 0.543, 1) | AE influence out 20% / in 45.7% | pic vitesse x1.55 moyenne
+     f16->f30 (14 f @60 = 5.8 f @25) 90 -> 100 | cubic-bezier(0.294, 0, 0.629, 1) | AE influence out 29.4% / in 37.1% | pic vitesse x1.50 moyenne
+     f30->f60 (30 f @60 = 12.5 f @25) 100 -> 52 | cubic-bezier(0.48, 0.04, 0.52, 0.96) | AE influence out 48% / in 48% | pic vitesse x1.85 moyenne
+     f60->f90 (30 f @60 = 12.5 f @25) 52 -> 100 | cubic-bezier(0.48, 0.04, 0.629, 1) | AE influence out 48% / in 37.1% | pic vitesse x1.71 moyenne
+     f90->f104 (14 f @60 = 5.8 f @25) 100 -> 90 | cubic-bezier(0.371, 0, 0.706, 1) | AE influence out 37.1% / in 29.4% | pic vitesse x1.50 moyenne
+     f104->f120 (16 f @60 = 6.7 f @25) 90 -> 100 | cubic-bezier(0.457, 0, 0.8, 1) | AE influence out 45.7% / in 20% | pic vitesse x1.55 moyenne
+CALQUE "Ring" (ind 7, parent 6, in 0 out 120, start 0)
+  .ks.s[0]
+     f0->f30 (30 f @60 = 12.5 f @25) 200 -> 69 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+     f30->f90 (60 f @60 = 25.0 f @25) MAINTIEN a 69
+     f90->f120 (30 f @60 = 12.5 f @25) 69 -> 200 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+  .ks.s[1]
+     f0->f30 (30 f @60 = 12.5 f @25) 200 -> 69 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+     f30->f90 (60 f @60 = 25.0 f @25) MAINTIEN a 69
+     f90->f120 (30 f @60 = 12.5 f @25) 69 -> 200 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+  .shapes[Group 1].it[Gradient Stroke 1].w[0]
+     f0->f30 (30 f @60 = 12.5 f @25) 5.5 -> 21 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+     f30->f90 (60 f @60 = 25.0 f @25) MAINTIEN a 21
+     f90->f120 (30 f @60 = 12.5 f @25) 21 -> 5.5 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+CALQUE "Lens Bottom" (ind 8, parent 2, in 0 out 120, start 0)
+  .ks.p.x[0]
+     f0->f30 (30 f @60 = 12.5 f @25) 58.09 -> 42.5 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+     f30->f90 (60 f @60 = 25.0 f @25) MAINTIEN a 42.5
+     f90->f120 (30 f @60 = 12.5 f @25) 42.5 -> 58.09 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+  .ks.p.y[0]
+     f0->f30 (30 f @60 = 12.5 f @25) 39.23 -> 50 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+     f30->f90 (60 f @60 = 25.0 f @25) MAINTIEN a 50
+     f90->f120 (30 f @60 = 12.5 f @25) 50 -> 39.23 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+  .ks.s[0]
+     f0->f30 (30 f @60 = 12.5 f @25) 200 -> 100 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+     f30->f60 (30 f @60 = 12.5 f @25) 100 -> 186 | cubic-bezier(0.48, 0.047, 0.52, 0.953) | AE influence out 48% / in 48% | pic vitesse x1.83 moyenne
+     f60->f90 (30 f @60 = 12.5 f @25) 186 -> 100 | cubic-bezier(0.48, 0.047, 0.34, 1) | AE influence out 48% / in 66% | pic vitesse x2.32 moyenne
+     f90->f120 (30 f @60 = 12.5 f @25) 100 -> 200 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+  .ks.s[1]
+     f0->f30 (30 f @60 = 12.5 f @25) 200 -> 100 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+     f30->f60 (30 f @60 = 12.5 f @25) 100 -> 186 | cubic-bezier(0.48, 0.047, 0.52, 0.953) | AE influence out 48% / in 48% | pic vitesse x1.83 moyenne
+     f60->f90 (30 f @60 = 12.5 f @25) 186 -> 100 | cubic-bezier(0.48, 0.047, 0.34, 1) | AE influence out 48% / in 66% | pic vitesse x2.32 moyenne
+     f90->f120 (30 f @60 = 12.5 f @25) 100 -> 200 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne

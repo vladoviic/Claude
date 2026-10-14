@@ -1,0 +1,38 @@
+# 02 Cisco AI assistant HELLO (@momentum-design/animations, MIT)
+# source: md_hello_32px.json | 60 ips | ip=0 op=60 | 32x32
+# Format: fA->fB (duree) v0 -> v1 | cubic-bezier(x1,y1,x2,y2) = (o.x, o.y, i.x, i.y) | influence AE sortie = o.x*100, entree = (1-i.x)*100
+
+CALQUE "Ring Inner" (ind 3, parent 4, in 32 out 63, start 0)
+  .shapes[Trim Paths 1].s[0]
+     f0->f30 (30 f @60 = 12.5 f @25) 100 -> 0 | cubic-bezier(0.76, 0, 0.24, 1) | AE influence out 76% / in 76% | pic vitesse x4.16 moyenne
+CALQUE "Ring 2" (ind 4, parent None, in 0 out 120, start 0)
+  .ks.r[0]
+     f0->f30 (30 f @60 = 12.5 f @25) -90 -> 0 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+  .ks.s[0]
+     f0->f30 (30 f @60 = 12.5 f @25) 0 -> 98 | cubic-bezier(0.57, 0.555, 0.5, 1.004) | AE influence out 57% / in 50% | pic vitesse x1.65 moyenne
+  .ks.s[1]
+     f0->f30 (30 f @60 = 12.5 f @25) 0 -> 98 | cubic-bezier(0.57, 0.555, 0.5, 1.004) | AE influence out 57% / in 50% | pic vitesse x1.65 moyenne
+  .shapes[Trim Paths 1].s[0]
+     f0->f30 (30 f @60 = 12.5 f @25) 100 -> 0 | cubic-bezier(0.76, 0, 0.24, 1) | AE influence out 76% / in 76% | pic vitesse x4.16 moyenne
+CALQUE "Rotation Control" (ind 5, parent None, in 0 out 60, start 0)
+  .ks.r[0]
+     f0->f60 (60 f @60 = 25.0 f @25) 0 -> 360 | cubic-bezier(0.66, 0, 0.34, 1) | AE influence out 66% / in 66% | pic vitesse x2.94 moyenne
+CALQUE "Lens Bottom 2" (ind 6, parent 5, in 24 out 120, start 0)
+  .ks.p.x[0]
+     f0->f30 (30 f @60 = 12.5 f @25) 0 -> 7.64 | cubic-bezier(0.167, 0, 0.34, 1) | AE influence out 16.7% / in 66% | pic vitesse x1.98 moyenne
+     f30->f120 (90 f @60 = 37.5 f @25) MAINTIEN a 7.64
+  .ks.p.y[0]
+     f0->f30 (30 f @60 = 12.5 f @25) -0.18 -> -5.46 | cubic-bezier(0.167, 0, 0.34, 1) | AE influence out 16.7% / in 66% | pic vitesse x1.98 moyenne
+     f30->f120 (90 f @60 = 37.5 f @25) MAINTIEN a -5.46
+  .ks.s[0]
+     f0->f24 (24 f @60 = 10.0 f @25) 0 -> 60.54 | cubic-bezier(0.493, 0, 0.792, 0.653) | AE influence out 49.3% / in 20.8% | pic vitesse x1.76 moyenne
+     f24->f32 (8 f @60 = 3.3 f @25) 60.54 -> 76.88 | cubic-bezier(0.429, 0.883, 0.729, 0.681) | AE influence out 42.9% / in 27.1% | pic vitesse x2.05 moyenne
+     f32->f40 (8 f @60 = 3.3 f @25) 76.88 -> 83 | cubic-bezier(0.217, 0.214, 0.571, 0.415) | AE influence out 21.7% / in 42.9% | pic vitesse x1.36 moyenne
+     f40->f60 (20 f @60 = 8.3 f @25) 83 -> 98 | cubic-bezier(0.289, 0.402, 0.662, 1) | AE influence out 28.9% / in 33.8% | pic vitesse x1.42 moyenne
+     f60->f120 (60 f @60 = 25.0 f @25) MAINTIEN a 98
+  .ks.s[1]
+     f0->f24 (24 f @60 = 10.0 f @25) 0 -> 60.54 | cubic-bezier(0.493, 0, 0.792, 0.653) | AE influence out 49.3% / in 20.8% | pic vitesse x1.76 moyenne
+     f24->f32 (8 f @60 = 3.3 f @25) 60.54 -> 76.88 | cubic-bezier(0.429, 0.883, 0.729, 0.681) | AE influence out 42.9% / in 27.1% | pic vitesse x2.05 moyenne
+     f32->f40 (8 f @60 = 3.3 f @25) 76.88 -> 83 | cubic-bezier(0.217, 0.214, 0.571, 0.415) | AE influence out 21.7% / in 42.9% | pic vitesse x1.36 moyenne
+     f40->f60 (20 f @60 = 8.3 f @25) 83 -> 98 | cubic-bezier(0.289, 0.402, 0.662, 1) | AE influence out 28.9% / in 33.8% | pic vitesse x1.42 moyenne
+     f60->f120 (60 f @60 = 25.0 f @25) MAINTIEN a 98

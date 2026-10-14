@@ -1,7 +1,8 @@
 """Construit planche + images clés + animatiques pour un ou plusieurs concepts.
 
 Usage (depuis sfeer-intro-outro/) :
-  python3 tools/build.py concepts/p05_le_lien.py [autres.py ...] [--no-animatic] [--png]
+  python3 tools/build.py concepts/p05_le_lien.py [autres.py ...] [--png] [--animatic]
+Par défaut : planche + images clés SVG uniquement (pas de vidéo, pour économiser les ressources).
 """
 import importlib.util
 import os
@@ -22,7 +23,7 @@ def load(path):
 
 def main(argv):
     files = [a for a in argv if a.endswith(".py")]
-    animatic = "--no-animatic" not in argv
+    animatic = "--animatic" in argv
     png = "--png" in argv
     for p in files:
         mod = load(p)

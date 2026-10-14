@@ -1,0 +1,31 @@
+# 07c react-native-animated-loader loader.json (MIT)
+# source: rnal_loader.json | 30 ips | ip=0 op=50 | 80x80
+# Format: fA->fB (duree) v0 -> v1 | cubic-bezier(x1,y1,x2,y2) = (o.x, o.y, i.x, i.y) | influence AE sortie = o.x*100, entree = (1-i.x)*100
+
+CALQUE "color01b" (ind 1, parent None, in 30 out 50, start 30)
+  .ks.s[0]
+     f30->f50 (20 f @30 = 16.7 f @25) 0 -> 100 | cubic-bezier(0.333, 0, 0.667, 1) | AE influence out 33.3% / in 33.3% | pic vitesse x1.50 moyenne
+  .ks.s[1]
+     f30->f50 (20 f @30 = 16.7 f @25) 0 -> 100 | cubic-bezier(0.333, 0, 0.667, 1) | AE influence out 33.3% / in 33.3% | pic vitesse x1.50 moyenne
+CALQUE "color01a" (ind 2, parent None, in 25 out 50, start 25)
+  .ks.o[0]
+     f25->f45 (20 f @30 = 16.7 f @25) 100 -> 0 | cubic-bezier(0.333, 0, 0.667, 1) | AE influence out 33.3% / in 33.3% | pic vitesse x1.50 moyenne
+  .ks.s[0]
+     f25->f45 (20 f @30 = 16.7 f @25) 0 -> 100 | cubic-bezier(0.333, 0, 0.667, 1) | AE influence out 33.3% / in 33.3% | pic vitesse x1.50 moyenne
+  .ks.s[1]
+     f25->f45 (20 f @30 = 16.7 f @25) 0 -> 100 | cubic-bezier(0.333, 0, 0.667, 1) | AE influence out 33.3% / in 33.3% | pic vitesse x1.50 moyenne
+CALQUE "color01" (ind 3, parent None, in 0 out 30, start 0)
+  .ks.s[0]
+     f0->f20 (20 f @30 = 16.7 f @25) 100 -> 0 | cubic-bezier(0.333, 0, 0.667, 1) | AE influence out 33.3% / in 33.3% | pic vitesse x1.50 moyenne
+  .ks.s[1]
+     f0->f20 (20 f @30 = 16.7 f @25) 100 -> 0 | cubic-bezier(0.333, 0, 0.667, 1) | AE influence out 33.3% / in 33.3% | pic vitesse x1.50 moyenne
+CALQUE "color02" (ind 4, parent None, in 0 out 30, start 0)
+  .ks.s[0]
+     f5->f25 (20 f @30 = 16.7 f @25) 100 -> 0 | cubic-bezier(0.333, 0, 0.667, 1) | AE influence out 33.3% / in 33.3% | pic vitesse x1.50 moyenne
+  .ks.s[1]
+     f5->f25 (20 f @30 = 16.7 f @25) 100 -> 0 | cubic-bezier(0.333, 0, 0.667, 1) | AE influence out 33.3% / in 33.3% | pic vitesse x1.50 moyenne
+CALQUE "color03" (ind 5, parent None, in 0 out 30, start 0)
+  .ks.s[0]
+     f10->f30 (20 f @30 = 16.7 f @25) 100 -> 10 | cubic-bezier(0.333, 0, 0.667, 1) | AE influence out 33.3% / in 33.3% | pic vitesse x1.50 moyenne
+  .ks.s[1]
+     f10->f30 (20 f @30 = 16.7 f @25) 100 -> 10 | cubic-bezier(0.333, 0, 0.667, 1) | AE influence out 33.3% / in 33.3% | pic vitesse x1.50 moyenne

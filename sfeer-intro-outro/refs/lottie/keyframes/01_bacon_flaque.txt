@@ -1,0 +1,26 @@
+# 01 Bacon (lottie-web, MIT) - flaque liquide plein cadre (precomp comp_7 demarre a f63 global)
+# source: lw_bacon.json | 30 ips | ip=0 op=140 | 1920x1080
+# Format: fA->fB (duree) v0 -> v1 | cubic-bezier(x1,y1,x2,y2) = (o.x, o.y, i.x, i.y) | influence AE sortie = o.x*100, entree = (1-i.x)*100
+
+CALQUE "Pancake_Anim" (ind 1, parent None, in 63 out 143, start 63)
+  -> precomp comp_7 (decalage temps +63)
+    CALQUE "Bacon" (ind 1, parent None, in 0 out 908, start 0)
+    CALQUE "Butter" (ind 2, parent None, in 0 out 908, start 0)
+    CALQUE "BG_Pancake Outlines 3" (ind 3, parent None, in 0 out 1001, start 0)
+      .shapes[Group 1].it[Path 1].ks : morph de trace, 7 cles (t=0,3,5,8,49,62,78), 4 sommets
+         f0->f3 (3 f @30 = 2.5 f @25) | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7%
+         f3->f5 (2 f @30 = 1.7 f @25) | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7%
+         f5->f8 (3 f @30 = 2.5 f @25) | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7%
+         f8->f49 (41 f @30 = 34.2 f @25) | cubic-bezier(0.167, 0.167, 0.667, 1) | AE influence out 16.7% / in 33.3%
+         f49->f62 (13 f @30 = 10.8 f @25) | cubic-bezier(0.333, 0, 0.833, 0.833) | AE influence out 33.3% / in 16.7%
+         f62->f78 (16 f @30 = 13.3 f @25) | cubic-bezier(0.167, 0.167, 0.667, 1) | AE influence out 16.7% / in 33.3%
+    CALQUE "BG_Pancake Outlines 2" (ind 4, parent None, in 0 out 1001, start 0)
+      .shapes[Group 1].it[Path 1].ks : morph de trace, 6 cles (t=0,3,5,8,49,78), 4 sommets
+         f0->f3 (3 f @30 = 2.5 f @25) | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7%
+         f3->f5 (2 f @30 = 1.7 f @25) | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7%
+         f5->f8 (3 f @30 = 2.5 f @25) | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7%
+         f8->f49 (41 f @30 = 34.2 f @25) | cubic-bezier(0.167, 0.167, 0.667, 1) | AE influence out 16.7% / in 33.3%
+         f49->f78 (29 f @30 = 24.2 f @25) | cubic-bezier(0.333, 0, 0.667, 1) | AE influence out 33.3% / in 33.3%
+CALQUE "JakeTheDog" (ind 2, parent None, in 117 out 140, start 117)
+CALQUE "JakeTheDog" (ind 3, parent None, in 27 out 63, start -2)
+CALQUE "JakeTheDog" (ind 4, parent None, in 0 out 27, start 0)

@@ -310,7 +310,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 
 
-def build(concept, out_root=ROOT, animatic=True, width=960):
+def build(concept, out_root=ROOT, animatic=False, width=960):
     """concept : module avec META (dict), INTRO, OUTRO (Anim), NOTES (liste de (titre, [lignes]))."""
     m = concept.META
     cid = m["id"]

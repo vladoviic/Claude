@@ -1,67 +1,46 @@
-"""Contrôle « rien de statique » d'une animatique + planches-contact.
+"""Contrôle « rien de statique », sans rendu vidéo.
 
 Usage (depuis sfeer-intro-outro/) : python3 -I tools/check_motion.py <id_concept>
 
-Pour chaque paire d'images consécutives, mesure la part de pixels qui changent de plus de
-6 niveaux (sur 255). Une image est « figée » si moins de 0,02 % des pixels bougent
-(soit environ 100 pixels en 960 x 540). Toute suite de 3 images figées ou plus est signalée.
-Écrit aussi /tmp/claude-0/contact/<id>_<intro|outro>.png (une image sur deux, numérotée).
+Calcule le SVG de chaque image (25 i/s) directement depuis concepts/<id>.py et compare
+les images consécutives : une suite d'au moins 3 images identiques est signalée comme figée.
+Aucune image n'est rendue (pas de Chromium, pas de ffmpeg).
 """
 import os
-import subprocess
 import sys
 
-import numpy as np
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import motion  # noqa: E402
+from build import load  # noqa: E402
 
-W, H = 480, 270
-SEUIL_NIVEAU = 6
-SEUIL_PART = 0.0002
 RUN = 3
 
 
-def frames(mp4):
-    raw = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", mp4, "-vf", f"scale={W}:{H}",
-                          "-f", "rawvideo", "-pix_fmt", "gray", "-"], capture_output=True, check=True).stdout
-    return np.frombuffer(raw, np.uint8).reshape(-1, H, W).astype(np.int16)
-
-
-def check(mp4):
-    fr = frames(mp4)
-    parts = [(np.abs(fr[i + 1] - fr[i]) > SEUIL_NIVEAU).mean() for i in range(len(fr) - 1)]
-    runs, start = [], None
-    for i, p in enumerate(parts + [1.0]):
-        if p < SEUIL_PART:
-            start = i if start is None else start
+def check_anim(anim):
+    prev, start, runs = None, None, []
+    n = anim.n_frames
+    for i in range(n + 1):
+        cur = motion.render_layers(anim.frame(i / motion.FPS), uid="c") if i < n else None
+        if cur is not None and cur == prev:
+            start = i - 1 if start is None else start
         else:
             if start is not None and i - start >= RUN:
-                runs.append((start, i))
+                runs.append((start, i - 1))
             start = None
-    return len(fr), parts, runs
+        prev = cur
+    return n, runs
 
 
 def main(cid):
-    os.makedirs("/tmp/claude-0/contact", exist_ok=True)
+    mod = load(os.path.join(motion.ROOT, "concepts", f"{cid}.py"))
     ok = True
-    for part in ("intro", "outro"):
-        mp4 = f"animatiques/{cid}_{part}.mp4"
-        if not os.path.exists(mp4):
-            print("MANQUANT", mp4)
-            ok = False
-            continue
-        n, parts, runs = check(mp4)
+    for anim in (mod.INTRO, mod.OUTRO):
+        n, runs = check_anim(anim)
         if runs:
             ok = False
-            txt = ", ".join(f"f{a:03d}-f{b:03d}" for a, b in runs)
-            print(f"FIGÉ   {part} : {txt}")
+            print(f"FIGÉ   {anim.name.lower()} : " + ", ".join(f"f{a:03d}-f{b:03d}" for a, b in runs))
         else:
-            print(f"OK     {part} : aucune suite de {RUN} images figées ({n} images, mouvement min {min(parts) * 100:.3f} % des pixels)")
-        rows = (n // 2 + 9) // 10
-        out = f"/tmp/claude-0/contact/{cid}_{part}.png"
-        subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", mp4, "-vf",
-                        f"select='not(mod(n\\,2))',scale=288:-1,drawtext=text='f%{{eif\\:n*2\\:d}}':x=6:y=6:"
-                        f"fontcolor=white:fontsize=16:box=1:boxcolor=black@0.55,tile=10x{rows}",
-                        "-frames:v", "1", out], check=True)
-        print(f"       planche-contact : {out}")
+            print(f"OK     {anim.name.lower()} : aucune suite de {RUN} images identiques ({n} images)")
     return ok
 
 

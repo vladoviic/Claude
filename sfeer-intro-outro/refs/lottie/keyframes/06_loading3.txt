@@ -1,0 +1,24 @@
+# 06 useAnimations loading3 (react-useanimations, MIT)
+# source: ua_loading3.json | 24.001 ips | ip=0 op=48 | 32x32
+# Format: fA->fB (duree) v0 -> v1 | cubic-bezier(x1,y1,x2,y2) = (o.x, o.y, i.x, i.y) | influence AE sortie = o.x*100, entree = (1-i.x)*100
+
+CALQUE "None" (ind 1, parent None, in 0 out 48, start 0)
+  .shapes[0].it[1].s[0]
+     f0->f12 (12 f @24.001 = 12.5 f @25) 0 -> 99 | cubic-bezier(0.7, 0, 0.7, 1) | AE influence out 70% / in 30% | pic vitesse x2.18 moyenne
+     f12->f13 (1 f @24.001 = 1.0 f @25) 99 -> 100 | cubic-bezier(0.7, 0, 0.833, 1) | AE influence out 70% / in 16.7% | pic vitesse x2.11 moyenne
+  .shapes[0].it[1].e[0]
+     f0->f12 (12 f @24.001 = 12.5 f @25) 1 -> 100 | cubic-bezier(0.3, 0, 0.3, 1) | AE influence out 30% / in 70% | pic vitesse x2.18 moyenne
+  .shapes[1].it[1].s[0]
+     f12->f24 (12 f @24.001 = 12.5 f @25) 0 -> 100 | cubic-bezier(0.7, 0, 0.7, 1) | AE influence out 70% / in 30% | pic vitesse x2.18 moyenne
+  .shapes[1].it[1].e[0]
+     f12->f24 (12 f @24.001 = 12.5 f @25) 0 -> 99 | cubic-bezier(0.3, 0, 0.3, 1) | AE influence out 30% / in 70% | pic vitesse x2.18 moyenne
+     f24->f25 (1.00001 f @24.001 = 1.0 f @25) 99 -> 100 | cubic-bezier(0.3, 0, 0.833, 1) | AE influence out 30% / in 16.7% | pic vitesse x1.32 moyenne
+  .shapes[2].it[1].s[0]
+     f24->f36 (12 f @24.001 = 12.5 f @25) 100 -> 0 | cubic-bezier(0.7, 0, 0.7, 1) | AE influence out 70% / in 30% | pic vitesse x2.18 moyenne
+  .shapes[2].it[1].e[0]
+     f24->f36 (12 f @24.001 = 12.5 f @25) 100 -> 1 | cubic-bezier(0.3, 0, 0.3, 1) | AE influence out 30% / in 70% | pic vitesse x2.18 moyenne
+     f36->f37 (1.00001 f @24.001 = 1.0 f @25) 1 -> 0 | cubic-bezier(0.3, 0, 0.833, 1) | AE influence out 30% / in 16.7% | pic vitesse x1.32 moyenne
+  .shapes[3].it[1].s[0]
+     f36->f48 (12 f @24.001 = 12.5 f @25) 100 -> 0 | cubic-bezier(0.7, 0, 0.7, 1) | AE influence out 70% / in 30% | pic vitesse x2.18 moyenne
+  .shapes[3].it[1].e[0]
+     f36->f48 (12 f @24.001 = 12.5 f @25) 100 -> 1 | cubic-bezier(0.3, 0, 0.3, 1) | AE influence out 30% / in 70% | pic vitesse x2.18 moyenne

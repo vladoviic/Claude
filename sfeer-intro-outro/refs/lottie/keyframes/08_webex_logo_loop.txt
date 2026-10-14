@@ -1,0 +1,108 @@
+# 08 Webex logo loop (@momentum-design/animations, MIT)
+# source: md_webex_logo_loop.json | 60 ips | ip=0 op=300 | 300x300
+# Format: fA->fB (duree) v0 -> v1 | cubic-bezier(x1,y1,x2,y2) = (o.x, o.y, i.x, i.y) | influence AE sortie = o.x*100, entree = (1-i.x)*100
+
+CALQUE "Shape Layer 3" (ind 1, parent None, in 150 out 2299, start 299)
+  .ks.p[0]
+     f150->f300 (150 f @60 = 62.5 f @25) 350 -> 150 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+     f300->f450 (150 f @60 = 62.5 f @25) 150 -> -50 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+     f450->f599 (149 f @60 = 62.1 f @25) -50 -> -250 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+  .ks.p[1]
+     f150->f300 (150 f @60 = 62.5 f @25) MAINTIEN a 150
+     f300->f450 (150 f @60 = 62.5 f @25) 150 -> 149.06 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+     f450->f599 (149 f @60 = 62.1 f @25) MAINTIEN a 149.06
+CALQUE "02" (ind 2, parent None, in 0 out 2000, start 0)
+  -> precomp comp_0 (decalage temps +0)
+    CALQUE "Path" (ind 1, parent None, in 0 out 2000, start 0)
+      .ks.p[0]
+         f0->f150 (150 f @60 = 62.5 f @25) 143.65 -> -28.95 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+         f150->f300 (150 f @60 = 62.5 f @25) -28.95 -> -201.48 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+      .shapes[Trim Paths 1].s[0]
+         f0->f150 (150 f @60 = 62.5 f @25) 41 -> 56.5 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+         f150->f300 (150 f @60 = 62.5 f @25) 56.5 -> 71.75 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+      .shapes[Trim Paths 1].e[0]
+         f0->f150 (150 f @60 = 62.5 f @25) 59 -> 74 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+         f150->f300 (150 f @60 = 62.5 f @25) 74 -> 89.78 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+CALQUE "Shape Layer 2" (ind 3, parent None, in 0 out 2149, start 149)
+  .ks.p[0]
+     f0->f150 (150 f @60 = 62.5 f @25) 350 -> 150 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+     f150->f300 (150 f @60 = 62.5 f @25) 150 -> -50 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+     f300->f449 (149 f @60 = 62.1 f @25) -50 -> -250 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+  .ks.p[1]
+     f0->f150 (150 f @60 = 62.5 f @25) MAINTIEN a 150
+     f150->f300 (150 f @60 = 62.5 f @25) 150 -> 149.06 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+     f300->f449 (149 f @60 = 62.1 f @25) MAINTIEN a 149.06
+CALQUE "02" (ind 4, parent None, in 0 out 2000, start 0)
+  -> precomp comp_0 (decalage temps +0)
+    CALQUE "Path" (ind 1, parent None, in 0 out 2000, start 0)
+      .ks.p[0]
+         f0->f150 (150 f @60 = 62.5 f @25) 143.65 -> -28.95 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+         f150->f300 (150 f @60 = 62.5 f @25) -28.95 -> -201.48 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+      .shapes[Trim Paths 1].s[0]
+         f0->f150 (150 f @60 = 62.5 f @25) 41 -> 56.5 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+         f150->f300 (150 f @60 = 62.5 f @25) 56.5 -> 71.75 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+      .shapes[Trim Paths 1].e[0]
+         f0->f150 (150 f @60 = 62.5 f @25) 59 -> 74 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+         f150->f300 (150 f @60 = 62.5 f @25) 74 -> 89.78 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+CALQUE "Shape Layer 4" (ind 5, parent None, in 0 out 2000, start 0)
+  .ks.p[0]
+     f0->f150 (150 f @60 = 62.5 f @25) 150 -> -50 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+     f150->f300 (150 f @60 = 62.5 f @25) -50 -> -250 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+  .ks.p[1]
+     f0->f150 (150 f @60 = 62.5 f @25) 150 -> 149.06 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+     f150->f300 (150 f @60 = 62.5 f @25) MAINTIEN a 149.06
+CALQUE "02" (ind 6, parent None, in 0 out 2000, start 0)
+  -> precomp comp_0 (decalage temps +0)
+    CALQUE "Path" (ind 1, parent None, in 0 out 2000, start 0)
+      .ks.p[0]
+         f0->f150 (150 f @60 = 62.5 f @25) 143.65 -> -28.95 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+         f150->f300 (150 f @60 = 62.5 f @25) -28.95 -> -201.48 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+      .shapes[Trim Paths 1].s[0]
+         f0->f150 (150 f @60 = 62.5 f @25) 41 -> 56.5 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+         f150->f300 (150 f @60 = 62.5 f @25) 56.5 -> 71.75 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+      .shapes[Trim Paths 1].e[0]
+         f0->f150 (150 f @60 = 62.5 f @25) 59 -> 74 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+         f150->f300 (150 f @60 = 62.5 f @25) 74 -> 89.78 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+CALQUE "Shape Layer 1" (ind 7, parent None, in 0 out 2000, start 0)
+  .ks.p[0]
+     f0->f150 (150 f @60 = 62.5 f @25) -47.5 -> -247.5 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+     f150->f300 (150 f @60 = 62.5 f @25) -247.5 -> -447.5 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+  .ks.p[1]
+     f0->f150 (150 f @60 = 62.5 f @25) 149.06 -> 148.13 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+     f150->f300 (150 f @60 = 62.5 f @25) MAINTIEN a 148.13
+CALQUE "02" (ind 8, parent None, in 0 out 2000, start 0)
+  -> precomp comp_0 (decalage temps +0)
+    CALQUE "Path" (ind 1, parent None, in 0 out 2000, start 0)
+      .ks.p[0]
+         f0->f150 (150 f @60 = 62.5 f @25) 143.65 -> -28.95 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+         f150->f300 (150 f @60 = 62.5 f @25) -28.95 -> -201.48 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+      .shapes[Trim Paths 1].s[0]
+         f0->f150 (150 f @60 = 62.5 f @25) 41 -> 56.5 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+         f150->f300 (150 f @60 = 62.5 f @25) 56.5 -> 71.75 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+      .shapes[Trim Paths 1].e[0]
+         f0->f150 (150 f @60 = 62.5 f @25) 59 -> 74 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+         f150->f300 (150 f @60 = 62.5 f @25) 74 -> 89.78 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+CALQUE "01" (ind 9, parent None, in 0 out 2000, start 0)
+  -> precomp comp_1 (decalage temps +0)
+    CALQUE "Path" (ind 1, parent None, in 0 out 2000, start 0)
+      .ks.p[0]
+         f0->f150 (150 f @60 = 62.5 f @25) 143.65 -> -28.95 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+         f150->f300 (150 f @60 = 62.5 f @25) -28.95 -> -201.48 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+      .shapes[Trim Paths 1].s[0]
+         f0->f150 (150 f @60 = 62.5 f @25) 41 -> 56.5 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+         f150->f300 (150 f @60 = 62.5 f @25) 56.5 -> 71.75 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+      .shapes[Trim Paths 1].e[0]
+         f0->f150 (150 f @60 = 62.5 f @25) 59 -> 74 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+         f150->f300 (150 f @60 = 62.5 f @25) 74 -> 89.78 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+CALQUE "02" (ind 10, parent None, in 0 out 2000, start 0)
+  -> precomp comp_0 (decalage temps +0)
+    CALQUE "Path" (ind 1, parent None, in 0 out 2000, start 0)
+      .ks.p[0]
+         f0->f150 (150 f @60 = 62.5 f @25) 143.65 -> -28.95 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+         f150->f300 (150 f @60 = 62.5 f @25) -28.95 -> -201.48 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+      .shapes[Trim Paths 1].s[0]
+         f0->f150 (150 f @60 = 62.5 f @25) 41 -> 56.5 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+         f150->f300 (150 f @60 = 62.5 f @25) 56.5 -> 71.75 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+      .shapes[Trim Paths 1].e[0]
+         f0->f150 (150 f @60 = 62.5 f @25) 59 -> 74 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+         f150->f300 (150 f @60 = 62.5 f @25) 74 -> 89.78 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne

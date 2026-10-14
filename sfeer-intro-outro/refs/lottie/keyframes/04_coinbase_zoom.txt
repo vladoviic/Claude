@@ -1,0 +1,12 @@
+# 04 Coinbase giftingZoom (@coinbase/cds-lottie-files)
+# source: cb_giftingZoom.json | 60 ips | ip=0 op=31 | 314x513
+# Format: fA->fB (duree) v0 -> v1 | cubic-bezier(x1,y1,x2,y2) = (o.x, o.y, i.x, i.y) | influence AE sortie = o.x*100, entree = (1-i.x)*100
+
+CALQUE "Logo" (ind 1, parent None, in 0 out 31, start 0)
+  .ks.s[0]
+     f0->f30 (30 f @60 = 12.5 f @25) 100 -> 2576 | cubic-bezier(0.6, 0, 0.15, 1) | AE influence out 60% / in 85% | pic vitesse x3.79 moyenne
+  .ks.s[1]
+     f0->f30 (30 f @60 = 12.5 f @25) 100 -> 2576 | cubic-bezier(0.6, 0, 0.15, 1) | AE influence out 60% / in 85% | pic vitesse x3.79 moyenne
+CALQUE "Card" (ind 2, parent None, in 0 out 31, start 0)
+  .ks.o[0]
+     f3->f27 (24 f @60 = 10.0 f @25) 100 -> 0 | cubic-bezier(0.6, 0, 0.15, 1) | AE influence out 60% / in 85% | pic vitesse x3.79 moyenne

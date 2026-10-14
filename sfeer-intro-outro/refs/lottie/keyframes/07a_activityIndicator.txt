@@ -1,0 +1,22 @@
+# 07a Coinbase activityIndicator
+# source: cb_activityIndicator.json | 30 ips | ip=0 op=61 | 120x120
+# Format: fA->fB (duree) v0 -> v1 | cubic-bezier(x1,y1,x2,y2) = (o.x, o.y, i.x, i.y) | influence AE sortie = o.x*100, entree = (1-i.x)*100
+
+CALQUE "palette_fgMuted" (ind 1, parent None, in 0 out 44, start -17)
+  .ks.r[0]
+     f-17->f44 (61 f @30 = 50.8 f @25) 0 -> 360 | cubic-bezier(0.699, 0.296, 0.833, 0.833) | AE influence out 69.9% / in 16.7% | pic vitesse x1.67 moyenne
+CALQUE "palette_fgMuted" (ind 2, parent None, in 44 out 61, start 44)
+  .ks.r[0]
+     f44->f105 (61 f @30 = 50.8 f @25) 0 -> 360 | cubic-bezier(0.699, 0.296, 0.833, 0.833) | AE influence out 69.9% / in 16.7% | pic vitesse x1.67 moyenne
+CALQUE "palette_fgMuted" (ind 3, parent None, in 0 out 44, start -17)
+  .ks.r[0]
+     f-17->f44 (61 f @30 = 50.8 f @25) 0 -> 360 | cubic-bezier(0.506, 0.317, 0.833, 0.833) | AE influence out 50.6% / in 16.7% | pic vitesse x1.24 moyenne
+CALQUE "palette_fgMuted" (ind 4, parent None, in 44 out 61, start 44)
+  .ks.r[0]
+     f44->f105 (61 f @30 = 50.8 f @25) 0 -> 360 | cubic-bezier(0.506, 0.317, 0.833, 0.833) | AE influence out 50.6% / in 16.7% | pic vitesse x1.24 moyenne
+CALQUE "palette_fgMuted" (ind 5, parent None, in 0 out 44, start -17)
+  .ks.r[0]
+     f-17->f44 (61 f @30 = 50.8 f @25) 0 -> 360 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne
+CALQUE "palette_fgMuted" (ind 6, parent None, in 44 out 61, start 44)
+  .ks.r[0]
+     f44->f105 (61 f @30 = 50.8 f @25) 0 -> 360 | cubic-bezier(0.167, 0.167, 0.833, 0.833) | AE influence out 16.7% / in 16.7% | pic vitesse x1.00 moyenne

@@ -1,0 +1,19 @@
+# 07b useAnimations moreHorizontal (MIT)
+# source: ua_moreHorizontal.json | 30 ips | ip=0 op=40 | 32x32
+# Format: fA->fB (duree) v0 -> v1 | cubic-bezier(x1,y1,x2,y2) = (o.x, o.y, i.x, i.y) | influence AE sortie = o.x*100, entree = (1-i.x)*100
+
+CALQUE "None" (ind 1, parent None, in 0 out 40, start 0)
+  .ks.p[1]
+     f0->f6 (6 f @30 = 5.0 f @25) 16 -> 13 | cubic-bezier(0, 0, 0.58, 1) | AE influence out 0% / in 42% | pic vitesse x1.71 moyenne
+     f6->f12 (6 f @30 = 5.0 f @25) 13 -> 16 | cubic-bezier(0.42, 0, 1, 1) | AE influence out 42% / in 0% | pic vitesse x1.71 moyenne
+     f12->f16 (4 f @30 = 3.3 f @25) MAINTIEN a 16
+CALQUE "None" (ind 2, parent None, in 0 out 40, start 0)
+  .ks.p[1]
+     f4->f10 (6 f @30 = 5.0 f @25) 16 -> 13 | cubic-bezier(0, 0, 0.58, 1) | AE influence out 0% / in 42% | pic vitesse x1.71 moyenne
+     f10->f16 (6 f @30 = 5.0 f @25) 13 -> 16 | cubic-bezier(0.42, 0, 1, 1) | AE influence out 42% / in 0% | pic vitesse x1.71 moyenne
+     f16->f20 (4 f @30 = 3.3 f @25) MAINTIEN a 16
+CALQUE "None" (ind 3, parent None, in 0 out 40, start 0)
+  .ks.p[1]
+     f8->f14 (6 f @30 = 5.0 f @25) 16 -> 13 | cubic-bezier(0, 0, 0.58, 1) | AE influence out 0% / in 42% | pic vitesse x1.71 moyenne
+     f14->f20 (6 f @30 = 5.0 f @25) 13 -> 16 | cubic-bezier(0.42, 0, 1, 1) | AE influence out 42% / in 0% | pic vitesse x1.71 moyenne
+     f20->f24 (4 f @30 = 3.3 f @25) MAINTIEN a 16
