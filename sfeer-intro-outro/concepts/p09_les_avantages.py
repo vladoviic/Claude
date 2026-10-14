@@ -25,6 +25,7 @@ META = {
     "id": "p09_les_avantages",
     "num": "P9",
     "title": "Les avantages",
+    "principe": "Le logo lance la liste des avantages : elle tourne, s'arrête, la puce se lie au logo et ouvre la fenêtre.",
     "logline": "Piste 9 de la DA. Le point de ·sfeer· fait jaillir la liste des avantages, qui défile comme une machine à sous. "
                "Elle s'arrête : la puce et le point du logo se lient, trois bulles restent, celle du centre devient la fenêtre.",
 }
@@ -33,18 +34,20 @@ META = {
 DX = -400                       # le logo est décalé à gauche pendant la liste
 XD = LG["dot_d"][0] + DX        # point droit du logo (≈ 839)
 XG = LG["dot_g"][0] + DX        # point gauche du logo
-XB = 1000                       # colonne des puces
-XT = 1046                       # début du texte
-SP = 104                        # interligne
-FS = 44
-RB = 14                         # rayon d'une puce
+XB = XD + 125                   # colonne des puces (au plus près du point du logo, comme sur le croquis)
+XT = XB + 30                    # début du texte
+SP = 70                         # interligne
+FS = 30
+RB = 9                          # rayon d'une puce
+R_ARC = 820                     # la liste court sur un arc (tambour de machine à sous) bombé vers la droite
+FAN = 0.45                      # les lignes s'ouvrent en éventail (rotation = 45 % de l'angle sur l'arc)
 PHRASES = ["Lorem ipsum dolor sit amet", "Consectetur adipiscing elit", "Sed do eiusmod tempor",
            "Ut labore et dolore magna", "Duis aute irure dolor", "Excepteur sint occaecat",
            "Cupidatat non proident", "Sunt in culpa qui officia", "Ut enim ad minim veniam",
            "Quis nostrud exercitation"]
 
 # défilement : vitesse constante puis arrêt « machine à sous » (dépassement puis retour)
-V0 = 70.0                                       # px par image
+V0 = 47.0                                       # px par image (≈ 0,67 ligne par image)
 N1 = 30                                         # fin de la vitesse constante (image)
 K = round((V0 * N1 + V0 * 26 / 4.7) / SP)        # ligne sur laquelle on s'arrête
 D = K * SP - V0 * N1
@@ -70,30 +73,43 @@ def speed(fn, n):
     return abs(fn(n + 0.5) - fn(n - 0.5))
 
 
+def item_pos(yl):
+    """Position d'un item sur le tambour : yl = écart à l'axe le long de la liste (px).
+    Renvoie (x, y, angle_deg, échelle) : l'item glisse sur un arc, s'incline en éventail et rapetisse
+    en s'éloignant de l'axe (perspective du tambour)."""
+    th = yl / R_ARC
+    return (XB - R_ARC * (1 - math.cos(th)), AXIS + R_ARC * math.sin(th),
+            math.degrees(th) * FAN, 0.55 + 0.45 * math.cos(th))
+
+
 def list_layers(n, s, v, reveal=1.0, text=1.0, rows=None, xb=XB, keep=None, ry_scale=None, uid="l"):
     """Puces + lignes de texte. v = vitesse (px/image) : au-dessus de 14, le texte devient des barres
     (comme les traits du croquis) et les puces s'étirent verticalement (volume conservé)."""
     L = []
-    st = min(1.35, 1 + v / 160)
+    st = min(1.35, 1 + v / 110)
     half = 600 * reveal
     clip = f'<clipPath id="{uid}c"><rect x="0" y="{f(AXIS - half)}" width="{W}" height="{f(2 * half)}"/></clipPath>'
     bul, txt = [], []
     for i in (rows if rows is not None else range(-8, K + 9)):
-        y = AXIS + i * SP - s
-        if y < -80 or y > H + 80:
+        yl = i * SP - s
+        if abs(yl) > R_ARC * 1.0:
             continue
         if keep is not None and i in keep:
             continue
+        x, y, ang, sc = item_pos(yl)
+        x += xb - XB
         r = RB * (ry_scale(i) if ry_scale else 1)
-        bul.append(f'<path d="{ellipse_d(xb, y, r / st, r * st)}" fill="{ORANGE}"/>')
+        g = f'translate({f(x)} {f(y)}) rotate({f(ang)}) scale({f(sc)})'
+        bul.append(f'<path transform="{g}" d="{ellipse_d(0, 0, r / st, r * st)}" fill="{ORANGE}"/>')
         if text > 0:
             tw = len(phrase(i)) * FS * 0.5
-            if v > 14:
-                txt.append(f'<rect x="{XT}" y="{f(y - 7)}" width="{f(tw * text)}" height="14" rx="7" fill="{WHITE}" opacity="0.85"/>')
+            dx = XT - XB
+            if v > 10:
+                txt.append(f'<rect transform="{g}" x="{dx}" y="-5" width="{f(tw * text)}" height="10" rx="5" fill="{WHITE}" opacity="0.85"/>')
             else:
-                txt.append(f'<clipPath id="{uid}t{i}"><rect x="{XT - 4}" y="{f(y - FS)}" width="{f((tw + 40) * text)}" height="{f(FS * 1.6)}"/></clipPath>'
-                           f'<text clip-path="url(#{uid}t{i})" x="{XT}" y="{f(y + FS * 0.34)}" font-family="{FONT}" '
-                           f'font-size="{FS}" fill="{WHITE}">{phrase(i)}</text>')
+                txt.append(f'<g transform="{g}"><clipPath id="{uid}t{i}"><rect x="{dx - 4}" y="{f(-FS)}" width="{f((tw + 30) * text)}" height="{f(FS * 1.6)}"/></clipPath>'
+                           f'<text clip-path="url(#{uid}t{i})" x="{dx}" y="{f(FS * 0.34)}" font-family="{FONT}" '
+                           f'font-size="{FS}" fill="{WHITE}">{phrase(i)}</text></g>')
     L.append({"k": "raw", "svg": clip + f'<g clip-path="url(#{uid}c)">{"".join(txt)}{"".join(bul)}</g>'})
     return L
 
@@ -113,7 +129,7 @@ def logo_left(t, swallow=0.0, uid="lg"):
 LINK0, LINK1 = math.ceil(STOP), math.ceil(STOP) + 5         # langue puis contact
 rd = Track((F(LINK0 - 3), LG["dot_r"]), (F(LINK0), LG["dot_r"] * 1.7, "out_back"),
            (F(LINK1), LG["dot_r"] * 1.4, "in_cubic"), (F(LINK1 + 8), 34, "out_back"))
-rb = Track((F(LINK1 - 1), RB), (F(LINK1 + 9), 62, "out_back_fort"))
+rb = Track((F(LINK1 - 1), RB), (F(LINK1 + 9), 58, "out_back_fort"))
 neck = Track((F(LINK1), 5), (F(LINK1 + 8), 14, "out_cubic"))
 merge = Track((F(72), 0.0), (F(81), 1.0, "in_expo"))               # le point du logo est absorbé
 center_x = Track((F(76), XB), (F(88), CX, "emphase"))
@@ -163,10 +179,10 @@ def intro(t):
         # voisines K-1 / K+1 : elles deviennent les bulles du haut et du bas
         if n >= LINK1:
             for j, sign in ((K - 1, -1), (K + 1, 1)):
-                y0 = AXIS + j * SP - s
+                x0, y0, _, _ = item_pos(j * SP - s)
                 u = trio(t)
                 y = y0 + (AXIS + sign * (430 if sign < 0 else 470) - y0) * u
-                x = XB + (center_x(t) - XB) * u
+                x = x0 + (center_x(t) - x0) * u
                 r = RB + (82 - RB) * u
                 if retract > 0:
                     L += list_layers(n, s, 0, 1, retract, rows=[j], uid=f"v{j}")
@@ -240,7 +256,7 @@ def a_plonge(t):
 
 INTRO = Anim("INTRO", 4.4, intro, [
     Beat(F(4), "Les avantages jaillissent du point droit du logo : la liste s'ouvre depuis l'axe (10 images) et défile déjà.", "out_expo", onion=0),
-    Beat(F(20), "Défilement machine à sous : 70 px par image, le texte n'est plus que des traits, les puces s'étirent avec la vitesse.", "linear", ann=a_defile, onion=0),
+    Beat(F(20), "Tambour de machine à sous : la liste tourne sur son arc (0,7 ligne par image), le texte n'est plus que des traits en éventail.", "linear", ann=a_defile, onion=0),
     Beat(F(46), "Freinage : la liste ralentit, le texte redevient lisible, une ligne dépasse l'axe de 10 % puis revient se caler.", "out_back", onion=2, onion_dt=F(4)),
     Beat(F(LINK0 + 3), "Le point du logo gonfle et tire une langue horizontale vers la puce arrêtée sur l'axe.", "in_expo", ann=a_lien),
     Beat(F(LINK1 + 6), "Contact : le point et la puce se lient (haltère o—O), le texte se rétracte dans les puces.", "out_back_fort"),
@@ -288,10 +304,11 @@ def outro(t):
         u = o_trio(t) * (1 - o_shrink(t))
         for sign in (-1, 1):
             y = AXIS + sign * 440 * o_trio(t)
-            y = y + (AXIS + sign * SP - y) * o_shrink(t)
+            xa, ya, _, _ = item_pos(sign * SP)
+            y = y + (ya - y) * o_shrink(t)
             r = 82 * u + RB * o_shrink(t)
             if o_trio(t) > 0.02:
-                L.append({"k": "fill", "id": f"trio-{'hb'[sign > 0]}", "fill": ORANGE, "d": circle_d(CX + (XB - CX) * o_shrink(t), y, max(r, 2)), "pts": [(CX, y)]})
+                L.append({"k": "fill", "id": f"trio-{'hb'[sign > 0]}", "fill": ORANGE, "d": circle_d(CX + (xa - CX) * o_shrink(t), y, max(r, 2)), "pts": [(CX, y)]})
         x = CX + (XB - CX) * o_shrink(t)
         L.append({"k": "fill", "id": "bulle-centre", "fill": ORANGE, "d": circle_d(x, AXIS, max(rc, RB))})
         if o_orange(t) < 1:
@@ -367,8 +384,8 @@ NOTES = [
         "Le logo n'est jamais recouvert : la liste reste à sa droite, puis il est avalé par son propre point.",
     ]),
     ("Mouvement", [
-        "Vitesse raccordée : 70 px/image puis freinage « back out » qui part à la même vitesse, sans à-coup.",
-        "Au-delà de 14 px/image le texte devient des traits et les puces s'étirent (x 1,35 max), comme un flou de bougé dessiné.",
+        "La liste court sur un arc (rayon 820 px) : lignes en éventail, items qui rapetissent vers le haut et le bas, comme un tambour.",
+        "Vitesse raccordée : 47 px/image puis freinage « back out » qui part à la même vitesse ; au-delà de 10 px/image, le texte devient des traits.",
         "Asymétrie : la liste du haut et celle du bas partent avec la même accélération mais le trio se recale en 2 temps.",
     ]),
 ]

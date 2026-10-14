@@ -315,6 +315,7 @@ def build(concept, out_root=ROOT, animatic=False, width=960):
     m = concept.META
     cid = m["id"]
     board = Board(m.get("num", cid.upper()), m["title"], m["logline"], cols=m.get("cols", 4))
+    board.principle = m.get("principe", "")
     for anim in (concept.INTRO, concept.OUTRO):
         board.section(f"{anim.name} · {anim.duration:.1f} s · {anim.n_frames} images à 25 i/s".replace(".", ","), beat_frames(anim))
     for head, lines in getattr(concept, "NOTES", []):

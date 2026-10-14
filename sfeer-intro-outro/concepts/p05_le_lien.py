@@ -23,18 +23,19 @@ META = {
     "id": "p05_le_lien",
     "num": "P5",
     "title": "Le lien",
+    "principe": "L'espace entre deux bulles de bord, le lien, devient la fenêtre ; on y plonge, on en ressort par le même lien.",
     "logline": "Piste 5 de la DA. Un point orange explose et inonde le cadre ; deux bulles du dégradé le mordent "
                "depuis les bords et le pincent en sablier : ce lien devient la fenêtre, la caméra plonge en diagonale.",
 }
 
 
 # ----------------------------------------------------------------- INTRO (4,0 s)
-dot_r = Track((0, 0), (F(3), 22, "out_cubic"), (F(12), 96, "out_back_fort"),
-              (F(20), 78, "in_cubic"),                       # inspiration (anticipation)
-              (F(38), 1250, "out_expo"))                     # explosion radiale = diagonale
-hole_l = Track((F(24), 0), (F(38), 600, "out_back"), (F(52), 690, "in_cubic"),
+dot_r = Track((0, 34), (F(8), 104, "out_back_fort"),          # accroche : le point surgit dès l'image 0
+              (F(14), 80, "in_cubic"),                       # inspiration (anticipation)
+              (F(32), 1250, "out_expo"))                     # explosion radiale = diagonale
+hole_l = Track((F(20), 0), (F(36), 600, "out_back"), (F(52), 690, "in_cubic"),
                (F(60), 640, "out_back_fort"))                # recul quand la vidéo éclate
-hole_r = Track((F(26), 0), (F(40), 600, "out_back"), (F(53), 690, "in_cubic"),
+hole_r = Track((F(22), 0), (F(38), 600, "out_back"), (F(53), 690, "in_cubic"),
                (F(61), 640, "out_back_fort"))                # 2 images de retard : asymétrie
 green_r = Track((F(52), 0), (F(64), 1150, "out_expo"))
 _push = Track((F(58), 1.0), (F(90), 3.6, "plongee"))
@@ -67,7 +68,7 @@ def intro(t):
     r = dot_r(t)
     if r > 0.5:
         # écrasement à l'atterrissage du pop, puis rond
-        sq = 1 + 0.18 * math.sin(math.pi * prog(t, F(9), F(16)))
+        sq = 1 + 0.18 * math.sin(math.pi * prog(t, F(5), F(12)))
         L.append({"k": "fill", "id": "point", "fill": ORANGE, "ghost": r < 900,
                   "d": ellipse_d(CX, AXIS, r * sq, r / sq)})
     if green_r(t) > 1:
@@ -91,9 +92,9 @@ def a_poussee(t):
 
 
 INTRO = Anim("INTRO", 4.0, intro, [
-    Beat(F(7), "Un point orange éclot au centre, sur l'axe : pop avec dépassement (+15 %) et léger écrasement à l'arrivée.", "out_back_fort"),
-    Beat(F(18), "Anticipation : le point « inspire » et rétrécit de 20 % pendant 8 images avant d'exploser.", "in_cubic"),
-    Beat(F(28), "Explosion radiale : l'orange envahit le cadre en 18 images, dans toutes les directions (diagonales).", "out_expo", ann=a_explosion),
+    Beat(F(4), "Accroche dès l'image 0 : un point orange surgit au centre, sur l'axe, avec dépassement (+15 %) et écrasement.", "out_back_fort"),
+    Beat(F(13), "Anticipation : le point « inspire » et rétrécit de 23 % pendant 6 images avant d'exploser.", "in_cubic"),
+    Beat(F(22), "Explosion radiale : l'orange envahit le cadre en 18 images, dans toutes les directions (diagonales).", "out_expo", ann=a_explosion),
     Beat(F(36), "Deux bulles du dégradé mordent l'orange depuis les bords, coupées à leur milieu vertical. La droite suit avec 2 images de retard.", "out_back", ann=a_morsure),
     Beat(F(50), "Tension : les bulles gonflent et serrent le lien orange en sablier. Le col se resserre, ça va céder.", "in_cubic"),
     Beat(F(57), "La vidéo éclate au cœur du lien (point vert qui grandit) ; les bulles reculent sous le choc (action secondaire).", "out_expo"),

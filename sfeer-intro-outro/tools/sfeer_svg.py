@@ -572,6 +572,7 @@ class Board:
         self.th = thumb_w * 9 / 16
         self.sections: list[tuple[str, list]] = []
         self.notes: list[tuple[str, list[str]]] = []
+        self.principle = ""      # règle réutilisable du système, en une phrase (affichée dans l'en-tête)
 
     def section(self, name: str, frames: list):
         """frames : liste de dict(inner=svg 1920x1080, tc='0.0–0.6 s', cap='légende', defs='')"""
@@ -588,8 +589,11 @@ class Board:
         y = 0
         body = []
         # en-tête
-        head_h = 260
+        head_h = 312 if self.principle else 260
         body.append(f'<rect width="{width}" height="{head_h}" fill="url(#sfeerGrad)"/>')
+        if self.principle:
+            body.append(f'<text x="{pad}" y="290" font-family="{FONT}" font-size="28" fill="{ORANGE}" font-weight="600">'
+                        f'PRINCIPE · <tspan fill="{WHITE}" font-weight="500">{escape(self.principle)}</tspan></text>')
         body.append(f'<text x="{pad}" y="92" font-family="{FONT}" font-size="30" fill="{ORANGE}" font-weight="600" letter-spacing="3">SFEER · INTRO / OUTRO · CONCEPT {escape(self.num)}</text>')
         body.append(f'<text x="{pad}" y="160" font-family="{FONT}" font-size="64" fill="{WHITE}" font-weight="700">{escape(self.title)}</text>')
         for i, ln in enumerate(wrap(self.logline, 150)[:2]):
