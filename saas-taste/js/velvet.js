@@ -87,15 +87,15 @@ function tplPlan(){ const days=[19,20,21,22,23,24,25], dn=['Mon','Tue','Wed','Th
     <div style="position:absolute;left:30px;bottom:30px;font-size:15px;color:rgba(243,239,234,.55)">Sofia Lambert<div class="m" style="font-size:11px;color:rgba(243,239,234,.3)">ops · velvetly</div></div></div>
     <div class="ptitle" style="position:absolute;left:${PLAN_X0}px;top:50px;font-size:48px;letter-spacing:-0.03em;color:#3A3633">Delivery &amp; Install Status</div>
     <div class="m psub" style="position:absolute;left:${PLAN_X0+2}px;top:112px;font-size:15px;color:${VG}">Track and plan home deliveries</div>
-    <div class="m" style="position:absolute;left:${PLAN_X0+2}px;top:150px;font-size:13px;color:${VA}">October 2026</div>
-    <div class="m" style="position:absolute;left:1520px;top:146px;height:28px;line-height:28px;padding:0 14px;border-radius:14px;background:${VINK};color:#fff;font-size:12px">Today</div>
-    <div style="position:absolute;left:1830px;top:50px;width:1px;height:1030px;background:#E4DDD5"></div>`;
+    <div class="m plx" style="position:absolute;left:${PLAN_X0+2}px;top:150px;font-size:13px;color:${VA}">October 2026</div>
+    <div class="m plx" style="position:absolute;left:1520px;top:146px;height:28px;line-height:28px;padding:0 14px;border-radius:14px;background:${VINK};color:#fff;font-size:12px">Today</div>
+    <div class="plx" style="position:absolute;left:1830px;top:50px;width:1px;height:1030px;background:#E4DDD5"></div>`;
   days.forEach((d,i)=>{ const x=PLAN_X0+i*PLAN_COL; h+=`<div class="day" style="left:${x}px;top:182px;${i>=5?'color:#C9A7F0':''}">${d}</div><div class="dname" style="left:${x+86}px;top:222px">${dn[i]}</div><div class="col" style="left:${x-14}px"></div>`; });
   PLAN_CHIPS.forEach(([t,pl,bg,fg,c,span,y],i)=>{ h+=`<div class="pchip" data-i="${i}" style="left:${PLAN_X0+c*PLAN_COL-6}px;top:${y}px;width:${span*PLAN_COL-20}px;background:${bg};color:${fg||'#151413'}"><b>› ${t}<span style="font-weight:400;opacity:.7;margin-left:14px">${pl}</span></b><i>${dn[c]} ${days[c]} – ${dn[Math.min(6,c+span-1)]} ${days[Math.min(6,c+span-1)]}&nbsp;&nbsp;# VL-${2041+i*37}</i></div>`; });
-  h+=`<div class="m" style="position:absolute;left:1842px;top:56px;font-size:11px;color:${VG};white-space:normal;width:70px;line-height:1.5">QUICK ACTIONS</div>
+  h+=`<div class="plx"><div class="m" style="position:absolute;left:1842px;top:56px;font-size:11px;color:${VG};white-space:normal;width:70px;line-height:1.5">QUICK ACTIONS</div>
     ${['New delivery','Reschedule','Assign crew'].map((t,i)=>`<div class="m" style="position:absolute;left:1842px;top:${96+i*40}px;width:70px;height:30px;border-radius:8px;box-shadow:0 0 0 1px #E4DDD5;font-size:10px;line-height:30px;padding-left:8px;overflow:hidden">${t}</div>`).join('')}
     <div class="m" style="position:absolute;left:1842px;top:236px;font-size:11px;color:${VG}">IN STOCK</div>
-    ${['chair','sofa','pouf','lamp'].map((k,i)=>`<div style="position:absolute;left:1842px;top:${266+i*92}px;width:70px;height:80px;border-radius:10px;overflow:hidden">${vimg('tile_'+k,'inset:0;width:100%;height:100%','50% 60%')}</div>`).join('')}`;
+    ${['chair','sofa','pouf','lamp'].map((k,i)=>`<div style="position:absolute;left:1842px;top:${266+i*92}px;width:70px;height:80px;border-radius:10px;overflow:hidden">${vimg('tile_'+k,'inset:0;width:100%;height:100%','50% 60%')}</div>`).join('')}</div>`;
   return h+'</div>'; }
 
 /* ---------- My Orders dans l'espace de travail (navigateur) ---------- */

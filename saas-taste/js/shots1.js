@@ -201,7 +201,7 @@ function shotPills(f){ push(PI.cam,f,420,0.0009); const L=PIL; const tg=approach
 /* ---------- 12-13 · barres floues → planning « Taste plan » → zooms ---------- */
 const PL=scene('sPlan',468,560,f=>shotPlan(f));
 const plRoot=el(PL.cam,'','', 'position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0'); plRoot.innerHTML=tplPlan();
-const plChips=qa(plRoot,'.pchip'), plDays=qa(plRoot,'.day'), plDn=qa(plRoot,'.dname'), plCols=qa(plRoot,'.col'), plSide=q1(plRoot,'.side'), plTitle=[q1(plRoot,'.ptitle'),q1(plRoot,'.psub')];
+const plChips=qa(plRoot,'.pchip'), plDays=qa(plRoot,'.day'), plDn=qa(plRoot,'.dname'), plCols=qa(plRoot,'.col'), plSide=q1(plRoot,'.side'), plTitle=[q1(plRoot,'.ptitle'),q1(plRoot,'.psub')], plX=qa(plRoot,'.plx');
 const STREAK_COL=['#FF3D5E','#FFC7A1','#C7B8FF','#A9E7F2','#FFF0B5','#FFA6C9','#FF3D5E','#151413','#E4DED7','#A9E7F2'];
 plChips.forEach((c,i)=>{ const r=rng(800+i); c._st=468+r()*8; c._from=260+r()*720; c._bg=c.style.background; });
 const plSmear=el(PL.cam,'abs','', 'width:380px;height:90px;border-radius:45px;background:linear-gradient(90deg,#FF3D5E,#FFA6C9)');
@@ -224,6 +224,7 @@ function shotPlan(f){
   plCols.forEach((c,i)=>{ c.style.transformOrigin='0 0'; c.style.transform=`scaleY(${approach(f,486+i,10).toFixed(3)})`; });
   const sp=approach(f,500,8); show(plSide,f>=500); plSide.style.transform=`translateX(${((1-sp)*-300).toFixed(1)}px)`; mblur(plSide,vel(t=>(1-approach(t,500,8))*-300,f)*BLUR,0);
   plTitle.forEach((t,i)=>{ t.style.visibility=f>=504+i*2?'visible':'hidden'; });
+  plX.forEach((t,i)=>{ t.style.visibility=f>=506+i?'visible':'hidden'; });
 }
 
 /* ---------- 14 · téléphone : vue AR du salon, grands chiffres, « Fits perfectly » ---------- */
