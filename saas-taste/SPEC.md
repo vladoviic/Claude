@@ -20,6 +20,14 @@ les couleurs, les textes et les écrans. Les numéros d'image sont ceux de la r�
 | Terminal | texte ~110 px, frappe ≈ 1 car. / 2-3 images |
 | Énergie du son | calme 0-4 s · drop au logo (4 s) · fort 4-20 s · break 22-28 s (terminal, macro) · retour 28-34 s · creux 34-36 s (check) · fort 36-46 s · fin calme |
 
+## Coupes exactes (mesurées par différence d'images)
+
+La réf est un 25 → 30 i/s (une image doublée toutes les 6), donc les numéros du tableau ci-dessous ont
+1 à 2 images de retard. Les coupes qui font foi, base 0 : 62 · 281 · 347 · 380 · 418 · 532 · 541 · 550 ·
+559 · 642 · 672 · 695 · 767 · 808 (noir) · 880 · 952 · 989 · 1002 (thermique) · 1130 · 1175 · 1250 ·
+1307 · 1325 · 1336 · 1349 · 1374-1380. Le recalage est fait dans `js/main.js` (`REMAP`) : chaque plan
+garde ses numéros internes et rend `f + décalage`, ses cues son sont avancés d'autant.
+
 ## Plans
 
 | # | Images réf | Réf | Nous |
