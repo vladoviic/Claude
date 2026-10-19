@@ -1,0 +1,14 @@
+{
+  "name": "saas-taste",
+  "private": true,
+  "type": "module",
+  "description": "Your SaaS is boring. Lemme give it taste. — film promo en code",
+  "scripts": {
+    "stills": "node render.mjs --stills 68,190,278,430,960",
+    "render": "node render.mjs && python3 audio.py && sh build.sh",
+    "serve": "node render.mjs --serve"
+  },
+  "dependencies": {
+    "three": "0.170.0"
+  }
+}
