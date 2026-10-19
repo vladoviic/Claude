@@ -123,3 +123,10 @@ def sun_dir(to_sun, strength=5.0, color=(1.0,0.87,0.72), angle=0.8):
 def flat_world(color=(0.9,0.88,0.85), strength=0.35):
     w=bpy.data.worlds.new('W'); bpy.context.scene.world=w; w.use_nodes=True
     bg=w.node_tree.nodes['Background']; bg.inputs['Color'].default_value=(*color,1); bg.inputs['Strength'].default_value=strength
+
+def fast(samples=24):
+    """Réglages d'animation : peu d'échantillons, rebonds courts, clamp, débruitage précis, bruit stable."""
+    c=bpy.context.scene.cycles; c.samples=samples; c.adaptive_threshold=0.04
+    c.max_bounces=6; c.diffuse_bounces=3; c.glossy_bounces=3; c.transmission_bounces=6; c.volume_bounces=0; c.transparent_max_bounces=8
+    c.sample_clamp_indirect=4.0; c.denoising_prefilter='ACCURATE'; c.seed=7; c.use_animated_seed=False
+    bpy.context.scene.render.use_persistent_data=True
