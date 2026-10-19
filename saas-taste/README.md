@@ -22,7 +22,9 @@ les couleurs, les textes et les écrans.
 
 ```bash
 pip install numpy scipy bpy      # + ffmpeg et Chromium/Playwright sur la machine
-npm run images                   # (optionnel, ≈ 2 h CPU) re-rend img/ avec Blender Cycles
+npm run images                   # (optionnel, plusieurs heures CPU) re-rend img/ avec Blender Cycles
+                                 # séquences : python3 blender/prod.py final aerial,macro_seq,done_seq,land_seq,turn2,phone_seq
+                                 # puis python3 blender/interp.py img/<dossier> <préfixe> <n> pour les images impaires
 
 node render.mjs --serve          # aperçu dans le navigateur (espace : lecture, ← → : image)
 node render.mjs --stills 70,440,735,1110,1500   # stills de contrôle → out/stills/

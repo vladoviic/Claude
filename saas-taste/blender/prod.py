@@ -83,6 +83,10 @@ def place_cam(o,loc,look,lens=None):
     o.location=loc; o.rotation_euler=(mathutils.Vector(look)-mathutils.Vector(loc)).to_track_quat('-Z','Y').to_euler()
     if lens: o.data.lens=lens
 def ease(t): return t*t*(3-2*t)
+def approach(f,f0,dur,k=0.12):
+    if f<=f0: return 0.0
+    if f>=f0+dur: return 1.0
+    n=f-f0; t=n/dur; return 1-(1-k)**n*(1-t)**2
 def j_aerial():
     """Plan « drone » (réf 380-417) : orbite descendante autour du fauteuil, parallaxe réelle.
     Exporte aussi la projection écran du tracé, du point et des contours du plan pour la surimpression."""
@@ -132,30 +136,42 @@ def chair_mask(o, path):
     (sc.render.film_transparent,sc.cycles.samples,sc.cycles.use_denoising,sc.render.resolution_percentage,sc.render.image_settings.file_format,sc.render.image_settings.color_mode)=keep
 
 def j_macro_seq():
-    """Macro (réf 816-879) : contre-jour, orbite lente sur le pied et les boulons, puis vrai recul (48-58).
-    64 images ; 1 sur 2 jusqu'à 47 (interpolées), toutes ensuite (mouvement rapide)."""
+    """Macro (réf 816-879) : la réf allume d'abord le fond (0-10), puis la lumière principale sur le sujet (10-25),
+    dont le reflet glisse le long du pied ; travelling + léger dolly avant (0-47), puis recul accéléré (cubique)
+    jusqu'à 2,9× la distance (48-62). 64 images ; 1 sur 2 jusqu'à 47 (interpolées), toutes ensuite."""
     N=64; R(1280,720,20); fast(20); room()
+    for o_ in bpy.data.objects:
+        if o_.type=='LIGHT' and o_.data.type=='SUN': o_.data.energy*=0.12
+    bpy.context.scene.world.node_tree.nodes['Background'].inputs['Strength'].default_value*=0.25
     ch=chair_in_room(); bpy.context.view_layer.update()
     sd=mathutils.Vector((-0.95,-0.35,0.0)).normalized()
     vs=[o.matrix_world@v.co for o in bpy.data.objects if o.type=='MESH' and any(m and m.name=='metal' for m in o.data.materials) for v in o.data.vertices]
     c=max([p for p in vs if p.z>0.2],key=lambda p:p.dot(sd))
-    # contre-jour : le mur derrière le pied s'allume, le pied passe en silhouette avec un liseré sur les boulons
     back=c-sd*1.2+mathutils.Vector((0,0,0.3))
-    area('back',tuple(back+mathutils.Vector((0,0,0.6))),tuple(back-sd*0.5),1.6,260,(1,0.98,0.95))
-    area('rim',tuple(c-sd*0.5+mathutils.Vector((0.25,0.3,0.35))),tuple(c),0.4,22,(1,1,1))
+    bl=area('back',tuple(back+mathutils.Vector((0,0,0.6))),tuple(back-sd*0.5),1.6,260,(1,0.98,0.95))
+    key=area('key',tuple(c),tuple(c),0.25,28,(1,0.98,0.95))
+    side=mathutils.Vector((sd.y,-sd.x,0)).normalized()
     o=cam((0,0,1),(0,0,0),85,2.8); mid=ch.matrix_world.translation+mathutils.Vector((0,0,0.38))
+    base=sd*0.36+mathutils.Vector((0.05,-0.06,0.07))
+    def lights(i):
+        bl.data.energy=260*approach(i,0,10); kp=approach(i,10,15)
+        key.data.energy=4.5*kp
+        # le reflet glisse le long du pied : la lumière principale monte et passe de côté
+        u=min(1,max(0,(i-10)/38)); kl=c+sd*0.25+side*(-0.55+0.8*u)+mathutils.Vector((0,0,0.35+0.3*u))
+        key.location=kl; key.rotation_euler=(c-kl).to_track_quat('-Z','Y').to_euler()
     def pose(i):
+        lights(i)
         if i<48:
-            t=ease(i/47); az=math.radians(-12+22*t); R_=mathutils.Matrix.Rotation(az,3,'Z')
-            off=R_@(sd*(0.36-0.04*t)+mathutils.Vector((0.05,-0.06,0.07)))
-            place_cam(o,tuple(c+off),tuple(c+mathutils.Vector((0,0,0.02))),85)
-            o.data.dof.focus_distance=off.length
+            t=i/47; R_=mathutils.Matrix.Rotation(math.radians(-6+3*t),3,'Z')
+            off=R_@(base*(1-0.065*ease(t)))+side*(-0.015+0.03*t)
+            place_cam(o,tuple(c+off),tuple(c+side*(0.03*t)+mathutils.Vector((0,0,0.02-0.01*t))),85); o.data.dof.focus_distance=off.length
         else:
-            t=ease(min(1,(i-48)/10)); near=c+mathutils.Matrix.Rotation(math.radians(10),3,'Z')@(sd*0.32+mathutils.Vector((0.05,-0.06,0.07)))
-            far=mid+mathutils.Vector((-1.25,-1.05,0.25)); loc=near.lerp(far,t); look=(c+mathutils.Vector((0,0,0.02))).lerp(mid,t)
-            place_cam(o,tuple(loc),tuple(look),85-45*t); o.data.dof.focus_distance=(look-loc).length; o.data.dof.aperture_fstop=2.8+5*t
+            t=min(1,(i-48)/14)**3; R_=mathutils.Matrix.Rotation(math.radians(-3),3,'Z')
+            near=c+R_@(base*0.935)+side*0.015; far=c+(near-c)*2.9+mathutils.Vector((0.05,-0.03,0.10))
+            loc=near.lerp(far,t); look=(c+side*0.03+mathutils.Vector((0,0,0.01))).lerp(c+mathutils.Vector((0.04,0.02,0.10)),t)
+            place_cam(o,tuple(loc),tuple(look),85); o.data.dof.focus_distance=(look-loc).length; o.data.dof.aperture_fstop=2.8+2.5*t
     os.makedirs(f'{OUT}/macro',exist_ok=True)
-    fs=[i for i in range(0,48,2)]+list(range(48,64)) if MODE!='draft' else [0,40,52,63]
+    fs=[i for i in range(0,48,2)]+list(range(48,64)) if MODE!='draft' else [0,12,40,56,63]
     for i in fs: pose(i); jpg(f'{OUT}/macro/m_{i:02d}.jpg')
 
 def j_done_seq():
@@ -164,21 +180,71 @@ def j_done_seq():
     N=57; R(1240,830,20); fast(20); room()
     o=cam((0.42,-1.32,0.30),(1.72,0.33,0.40),38,2.4)
     A=mathutils.Vector((0.36,-1.40,0.31)); B=mathutils.Vector((0.86,-0.78,0.36)); L0=mathutils.Vector((1.72,0.33,0.40)); L1=mathutils.Vector((1.73,0.36,0.42))
+    # la réf : travelling latéral 952-966 (≈ +110 px, sortie douce), puis presque immobile, légère avancée
+    side=mathutils.Vector((0.79,-0.62,0)); A=A-side*0.10
     def pose(i):
-        t=i/(N-1); loc=A.lerp(B,t)+mathutils.Vector((0,0,0.006*math.sin(i*0.5))); look=L0.lerp(L1,t)
-        place_cam(o,tuple(loc),tuple(look),38+4*t); o.data.dof.focus_distance=(look-loc).length
+        tr=approach(i,0,14); t=i/(N-1); loc=A+side*(0.16*tr)+(B-A)*(0.25*t); look=L0.lerp(L1,t)+side*(0.05*tr)
+        place_cam(o,tuple(loc),tuple(look),38+2*t); o.data.dof.focus_distance=(look-loc).length
     os.makedirs(f'{OUT}/done',exist_ok=True)
     for i in seq_frames(N,2): pose(i); jpg(f'{OUT}/done/d_{i:02d}.jpg')
     for i in (range(43,57) if MODE!='draft' else [50]): pose(i); chair_mask(o,f'{OUT}/done/mask_{i:02d}.png')
 
 def j_land_seq():
-    """Landing (réf 234-299, réutilisée au montage) : travelling latéral lent dans le salon. 66 images, 1 sur 2."""
+    """Landing (réf 234-299, réutilisée au montage et au profil) : travelling latéral à 35 mm ; une plante très proche
+    passe en premier plan flou (≈10 px/i) pendant que le mur du fond bouge à peine. 66 images, 1 sur 2."""
     N=66; R(1240,560,20); fast(20); room()
-    o=cam((0.75,-3.7,1.12),(-0.05,1.0,0.72),30,5.6)
+    place('DiffuseTransmissionPlant.glb',(1.8,-2.7,0),70,1.0)
+    o=cam((0.75,-3.7,1.12),(-0.05,1.0,0.72),35,4.0)
     def pose(i):
-        t=i/(N-1); loc=(1.25-1.0*t,-3.75+0.2*t,1.10+0.04*t); look=(0.15-0.45*t,1.0,0.70)
-        place_cam(o,loc,look,30); o.data.dof.focus_distance=(mathutils.Vector(look)-mathutils.Vector(loc)).length
+        t=i/(N-1); loc=(1.45-1.25*t,-3.85+0.15*t,1.08+0.04*t); look=(0.25-0.55*t,1.0,0.70)
+        place_cam(o,loc,look,35); o.data.dof.focus_distance=(mathutils.Vector(look)-mathutils.Vector(loc)).length
     os.makedirs(f'{OUT}/land',exist_ok=True)
     for i in seq_frames(N,2): pose(i); jpg(f'{OUT}/land/l_{i:02d}.jpg')
+
+def j_phone_seq():
+    """Téléphone (réf 559-641) : grue qui monte en passant devant les feuilles d'une plante, portrait.
+    80 images à 15 i/s (1 sur 2) ; premier plan ≈15 px/i qui ralentit."""
+    N=80; R(612,1260,20); fast(20); room()
+    place('DiffuseTransmissionPlant.glb',(0.7,-1.12,0),20,0.75)
+    o=cam((0.55,-1.55,0.95),(1.35,0.55,0.42),30,3.2)
+    def pose(i):
+        u=approach(i,0,45,0.08); loc=(0.62,-1.62,0.35+0.62*u); look=(1.38,0.52,0.30+0.16*u)
+        place_cam(o,loc,look,30); o.data.dof.focus_distance=(mathutils.Vector(look)-mathutils.Vector(loc)).length
+    os.makedirs(f'{OUT}/phone',exist_ok=True)
+    for i in seq_frames(N,2): pose(i); jpg(f'{OUT}/phone/p_{i:02d}.jpg')
+
+def turn_profile():
+    """Angle du fauteuil par image (réf 880-951) : 3→1,9°/i (0-15), 1,9 (15-36), 1,5 (37-48), arrêt (49-55), ≈1 (56-71)."""
+    a=[0.0]
+    for i in range(1,72):
+        v=3-1.1*(i/15) if i<=15 else 1.9 if i<=36 else 1.5 if i<=48 else 0.0 if i<=55 else 1.0
+        a.append(a[-1]+v)
+    return [math.radians(x) for x in a]
+def j_turn2():
+    N=72; ang=turn_profile(); out=f'{OUT}/turn'; os.makedirs(out,exist_ok=True); hot={}
+    for vname,var,rng_ in (('blue',BLUE,range(0,48)),('red',RED,range(38,72))):
+        root=studio_chair(var,1100,800,24,0); fast(24); sc=bpy.context.scene
+        o=sc.camera; ch=[ob for ob in bpy.data.objects if ob.type=='MESH']
+        if MODE=='draft': rng_=[rng_[0],rng_[-1]]
+        for i in rng_:
+            root.rotation_euler=(0,0,-0.95+ang[i]); bpy.context.view_layer.update()
+            if vname=='blue' or i>=48:
+                # points d'ancrage des étiquettes de survol : assise, boulon du pied, haut du dossier
+                vs=[ob.matrix_world@v.co for ob in ch if any(m and m.name.startswith('fabric') for m in ob.data.materials) for v in list(ob.data.vertices)[::7]]
+                seat=sum((v for v in vs if v.z<0.5),mathutils.Vector())/max(1,len([v for v in vs if v.z<0.5]))
+                backr=max(vs,key=lambda v:v.z)
+                mv=[ob.matrix_world@v.co for ob in ch if any(m and m.name=='metal' for m in ob.data.materials) for v in ob.data.vertices]
+                cam_dir=(o.matrix_world.translation-root.matrix_world.translation).normalized()
+                bolt=max([v for v in mv if v.z>0.2],key=lambda v:v.dot(cam_dir)) if mv else seat
+                hot[i]={k:[round(p.x,4),round(1-p.y,4)] for k,p in (('seat',world_to_camera_view(sc,o,seat)),('bolt',world_to_camera_view(sc,o,bolt)),('back',world_to_camera_view(sc,o,backr)))}
+            jpg(f'{out}/{vname}_{i:02d}.jpg')
+        if vname=='red':
+            sc.render.film_transparent=True; sc.cycles.samples=8; sc.cycles.use_denoising=False; sc.render.resolution_percentage=50
+            sc.render.image_settings.file_format='PNG'; sc.render.image_settings.color_mode='RGBA'
+            for ob in bpy.data.objects:
+                if ob.name.startswith('cyc'): ob.is_holdout=True
+            for i in (range(36,50) if MODE!='draft' else [38]):
+                root.rotation_euler=(0,0,-0.95+ang[max(i,38)]); render(f'{out}/mask_{i:02d}.png')
+    json.dump(hot,open(f'{out}/hot.json','w'))
 
 for j in JOBS: globals()['j_'+j]()

@@ -84,6 +84,21 @@ Les « photos » sont des rendus Blender Cycles (`img/`).
 | macro N&B d'une pièce de vélo | macro N&B du pied et des boulons du fauteuil |
 | profil « Jessica Martinez » (montage) | profil « Emma Laurent » |
 
+## Rythme et détails (mesurés image par image sur la réf)
+
+Énergie de mouvement mesurée plan par plan (différence d'images, caméra estimée par flux optique) : la réf
+bouge 2 à 5 fois plus que notre v4 **à l'intérieur** des plans. D'où ces règles, appliquées partout :
+
+- **Les photos sont des vidéos** : vol plongeant, travelling avec premier plan, macro qui s'allume, caméra
+  subjective, grue (séquences Cycles dans `img/<plan>/`, rendues 1 image sur 2 puis interpolées).
+- **Entrée et sortie de plan** : un plan s'ouvre sur un mouvement hérité qui ralentit, et finit sur une
+  poussée qui accélère dans la coupe (×1,6 à ×2 par image).
+- **Tout naît en couleur** : glyphes, pills, jours du planning, titres arrivent pâles ou chauds puis
+  sèchent jusqu'à l'encre en 4 à 18 images ; les teintes thermique et pastel suivent la luminance.
+- **Un événement toutes les 1 à 3 images** : apparitions décalées, frappe irrégulière, compteurs, lignes
+  tapées, puces qui se mettent au net une par une ; puis une vraie tenue immobile avant la coupe.
+- **L'interface ne bouge pas quand le produit bouge** (chat) : la caméra est dans la vue 3D.
+
 ## Règles visuelles (une seule fois, ici)
 
 - Accent unique `#FF3D5E` (remplace l'orange de la réf), encre `#151413`, papier `#EEE9E4`.
