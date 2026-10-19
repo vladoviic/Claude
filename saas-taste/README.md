@@ -6,19 +6,23 @@ référence, selon la méthode du PDF *How to Motionmaxx with Opus 5.5* : on gar
 la caméra et les transitions de la réf (mesurés image par image, voir `SPEC.md`) ; on change la marque,
 les couleurs, les textes et les écrans.
 
-- **L'histoire** : « Your SaaS is a bit *boring.* » → logo → on demande « Make my SaaS less boring » →
-  la landing générée, les fichiers (`NoMoreArial.tsx`, `Taste.tsx`), le dashboard, la salière 3D,
-  « Lemme give it *taste* », le planning, le téléphone, `npm uninstall boring --force`, la page produit,
-  le Taste Check, les stats, « 47 boring issues → Apply taste », Ship it, montage, logo, e-mail.
-- **La 3D** : salière en verre cannelé irisé et icônes tactiles en three.js (`three3d.js`).
+- **L'histoire** : « Your SaaS is a bit *boring.* » → logo → « Make my furniture store less boring » →
+  **velvetly**, la boutique de mobilier générée (l'équivalent de trailride dans la réf) : landing
+  « Sit with *taste.* », fichiers (`NoMoreArial.tsx`, `Taste.tsx`), Build your Room, le salon vu d'en haut,
+  « Lemme give it *taste* », Delivery & Install Status, le téléphone AR, My Orders,
+  `npm uninstall boring --force`, la macro du fauteuil, le chat qui passe le velours du bleu au rouge,
+  Order Complete, le Taste Check, les stats, « 47 boring issues → Apply taste », Ship it, montage, logo, e-mail.
+- **Les images** : rendus photoréalistes Blender Cycles (`blender/`, sortie dans `img/`) à partir de
+  modèles libres Khronos/Wayfair, crédits dans `img/CREDITS.md`. Studio à lumière de fenêtre pour le
+  produit, vrai soleil par une fenêtre d'atelier pour le salon.
 - **Le son** : synthétisé en code (`audio.py`), 135 BPM sur la grille de la réf, chaque bruitage calé
   sur l'image de son action, master à −14 LUFS.
 
 ## Lancer
 
 ```bash
-npm install                      # three.js
-pip install numpy scipy          # + ffmpeg et Chromium/Playwright sur la machine
+pip install numpy scipy bpy      # + ffmpeg et Chromium/Playwright sur la machine
+npm run images                   # (optionnel, ≈ 2 h CPU) re-rend img/ avec Blender Cycles
 
 node render.mjs --serve          # aperçu dans le navigateur (espace : lecture, ← → : image)
 node render.mjs --stills 70,440,735,1110,1500   # stills de contrôle → out/stills/
@@ -31,11 +35,12 @@ sh build.sh                      # → out/saas-taste.mp4 (H.264, son à −14 L
 
 | Quoi | Où |
 |---|---|
-| Couleurs, typo | `style.css`, bloc `TOKENS` ; l'accent `#FF3D5E` est aussi dans le shader (`js/engine.js`) et `three3d.js` |
+| Couleurs, typo | `style.css`, bloc `TOKENS` ; l'accent `#FF3D5E` est aussi dans le shader (`js/engine.js`) et `js/velvet.js` |
 | Un plan | `js/shots1.js` (plans 1-16) et `js/shots2.js` (17-32) : un `scene(id, image début, image fin, rendu)` par plan, timings de la réf en commentaire |
 | Textes | dans chaque plan (`WORDS`, `PROMPT`, `TREE`, terminal, `OUW` pour la fin) et dans les gabarits `js/screens.js` |
-| Les écrans | `js/screens.js` (landing, palette ⌘K, pricing, planning, clients, chat produit, écrans fades) et `js/dash.js` (dashboard) |
-| La 3D | `three3d.js` : salière (`shakerRender`) et icônes (`iconRender`) |
+| Les écrans velvetly | `js/velvet.js` (landing, Build your Room, planning, My Orders, chat + page produit, Order Complete, profil) |
+| Les écrans fades | `js/screens.js` et `js/dash.js` (le dashboard « avant ») |
+| Les photos 3D | `blender/prod.py` : un `j_…` par image (cadrage, lumière, teinte du velours), `blender/room.py` : le salon |
 | La musique | `audio.py` : grille 135 BPM, sections, niveaux |
 
 Chaque image est une fonction pure du numéro d'image (`renderFrame(f)`) : pas de minuterie, aléatoire

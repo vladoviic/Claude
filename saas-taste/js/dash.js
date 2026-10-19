@@ -66,8 +66,7 @@ function updateDash(D,comp,f){
   D.act.style.background=rgba(mixa([255,255,255,.18],[243,239,234,.07],c2)); D.act.style.borderRadius=lerp(4,14,c2)+'px';
   const KINDS=['overview','reports','customers','settings'];
   D.icoA.forEach((el,i)=>{ const p=comp(2,i); el.style.transform=`scale(${(1-p).toFixed(3)})`; el.style.display=p>=1?'none':'block'; });
-  D.icoB.forEach((el,i)=>{ const p=comp(2,i); const pop=p<=0?0:back(p*10,0,10,1.7); el.style.display=pop>0.001?'block':'none';
-    if(pop>0.001&&window.T3D) T3D.icon(el,KINDS[i],f/FPS,pop,i); });
+  D.icoB.forEach((el,i)=>{ const p=comp(2,i); const pop=p<=0?0:back(p*10,0,10,1.7); el.style.display=pop>0.001?'block':'none'; });
   // bouton
   const c6=c(6); const bw=lerp(170,214,c6), bh=lerp(46,58,c6);
   Object.assign(D.btn.style,{left:(1320-bw)+'px',width:bw+'px',height:bh+'px',top:lerp(52,48,c6)+'px',borderRadius:lerp(4,29,c6)+'px',background:mixc('#2D6CDF','#151413',c6),
@@ -95,8 +94,7 @@ function updateDash(D,comp,f){
   const c7=c(7);
   Object.assign(D.img.style,{background:mixc('#D9DCE1','#ECE6DF',c7),borderRadius:lerp(4,24,c7)+'px',boxShadow:`0 0 0 ${lerp(1,0,c7).toFixed(2)}px #C4C8CF`});
   const wipe=comp(7,0); D.imgc.style.clipPath=`inset(${((1-wipe)*100).toFixed(2)}% 0 0 0)`;
-  const sh=comp(7,2); show(D.img3,sh>0); if(sh>0&&window.T3D){ const tl=f/FPS; const land=Math.max(0,f-(D._t7??0));
-    T3D.shaker(D.img3,{t:tl,spin:tl*0.8,drop:back(sh*14,0,14,1.25),tilt:0.08*Math.sin(tl*2.4),zoom:0.9,lookY:-0.3,shadow:1}); }
+  show(D.img3,false);
   const tt=comp(7,1); D.imgt.style.transform=`translateY(${((1-tt)*40).toFixed(1)}px)`; D.imgt.style.clipPath=`inset(-20px -20px ${((1-tt)*100).toFixed(1)}% -20px)`;
 }
 

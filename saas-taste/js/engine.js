@@ -103,3 +103,7 @@ function iriTo(cv,o,src){ // src = [sx,sy,sw,sh] dans le canvas 960×540
 /* Cues son : chaque bruitage est déclaré à côté de son action */
 const CUES=[]; const cue=(f,k,o={})=>CUES.push(Object.assign({},o,{f,k}));
 const R=rng(44);
+
+/* images (rendus Cycles) à décoder avant le premier rendu */
+const PRELOAD=[];
+function preload(src){ const im=new Image(); im.src=src; PRELOAD.push(im); return im; }

@@ -65,6 +65,25 @@ garde ses numéros internes et rend `f + décalage`, ses cues son sont avancés 
 | 31 | 1392-1445 | cercle → icône → « Base 44 » | → « vladan » |
 | 32 | 1446-1514 | pill tapée « Build » · « Build it » · « Build it your way », flash, la pill disparaît | « Give » · « Give it » · « Give it *taste.* » ; puis **vladan@kwinndo.fr** jusqu'à 52 s |
 
+## Écrans d'app (même grammaire que trailride dans la réf)
+
+L'app générée s'appelle **velvetly**, une boutique de mobilier. Comme dans la réf : UI sombre,
+photo plein cadre, titres blancs géants recadrés, données petites et denses en mono, un seul accent.
+Les « photos » sont des rendus Blender Cycles (`img/`).
+
+| Réf (trailride) | velvetly |
+|---|---|
+| landing photo + « Your next adventure ✿ awaits » + tuiles vélos | salon + « Sit with ▢ *taste.* » + tuiles Lounge Chairs / Sofas / Poufs / Lighting / Living Things |
+| Build your Route : panneau sombre, carte topo, tracé orange, point bleu | Build your Room : panneau sombre, plan d'archi, tracé accent, point |
+| photo aérienne avec le même tracé | le salon vu d'en haut avec le même tracé |
+| Bike Rental Status | Delivery & Install Status |
+| téléphone : photo, 5.8 / 0:07:25, Ride Complete | AR « Living room », 98 % / 3 days, Fits perfectly |
+| My Rides | My Orders |
+| chat + vélo 3D + Booking Details, changement de modèle | chat + fauteuil qui tourne + Order Details, velours bleu → rouge |
+| Order ✿ Complete | Order ▢ Complete |
+| macro N&B d'une pièce de vélo | macro N&B du pied et des boulons du fauteuil |
+| profil « Jessica Martinez » (montage) | profil « Emma Laurent » |
+
 ## Règles visuelles (une seule fois, ici)
 
 - Accent unique `#FF3D5E` (remplace l'orange de la réf), encre `#151413`, papier `#EEE9E4`.

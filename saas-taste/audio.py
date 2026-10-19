@@ -380,13 +380,13 @@ for n in [41, 53, 57, 60, 64, 67]:
 FINAL = first('final', 1494)
 play_pads(1446, FINAL, 0.5, 1000)
 for n in [53, 57, 60, 64, 67, 72]:
-    l, r = pad_note(n, sec(TOTAL - FINAL), 0.6, 1300, attack=0.4, release=1.5)
+    l, r = pad_note(n, sec(TOTAL - FINAL), 0.28, 1100, attack=0.6, release=1.5)
     for b, w in ((verb, 0.8), (dry, 0.6)):
         m = min(len(l), len(b.x) - at(FINAL))
         b.x[at(FINAL):at(FINAL) + m, 0] += l[:m] * w
         b.x[at(FINAL):at(FINAL) + m, 1] += r[:m] * w
 for i, n in enumerate([65, 69, 72, 76, 79]):
-    verb.add(bell(n, 2.5, 0.5), FINAL + i * 2, gain=0.5, pan=-0.4 + i * 0.2)
+    verb.add(bell(n, 2.5, 0.5), FINAL + i * 2, gain=0.22, pan=-0.4 + i * 0.2)
 
 # ---------------------------------------------------------------- placement des bruitages
 for c in CUES:
@@ -474,9 +474,13 @@ def duck(x, f0, f1, db, ramp=3):
     x *= env[:, None]
 
 
-duck(mix, 104, 119, -40)
-duck(mix, 616, 646, -38)
+# respirations de la réf (mesurées) : creux avant le drop (avec sa montée), trou avant le coup de 20,1 s,
+# creux de fin du téléphone (pas un silence numérique), Ship it ; la fin retombe au calme comme la réf
+duck(mix, 104, 119, -12)
+duck(mix, 588, 597, -16, ramp=2)
+duck(mix, 616, 646, -22)
 duck(mix, 1265, 1276, -30)
+duck(mix, 1505, TOTAL, -16, ramp=40)
 if os.environ.get('STEMS'):
     def lvl(x):
         m = x.mean(1)

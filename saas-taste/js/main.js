@@ -11,7 +11,7 @@ function renderFrame(f){
    [début, fin, décalage] — la scène rend f+décalage, ses cues sont avancés d'autant. */
 const REMAP={sTree:[300,346,0],sDash:[347,379,1],sHero:[380,417,1],sPills:[418,465,2],sPlan:[466,558,2],sPhone:[559,641,2],
   sTerm:[695,814,1],sMacro:[815,879,1],sChat:[880,951,0],sDone:[952,1077,2],sGrid:[1078,1129,2],sReport:[1130,1174,1],
-  sAlerts:[1175,1249,1],sShip:[1250,1306,1],sMont:[1307,1379,1]};
+  sAlerts:[1175,1249,1],sShip:[1250,1306,1],sMont:[1307,1377,1],sOutro:[1378,1559,2]};
 function applyRemap(){
   for(const sc of SCENES){ const m=REMAP[sc.id]; if(!m) continue; const [n0,n1,d]=m, o0=sc.f0, o1=sc.f1;
     for(const c of CUES){ if(c._moved||c.f<o0||c.f>o1) continue; c.f-=d; for(const k of ['peak','end']) if(k in c) c[k]-=d; c._moved=true; }
@@ -20,13 +20,13 @@ function applyRemap(){
 }
 async function init(){
   applyRemap();
-  await Promise.race([new Promise(r=>window.T3D?r():addEventListener('t3d-ready',r)),new Promise(r=>setTimeout(r,8000))]);
-  if(!window.T3D) console.error('3D indisponible');
+  // toutes les photos (rendus Cycles) décodées avant la première image
+  await Promise.all([...document.images,...PRELOAD].map(im=>im.decode().catch(()=>console.error('image manquante : '+im.src))));
   await document.fonts.ready;
   await Promise.all(['500 52px ID','600 52px ID','400 52px ID','italic 60px IS','20px JB','500 20px JB','700 30px AR','30px AR','30px "Noto Color Emoji"'].map(s=>document.fonts.load(s).catch(()=>{})));
   // mises en page qui dépendent des mesures de texte : scènes visibles le temps de mesurer
   const meas=['sPills','sTerm','sOutro','sLogo'].map(id=>$(id)); meas.forEach(s=>show(s,true));
-  pillsLayout(); termLayout(); outroLayout();
+  pillsLayout(); termLayout(); outroLayout(); logoLayout();
   meas.forEach(s=>show(s,false));
   CUES.sort((a,b)=>a.f-b.f);
   window.CUES=CUES; window.TOTAL=TOTAL; window.renderFrame=renderFrame; window.READY=true;

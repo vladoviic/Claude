@@ -4,11 +4,9 @@
   "type": "module",
   "description": "Your SaaS is boring. Lemme give it taste. — film promo en code",
   "scripts": {
-    "stills": "node render.mjs --stills 70,440,735,1110,1500",
+    "images": "sh blender/fetch_assets.sh && python3 blender/prod.py final tiles,room_eye,chair_hero,turn,room_top,room_phone,macro",
+    "stills": "node render.mjs --stills 250,400,905,995,1342,1500",
     "render": "node render.mjs && python3 audio.py && sh build.sh",
     "serve": "node render.mjs --serve"
-  },
-  "dependencies": {
-    "three": "0.170.0"
   }
 }
