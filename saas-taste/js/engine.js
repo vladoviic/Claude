@@ -105,5 +105,16 @@ const CUES=[]; const cue=(f,k,o={})=>CUES.push(Object.assign({},o,{f,k}));
 const R=rng(44);
 
 /* images (rendus Cycles) à décoder avant le premier rendu */
-const PRELOAD=[];
+const PRELOAD=[], ASYNC=[];   // ASYNC : données (JSON) à attendre aussi
 function preload(src){ const im=new Image(); im.src=src; PRELOAD.push(im); return im; }
+
+/* séquences rendues (Cycles, img/<dossier>/) : toutes les images préchargées, on dessine celle du numéro demandé,
+   recadrée en « cover » comme un object-fit */
+function seqLoad(dir,prefix,n,ext='jpg',from=0){ const a=[]; for(let i=from;i<n;i++) a[i]=preload(`img/${dir}/${prefix}_${String(i).padStart(2,'0')}.${ext}`); return a; }
+function seqDraw(cv,frames,i,px=0.5,py=0.5,zoom=1){ const k=frames.length-1; let j=clamp(Math.round(i),0,k); while(!frames[j]&&j<k) j++; const im=frames[j];
+  const W=cv.width,H=cv.height,iw=im.naturalWidth||im.width,ih=im.naturalHeight||im.height, s=Math.max(W/iw,H/ih)*zoom, sw=W/s, sh=H/s;
+  cv.getContext('2d').drawImage(im,(iw-sw)*px,(ih-sh)*py,sw,sh,0,0,W,H); }
+
+// cue écrit en numéros de la réf pour une scène recalée de d images (le REMAP le ramènera)
+function cueAt(d){ return (f,k,o={})=>{ const q={...o}; if('peak' in q) q.peak+=d; if('end' in q) q.end+=d; cue(f+d,k,q); }; }
+function seqDrawRaw(cv,im){ cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height); }

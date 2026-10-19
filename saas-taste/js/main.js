@@ -3,7 +3,7 @@
    ============================================================ */
 function renderFrame(f){
   f=Math.round(f);
-  show($('iriFull'),false); show(CUR,false);
+  show($('iriFull'),false); show(CUR,false); CUR.style.opacity='';
   for(const sc of SCENES){ const on=f>=sc.f0&&f<=sc.f1; show(sc.el,on); if(on) sc.render(f); }
   return f;
 }
@@ -21,7 +21,9 @@ function applyRemap(){
 async function init(){
   applyRemap();
   // toutes les photos (rendus Cycles) décodées avant la première image
-  await Promise.all([...document.images,...PRELOAD].map(im=>im.decode().catch(()=>console.error('image manquante : '+im.src))));
+  // toutes les images chargées (le décodage se fait à la demande, au dessin : decode() rejette quand il y en a des centaines)
+  await Promise.all([...document.images,...PRELOAD].map(im=>im.complete&&im.naturalWidth?0:new Promise(r=>{ im.addEventListener('load',r,{once:true}); im.addEventListener('error',()=>{ console.error('image manquante : '+im.src); r(); },{once:true}); })));
+  await Promise.all(ASYNC);
   await document.fonts.ready;
   await Promise.all(['500 52px ID','600 52px ID','400 52px ID','italic 60px IS','20px JB','500 20px JB','700 30px AR','30px AR','30px "Noto Color Emoji"'].map(s=>document.fonts.load(s).catch(()=>{})));
   // mises en page qui dépendent des mesures de texte : scènes visibles le temps de mesurer

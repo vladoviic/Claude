@@ -190,3 +190,4 @@ em{font-family:'IS';font-style:italic;font-weight:400;letter-spacing:0}
 .vbtn{position:absolute;height:40px;border-radius:12px;background:rgba(255,255,255,.08);font-size:14px;line-height:40px;padding-left:16px;color:#F3EFEA}
 .vbtn span{position:absolute;right:6px;top:6px;width:28px;height:28px;border-radius:14px;background:#FF3D5E}
 .spsw{display:inline-block;width:18px;height:18px;border-radius:9px;background:#2D6CDF;vertical-align:-3px;box-shadow:0 0 0 2px rgba(255,255,255,.25)}
+.vhiri{position:absolute;background:linear-gradient(90deg,#FFA6C9,#A9E7F2,#FFC7A1,#B9A8FF,#FFA6C9);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent!important;pointer-events:none}

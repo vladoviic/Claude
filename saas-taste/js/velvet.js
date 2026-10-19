@@ -6,8 +6,11 @@
    ============================================================ */
 const VA='#FF3D5E', VINK='#121110', VG='#8E877F';
 const IMG=n=>`img/${n}.jpg`;
-// tracé du plan reporté sur la vue plongeante (coordonnées dans room_top recadrée 2080×1170)
-const HERO_ROUTE='M1000 1000 C1010 880 1170 840 1250 780 S1370 690 1380 655', HERO_DOT=[1380,655];
+// séquences Cycles animées (img/<dossier>/, une image par image du film)
+const SEQ={land:seqLoad('land','l',66), aerial:seqLoad('aerial','a',39), macro:seqLoad('macro','m',64), done:seqLoad('done','d',57),
+  doneMask:seqLoad('done','mask',57,'png',43), phone:seqLoad('phone','p',80)};
+let AERIAL=[], TURNHOT={};
+ASYNC.push(fetch('img/aerial/proj.json').then(r=>r.json()).then(j=>AERIAL=j).catch(()=>console.error('proj.json manquant')), fetch('img/turn/hot.json').then(r=>r.json()).then(j=>TURNHOT=j).catch(()=>console.error('hot.json manquant')));
 const vimg=(n,css,pos='50% 50%')=>`<img class="vi" src="${IMG(n)}" style="${css};object-position:${pos}">`;
 const VLOGO=(c='#F3EFEA',s=22)=>`<span style="font-family:'ID';font-weight:600;font-size:${s}px;letter-spacing:-0.035em;color:${c};white-space:nowrap"><span style="display:inline-block;width:${(s*0.62).toFixed(1)}px;height:${(s*0.62).toFixed(1)}px;border-radius:${(s*0.2).toFixed(1)}px;background:${VA};margin-right:${(s*0.32).toFixed(1)}px"></span>velvetly</span>`;
 const CHAIR_SVG=(c='#151413',w=4)=>`<svg viewBox="0 0 88 88" width="100%" height="100%"><g fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"><path d="M26 22 Q26 16 32 16 H56 Q62 16 62 22 V42 H26 Z"/><path d="M20 46 Q20 42 26 42 H62 Q68 42 68 46 V54 Q68 58 62 58 H26 Q20 58 20 54 Z"/><path d="M28 58 L24 72 M60 58 L64 72"/></g></svg>`;
@@ -17,7 +20,7 @@ const VMARK=(s)=>`<span style="display:inline-block;width:${s}px;height:${s}px;b
 /* ---------- landing : salon plein cadre + « Sit with ▢ taste. » + tuiles ---------- */
 const CATS=[['chair','Lounge Chairs','24 pieces'],['sofa','Sofas','18 pieces'],['pouf','Poufs','31 pieces'],['lamp','Lighting','42 pieces'],['plant','Living Things','12 pieces']];
 function tplVLanding(){ return `<div class="full" style="background:${VINK};overflow:hidden">
-  ${vimg('room_eye','left:0;top:0;width:1240px;height:560px','50% 58%')}
+  ${vimg('room_eye','left:0;top:0;width:1240px;height:560px','50% 58%')}<canvas class="vseq" width="1240" height="560" style="position:absolute;left:0;top:0;width:1240px;height:560px"></canvas>
   <div class="full" style="height:560px;background:linear-gradient(180deg,rgba(18,17,16,.35) 0%,rgba(18,17,16,0) 22%,rgba(18,17,16,0) 55%,rgba(18,17,16,.92) 100%)"></div>
   <div class="vpill" style="left:22px;top:20px;background:rgba(18,17,16,.55)">${VLOGO('#F3EFEA',17)}<span style="margin-left:16px;color:#8E877F">≡</span></div>
   <div class="vpill" style="right:150px;top:20px;background:${VA};color:#fff">New in</div>
@@ -105,7 +108,7 @@ function tplVOrders(){ return `<div class="full" style="background:#141312">
     <span style="position:absolute;left:250px;top:20px;letter-spacing:12px;color:#A49D96">○ □ ○</span>
     <span style="position:absolute;right:300px;top:20px;letter-spacing:14px;color:#6d6760">◎ ∿ ‹/›</span>
     <span class="tbtn" style="right:130px;background:#fff;box-shadow:0 0 0 1px #E6E1DB">Share</span><span class="tbtn" style="right:24px;background:var(--ink);color:#fff">Publish</span></div>
-  <div style="position:absolute;left:0;right:0;top:64px;height:330px;overflow:hidden">${vimg('chair_hero','inset:0;width:100%;height:100%','50% 42%')}
+  <div style="position:absolute;left:0;right:0;top:64px;height:330px;overflow:hidden">${vimg('chair_hero','inset:0;width:100%;height:100%','50% 42%')}<canvas class="vseq" width="1740" height="330" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
     <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,19,18,.1) 30%,rgba(20,19,18,.82))"></div>
     <div style="position:absolute;left:36px;top:132px;font-size:96px;color:#fff;letter-spacing:-0.045em;line-height:1">My Orders</div>
     <div class="m" style="position:absolute;left:40px;top:240px;font-size:16px;color:rgba(255,255,255,.75)">Your home, so far</div>
@@ -146,7 +149,7 @@ function tplVChat(){ return `<div class="full" style="background:#F3EFEA">
     <div style="position:absolute;left:32px;right:32px;bottom:36px;height:64px;border-radius:32px;background:var(--accent);color:#fff;font-size:21px;line-height:64px;text-align:center">Add to cart →</div></div></div>`; }
 
 /* ---------- Order Complete (photo plein cadre, titre géant, résumé) ---------- */
-function tplVDone(){ return `<div class="full" style="background:${VINK};overflow:hidden">${vimg('chair_hero','inset:0;width:100%;height:100%','50% 50%')}
+function tplVDone(){ return `<div class="full" style="background:${VINK};overflow:hidden">${vimg('chair_hero','inset:0;width:100%;height:100%','50% 50%')}<canvas class="vseq" width="1240" height="830" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
   <div class="full" style="background:linear-gradient(180deg,rgba(18,17,16,.28),rgba(18,17,16,0) 35%)"></div>
   <div class="vpill" style="left:22px;top:20px;background:rgba(18,17,16,.55)">${VLOGO('#F3EFEA',17)}<span style="margin-left:16px;color:#8E877F">≡</span></div>
   <div class="vpill" style="right:150px;top:20px;background:${VA};color:#fff">New in</div><div class="vpill" style="right:22px;top:20px;background:rgba(18,17,16,.55);color:#F3EFEA">Search pieces</div>
@@ -158,7 +161,7 @@ function tplVDone(){ return `<div class="full" style="background:${VINK};overflo
 /* ---------- profil client (montage, comme « Jessica Martinez ») ---------- */
 function tplVProfile(){ return `<div class="full" style="background:${VINK};color:#F3EFEA;overflow:hidden">
   <div style="position:absolute;left:0;top:0;width:52px;height:730px;border-right:1px solid rgba(255,255,255,.07)">${[0,1,2,3,4,5,6].map(i=>`<div style="position:absolute;left:17px;top:${24+i*44}px;width:18px;height:18px;border-radius:5px;${i==2?`background:${VA}`:'border:1.5px solid rgba(243,239,234,.3)'}"></div>`).join('')}</div>
-  <div style="position:absolute;left:52px;right:0;top:0;height:300px;overflow:hidden">${vimg('room_eye','inset:0;width:100%;height:100%','50% 62%')}<div class="full" style="background:linear-gradient(180deg,rgba(18,17,16,.15),rgba(18,17,16,.9))"></div></div>
+  <div style="position:absolute;left:52px;right:0;top:0;height:300px;overflow:hidden">${vimg('room_eye','inset:0;width:100%;height:100%','50% 62%')}<canvas class="vseq" width="1188" height="300" style="position:absolute;inset:0;width:100%;height:100%"></canvas><div class="full" style="background:linear-gradient(180deg,rgba(18,17,16,.15),rgba(18,17,16,.9))"></div></div>
   <div class="m" style="position:absolute;left:80px;top:24px;font-size:12px;color:rgba(243,239,234,.75)">Dashboard&nbsp;&nbsp;&nbsp;Rooms&nbsp;&nbsp;&nbsp;<b style="color:#fff">Customers</b></div>
   <div style="position:absolute;left:80px;top:198px;width:64px;height:64px;border-radius:16px;background:${VA};font-size:26px;line-height:64px;text-align:center;color:#fff">EL</div>
   <div style="position:absolute;left:162px;top:196px;font-size:58px;letter-spacing:-0.04em;line-height:1">Emma Laurent</div><div class="m" style="position:absolute;left:166px;top:256px;font-size:13px;color:${VG}">@emma_lives_here · Marais</div>
