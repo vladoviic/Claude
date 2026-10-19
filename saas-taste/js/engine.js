@@ -42,7 +42,7 @@ function vel(fn,f){ return fn(f+0.5)-fn(f-0.5); }
 
 /* Curseur */
 const CUR=$('cursor');
-function cursor(x,y,press=0,on=true){ show(CUR,on); if(!on) return; CUR.style.transform=`translate(${(x-4).toFixed(1)}px,${(y-4).toFixed(1)}px) scale(${(1-0.14*press).toFixed(3)})`; }
+function cursor(x,y,press=0,on=true,size=1){ show(CUR,on); if(!on) return; CUR.style.transform=`translate(${(x-4).toFixed(1)}px,${(y-4).toFixed(1)}px) scale(${(size*(1-0.14*press)).toFixed(3)})`; }
 
 /* Champ irisé (WebGL, rendu à mi-résolution) */
 const IRI=(()=>{

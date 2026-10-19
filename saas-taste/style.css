@@ -36,7 +36,7 @@ em{font-family:'IS';font-style:italic;font-weight:400;letter-spacing:0}
 /* mots et glyphes d'ouverture */
 .word{font-size:50px;letter-spacing:-0.01em}
 .glyph{font-family:'JB';font-size:44px;line-height:1}
-.frag{font-family:'JB';font-size:21px;line-height:1;white-space:nowrap}
+.frag{font-family:'JB';font-size:34px;line-height:1;white-space:nowrap}
 
 /* écrans fades (avant) */
 .bshot{position:absolute;overflow:hidden;background:#F4F5F7;font-family:'AR';color:#333}
@@ -124,7 +124,7 @@ em{font-family:'IS';font-style:italic;font-weight:400;letter-spacing:0}
 .srow b{position:absolute;right:0;font-weight:400;color:#F3EFEA}
 
 /* boutons noirs */
-.bbtn{position:absolute;height:72px;padding:0 34px;border-radius:14px;background:var(--ink);color:#F3EFEA;font-size:30px;line-height:72px;white-space:nowrap}
+.bbtn{position:absolute;height:90px;padding:0 58px;border-radius:18px;background:var(--ink);color:#F3EFEA;font-size:40px;line-height:90px;white-space:nowrap}
 
 /* carte de rapport */
 .rcard{position:absolute;width:860px;height:320px;border-radius:22px;background:#fff;box-shadow:0 30px 70px -30px rgba(60,30,40,.35)}

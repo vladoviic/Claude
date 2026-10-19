@@ -332,45 +332,44 @@ def arp(f0, f1, v=0.3, step=2):
             verb.add(fm_pluck(n, 0.5, v), i=ats(t + s * SPB / step), gain=0.6, pan=0.25 * (-1) ** s)
 
 
-SEC = dict(logo=first('drop', 120), drop2=first('drop2', 1080), brk=first('break', 696))
-# 1 · intro (0-119) : nappe discrète
-play_pads(0, 120, 0.4, 900)
-play_roll(100, 120)
-# 2 · drop au logo → jusqu'au téléphone (120-641)
-play_pads(120, 642, 0.85, 1600)
-play_groove(120, 642)
-sidechain(dry.x, 120, 642)
-sidechain(verb.x, 120, 642)
-# 3 · « My clients » (642-695) : plus léger
-play_pads(642, 696, 0.7, 1200)
-play_groove(642, 696, full=True, clap_on=False, v=0.75)
-# 4 · break : terminal, éditeur, macro (696-879)
-play_pads(696, 880, 0.65, 800)
-for k, t in beats(696, 880):
+SEC = dict(logo=first('drop', 120), drop2=first('drop2', 1080), brk=first('break', 695))
+# 1 · intro (0-103) : nappe très discrète, puis silence avant le drop (104-118) comme la réf
+play_pads(0, 104, 0.18, 800)
+# 2 · drop au logo → jusqu'au téléphone (120-615), 3 dB au-dessus du reste
+play_pads(120, 616, 1.1, 1700)
+play_groove(120, 616, v=1.35)
+sidechain(dry.x, 120, 616)
+sidechain(verb.x, 120, 616)
+# 3 · « My clients » (647-694) : plus léger (616-646 : silence de la réf)
+play_pads(647, 695, 0.7, 1200)
+play_groove(647, 695, full=True, clap_on=False, v=0.75)
+# 4 · break : terminal, éditeur, macro (695-879) — un lit très bas
+play_pads(695, 880, 0.22, 700)
+for k, t in beats(695, 880):
     if k % 4 == 0:
-        dry.add(bass_note(ROOT[chord_k(k)], SPB * 3.8, 0.9), i=ats(t), gain=0.55)
-play_roll(860, 880)
-# 5 · retour : chat, Taste Complete (880-1004)
-play_pads(880, 1005, 0.85, 1500)
-play_groove(880, 1005)
-sidechain(dry.x, 880, 1005)
-# 6 · creux du Taste Check (1005-1079)
-play_pads(1005, 1080, 0.5, 700)
-arp(1053, 1080, 0.25, 2)
-play_roll(1066, 1080)
-# 7 · fort : grille, rapport, alertes (1080-1250)
-play_pads(1080, 1251, 0.95, 1800)
-play_groove(1080, 1251)
-sidechain(dry.x, 1080, 1251)
-sidechain(verb.x, 1080, 1251)
-# 8 · Ship it (1251-1307) : grosse caisse seule, montée
-play_pads(1251, 1308, 0.75, 1200)
-play_groove(1251, 1296, full=False, v=0.7)
-play_roll(1290, 1308)
-# 9 · montage (1308-1379)
-play_pads(1308, 1380, 0.95, 1900)
-play_groove(1308, 1380)
-sidechain(dry.x, 1308, 1380)
+        dry.add(bass_note(ROOT[chord_k(k)], SPB * 3.8, 0.9), i=ats(t), gain=0.18)
+play_roll(862, 880)
+# 5 · retour : chat, Taste Complete (880-1001)
+play_pads(880, 1002, 0.9, 1500)
+play_groove(880, 1002, v=1.1)
+sidechain(dry.x, 880, 1002)
+# 6 · creux du Taste Check (1002-1077)
+play_pads(1002, 1078, 0.3, 650)
+arp(1051, 1078, 0.22, 2)
+play_roll(1064, 1078)
+# 7 · fort : grille, rapport, alertes (1078-1249)
+play_pads(1078, 1250, 1.0, 1800)
+play_groove(1078, 1250, v=1.2)
+sidechain(dry.x, 1078, 1250)
+sidechain(verb.x, 1078, 1250)
+# 8 · Ship it (1250-1306) : grosse caisse seule, creux 1265-1276, montée
+play_pads(1250, 1307, 0.7, 1200)
+play_groove(1250, 1294, full=False, v=0.7)
+play_roll(1289, 1307)
+# 9 · montage (1307-1379)
+play_pads(1307, 1380, 1.0, 1900)
+play_groove(1307, 1380, v=1.2)
+sidechain(dry.x, 1307, 1380)
 # 10 · logo (1380-1445) puis fin (1446-1559)
 BOOM = max([c['f'] for c in CUES if c['k'] == 'boom'] or [1395])
 for n in [41, 53, 57, 60, 64, 67]:
@@ -460,6 +459,24 @@ ir = np.stack([lp(noise(len(ir_t)), 6000) * np.exp(-ir_t * 3.0) for _ in range(2
 ir /= np.sqrt((ir ** 2).sum(0))  # énergie unité : la réverbe n'ajoute pas de gain
 wet = np.stack([fftconvolve(verb.x[:, c], ir[:, c])[: len(verb.x)] for c in range(2)], 1) * 0.5
 mix = dry.x + music + wet
+
+
+def duck(x, f0, f1, db, ramp=3):
+    """Silences de la réf : tout le mix descend à db entre f0 et f1, rampes de quelques images."""
+    g = 10 ** (db / 20)
+    i0, i1, r = at(f0), at(f1), at(ramp)
+    env = np.ones(len(x))
+    env[i0:i1] = g
+    a0 = max(0, i0 - r)
+    env[a0:i0] = np.linspace(1, g, i0 - a0)
+    seg = env[i1:i1 + r]
+    env[i1:i1 + r] = np.linspace(g, 1, len(seg))
+    x *= env[:, None]
+
+
+duck(mix, 104, 119, -40)
+duck(mix, 616, 646, -38)
+duck(mix, 1265, 1276, -30)
 if os.environ.get('STEMS'):
     def lvl(x):
         m = x.mean(1)

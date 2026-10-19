@@ -7,7 +7,19 @@ function renderFrame(f){
   for(const sc of SCENES){ const on=f>=sc.f0&&f<=sc.f1; show(sc.el,on); if(on) sc.render(f); }
   return f;
 }
+/* Recalage sur les coupes exactes de la réf (mesurées image par image) :
+   [début, fin, décalage] — la scène rend f+décalage, ses cues sont avancés d'autant. */
+const REMAP={sTree:[300,346,0],sDash:[347,379,1],sHero:[380,417,1],sPills:[418,465,2],sPlan:[466,558,2],sPhone:[559,641,2],
+  sTerm:[695,814,1],sMacro:[815,879,1],sChat:[880,951,0],sDone:[952,1077,2],sGrid:[1078,1129,2],sReport:[1130,1174,1],
+  sAlerts:[1175,1249,1],sShip:[1250,1306,1],sMont:[1307,1379,1]};
+function applyRemap(){
+  for(const sc of SCENES){ const m=REMAP[sc.id]; if(!m) continue; const [n0,n1,d]=m, o0=sc.f0, o1=sc.f1;
+    for(const c of CUES){ if(c._moved||c.f<o0||c.f>o1) continue; c.f-=d; for(const k of ['peak','end']) if(k in c) c[k]-=d; c._moved=true; }
+    sc.f0=n0; sc.f1=n1; const r=sc.render; sc.render=f=>r(f+d); }
+  CUES.forEach(c=>delete c._moved);
+}
 async function init(){
+  applyRemap();
   await Promise.race([new Promise(r=>window.T3D?r():addEventListener('t3d-ready',r)),new Promise(r=>setTimeout(r,8000))]);
   if(!window.T3D) console.error('3D indisponible');
   await document.fonts.ready;
