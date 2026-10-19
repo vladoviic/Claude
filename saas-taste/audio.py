@@ -42,7 +42,10 @@ def first(kind, default):
 
 
 SEC = {k: first(k, d) for k, d in
-       [('drop', 300), ('break', 510), ('ship', 630), ('drop2', 690), ('logo', 810), ('final', 915)]}
+       [('drop', 300), ('break', 510), ('ship', 630), ('drop2', 690), ('logo', 855), ('final', 960)]}
+FLY = SEC['logo'] - 15            # les écrans s'envolent : la batterie s'arrête
+BOOM = first('boom', SEC['logo'] + 16)
+CTA = SEC['logo'] + 60            # début de la pill de fin
 
 # ---------------------------------------------------------------- outils
 def bp(x, lo, hi, order=2):
@@ -336,15 +339,15 @@ play_pads(SEC['ship'], 690, 0.8, 1300)
 play_groove(SEC['ship'], 675, full=False)
 play_roll(675, 690)
 # drop 2
-play_pads(SEC['drop2'], 795, 0.95, 1800)
-play_groove(SEC['drop2'], 795)
+play_pads(SEC['drop2'], FLY, 0.95, 1800)
+play_groove(SEC['drop2'], FLY)
 # logo + fin
 for n in [41, 53, 57, 60, 64, 67]:
-    l, r = pad_note(n, sec(869 - 826), 0.7, 1500, attack=0.05, release=1.2)
+    l, r = pad_note(n, sec(CTA - 1 - BOOM), 0.7, 1500, attack=0.05, release=1.2)
     for b, w in ((dry, 1.0), (verb, 0.7)):
-        b.x[at(826):at(826) + len(l), 0] += l * w
-        b.x[at(826):at(826) + len(r), 1] += r * w
-play_pads(870, 915, 0.55, 1000)
+        b.x[at(BOOM):at(BOOM) + len(l), 0] += l * w
+        b.x[at(BOOM):at(BOOM) + len(r), 1] += r * w
+play_pads(CTA, SEC['final'], 0.55, 1000)
 for n in [53, 57, 60, 64, 67, 72]:
     l, r = pad_note(n, sec(TOTAL - SEC['final']), 0.6, 1300, attack=0.4, release=1.5)
     verb.x[at(SEC['final']):at(SEC['final']) + len(l), 0] += l * 0.8
@@ -356,9 +359,9 @@ for i, n in enumerate([65, 69, 72, 76, 79]):
 
 sidechain(dry.x, SEC['drop'], 450)
 sidechain(dry.x, 480, 510)
-sidechain(dry.x, SEC['drop2'], 795)
+sidechain(dry.x, SEC['drop2'], FLY)
 sidechain(verb.x, SEC['drop'], 450)
-sidechain(verb.x, SEC['drop2'], 795)
+sidechain(verb.x, SEC['drop2'], FLY)
 
 # ---------------------------------------------------------------- placement des bruitages
 for c in CUES:
@@ -438,7 +441,7 @@ mix = dry.x + music + wet
 if os.environ.get('STEMS'):
     def lvl(x):
         m = x.mean(1)
-        return ' '.join(f"{20*np.log10(np.sqrt((m[i*SR:(i+1)*SR]**2).mean())+1e-9):5.0f}" for i in range(33))
+        return ' '.join(f"{20*np.log10(np.sqrt((m[i*SR:(i+1)*SR]**2).mean())+1e-9):5.0f}" for i in range(int(N / SR)))
     print('dry  ', lvl(dry.x)); print('drums', lvl(music)); print('wet  ', lvl(wet)); print('mix  ', lvl(mix))
 mix = hp(mix.T, 28).T
 mix = mix[: N + int(0.2 * SR)]
