@@ -104,13 +104,14 @@ function blit(target, clear = true) {
 
 /**
  * o : { t (s), spin (rad), tilt (rad, penche vers la droite), drop (0→1, chute d'entrée),
- *       zoom, lookY, sprinkle (0→1), shadow (0→1), camX }
+ *       zoom, lookY, sprinkle (0→1), shadow (0→1), camX, camY, cap (couleur du bouchon) }
  */
 function shakerRender(target, o = {}) {
   const t = o.t || 0;
   sizeTo(target.width, target.height, shakerCam);
   const z = o.zoom ?? 1;
-  shakerCam.position.set(o.camX ?? 0, 1.5, 7.4 / z); shakerCam.lookAt(0, o.lookY ?? 0.05, 0);
+  shakerCam.position.set(o.camX ?? 0, o.camY ?? 1.5, 7.4 / z); shakerCam.lookAt(0, o.lookY ?? 0.05, 0);
+  capMat.color.set(o.cap ?? COL.accent);
   const drop = o.drop ?? 1;
   shaker.rotation.set(0, o.spin ?? t * 0.6, 0);
   shakerPivot.rotation.set(0, 0, -(o.tilt || 0));

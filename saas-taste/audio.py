@@ -1,7 +1,7 @@
 """Bande-son du film, synthétisée en code et calée sur out/cues.json (exporté par render.mjs).
 
-120 BPM : 1 temps = 15 images. Les sections et les bruitages viennent des cues de index.html,
-donc un son ne peut pas décrocher de son action. Sortie : out/audio.wav (44,1 kHz stéréo),
+135 BPM calés sur la grille de la réf (premier temps à 0,33 s). Les bruitages viennent des cues
+déclarés à côté de chaque action dans js/shots*.js, donc un son ne peut pas décrocher de son action. Sortie : out/audio.wav (44,1 kHz stéréo),
 normalisée ensuite à -14 LUFS par build.sh.
 """
 import json
@@ -12,12 +12,11 @@ from scipy.signal import butter, fftconvolve, sosfilt
 from scipy.io import wavfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SR, FPS, BPM = 44100, 30, 120
+SR, FPS, BPM = 44100, 30, 135
 data = json.load(open(os.path.join(HERE, 'out', 'cues.json')))
 TOTAL = data['total']
 CUES = data['cues']
 N = int(TOTAL / FPS * SR)
-BEAT = 15  # images
 rng = np.random.default_rng(7)
 PAD = 0.035  # niveau des nappes (3 dents de scie × 4 notes s'additionnent vite)
 
@@ -40,12 +39,6 @@ def first(kind, default):
             return c['f']
     return default
 
-
-SEC = {k: first(k, d) for k, d in
-       [('drop', 300), ('break', 510), ('ship', 630), ('drop2', 690), ('logo', 855), ('final', 960)]}
-FLY = SEC['logo'] - 15            # les écrans s'envolent : la batterie s'arrête
-BOOM = first('boom', SEC['logo'] + 16)
-CTA = SEC['logo'] + 60            # début de la pill de fin
 
 # ---------------------------------------------------------------- outils
 def bp(x, lo, hi, order=2):
@@ -259,109 +252,142 @@ def sfx_reverse(dur, v):
 
 
 # ---------------------------------------------------------------- musique
+# Grille de la réf : 135 BPM, premier temps à l'image 10 (0,33 s). La courbe d'énergie suit la réf :
+# intro calme · drop au logo (4 s) · fort jusqu'à 21 s · moyen · break terminal/macro (23-29 s) ·
+# retour (29-33 s) · creux du Taste Check (33-36 s) · fort (36-42 s) · Ship it · montage · logo · fin calme.
+SPB = 60 / BPM
+T0 = 10 / FPS
 PROG = [[53, 57, 60, 64], [57, 60, 64, 67], [50, 53, 57, 60], [53, 57, 58, 62]]   # Fmaj7 Am7 Dm7 B♭maj7
 ROOT = [41, 45, 38, 34]
 
 
-def chord_at(f):
-    return (int(f) // 60) % 4
+def ats(t):
+    return int(round(t * SR))
 
 
-def play_pads(f0, f1, v=1.0, cutoff=1400):
-    f = f0
-    while f < f1:
-        nb = min(f1, (f // 60 + 1) * 60)
-        ci = chord_at(f)
-        for k, n in enumerate(PROG[ci]):
-            l, r = pad_note(n, sec(nb - f), v, cutoff)
-            verb.x[at(f):at(f) + len(l), 0] += l[: len(verb.x) - at(f)] * 0.6
-            verb.x[at(f):at(f) + len(r), 1] += r[: len(verb.x) - at(f)] * 0.6
-            dry.x[at(f):at(f) + len(l), 0] += l[: len(dry.x) - at(f)]
-            dry.x[at(f):at(f) + len(r), 1] += r[: len(dry.x) - at(f)]
-        f = nb
+def beats(f0, f1):
+    t0, t1 = f0 / FPS, f1 / FPS
+    k = int(np.ceil((t0 - T0) / SPB - 1e-9))
+    out = []
+    while T0 + k * SPB < t1:
+        out.append((k, T0 + k * SPB))
+        k += 1
+    return out
 
 
-def play_groove(f0, f1, full=True):
-    for f in range(f0, f1, BEAT):
-        drums.add(kick(1.0), f, gain=0.95)
-        if full:
-            drums.add(hat(0.9), f + 7.5, gain=0.5, pan=0.3)
-            if ((f - f0) // BEAT) % 2 == 1:
-                drums.add(clap(1.0), f, gain=0.5)
-                verb.add(clap(1.0), f, gain=0.15)
-            drums.add(bass_note(ROOT[chord_at(f)] + 12, 0.22, 1.0), f + 7.5, gain=0.7)
-            if ((f - f0) // BEAT) % 4 == 3:
-                drums.add(hat(0.7, True), f + 7.5, gain=0.35, pan=-0.3)
+def chord_k(k):
+    return (k // 4) % 4
+
+
+def play_pads(f0, f1, v=1.0, cutoff=1400, wet=0.6):
+    t, t1 = f0 / FPS, f1 / FPS
+    while t < t1 - 1e-3:
+        k = int(np.floor((t - T0) / SPB + 1e-9))
+        bar_end = T0 + ((k // 4) + 1) * 4 * SPB
+        te = min(t1, bar_end)
+        for n in PROG[chord_k(max(k, 0))]:
+            l, r = pad_note(n, te - t, v, cutoff)
+            i = ats(t)
+            for b, w in ((dry, 1.0), (verb, wet)):
+                m = min(len(l), len(b.x) - i)
+                b.x[i:i + m, 0] += l[:m] * w
+                b.x[i:i + m, 1] += r[:m] * w
+        t = te
+
+
+def play_groove(f0, f1, full=True, clap_on=True, v=1.0):
+    for k, t in beats(f0, f1):
+        drums.add(kick(1.0), i=ats(t), gain=0.95 * v)
+        if not full:
+            continue
+        drums.add(hat(0.9), i=ats(t + SPB / 2), gain=0.5 * v, pan=0.3)
+        if clap_on and k % 2 == 1:
+            drums.add(clap(1.0), i=ats(t), gain=0.5 * v)
+            verb.add(clap(1.0), i=ats(t), gain=0.15 * v)
+        drums.add(bass_note(ROOT[chord_k(k)] + 12, SPB * 0.45, 1.0), i=ats(t + SPB / 2), gain=0.7 * v)
+        if k % 4 == 3:
+            drums.add(hat(0.7, True), i=ats(t + SPB / 2), gain=0.35 * v, pan=-0.3)
 
 
 def play_roll(f0, f1):
-    n = 0
-    f = float(f0)
-    while f < f1:
-        p = (f - f0) / (f1 - f0)
-        drums.add(clap(0.4 + 0.6 * p), f, gain=0.25 + 0.25 * p)
-        f += 3.75 if p < 0.5 else 1.875
-        n += 1
+    t, t0, t1 = f0 / FPS, f0 / FPS, f1 / FPS
+    while t < t1:
+        p = (t - t0) / (t1 - t0)
+        drums.add(clap(0.4 + 0.6 * p), i=ats(t), gain=0.25 + 0.25 * p)
+        t += SPB / 4 if p < 0.5 else SPB / 8
 
 
 def sidechain(x, f0, f1):
-    """Pompe les nappes sur la grosse caisse."""
-    for f in range(f0, f1, BEAT):
-        i = at(f)
-        k = int(0.3 * SR)
-        seg = x[i:i + k]
-        g = 1 - 0.65 * np.exp(-np.arange(len(seg)) / SR * 9)
-        seg *= g[:, None]
+    for k, t in beats(f0, f1):
+        i = ats(t)
+        seg = x[i:i + int(0.28 * SR)]
+        seg *= (1 - 0.6 * np.exp(-np.arange(len(seg)) / SR * 9))[:, None]
 
 
-# intro : nappe discrète
-play_pads(0, 60, 0.45, 900)
-# audit : musique d'attente téléphonique, carrée et sans relief
-hold = [72, 76, 79, 76, 74, 77, 81, 77]
-for i, f in enumerate(range(90, 210, 8)):
-    dry.add(square_note(hold[i % len(hold)], 0.22, 1.0), f, gain=0.35)
-# montée
-play_pads(210, 300, 0.6, 1100)
-for i, f in enumerate(range(210, 300, 8)):
-    n = PROG[chord_at(f)][i % 4] + 12
-    verb.add(fm_pluck(n, 0.6, 0.35), f, gain=0.6, pan=0.25 * (-1) ** i)
-play_roll(270, 300)
-# drop
-play_pads(SEC['drop'], 510, 0.9, 1600)
-play_groove(SEC['drop'], 450)
-play_groove(480, 510)
-# break
-play_pads(SEC['break'], 630, 0.75, 900)
-for f in range(SEC['break'], 630, 60):
-    dry.add(bass_note(ROOT[chord_at(f)], 1.9, 0.9), f, gain=0.55)
-# ship it
-play_pads(SEC['ship'], 690, 0.8, 1300)
-play_groove(SEC['ship'], 675, full=False)
-play_roll(675, 690)
-# drop 2
-play_pads(SEC['drop2'], FLY, 0.95, 1800)
-play_groove(SEC['drop2'], FLY)
-# logo + fin
+def arp(f0, f1, v=0.3, step=2):
+    """Plucks en doubles-croches sur les notes de l'accord (montées)."""
+    for j, (k, t) in enumerate(beats(f0, f1)):
+        for s in range(step):
+            n = PROG[chord_k(k)][(j * step + s) % 4] + 12
+            verb.add(fm_pluck(n, 0.5, v), i=ats(t + s * SPB / step), gain=0.6, pan=0.25 * (-1) ** s)
+
+
+SEC = dict(logo=first('drop', 120), drop2=first('drop2', 1080), brk=first('break', 696))
+# 1 · intro (0-119) : nappe discrète
+play_pads(0, 120, 0.4, 900)
+play_roll(100, 120)
+# 2 · drop au logo → jusqu'au téléphone (120-641)
+play_pads(120, 642, 0.85, 1600)
+play_groove(120, 642)
+sidechain(dry.x, 120, 642)
+sidechain(verb.x, 120, 642)
+# 3 · « My clients » (642-695) : plus léger
+play_pads(642, 696, 0.7, 1200)
+play_groove(642, 696, full=True, clap_on=False, v=0.75)
+# 4 · break : terminal, éditeur, macro (696-879)
+play_pads(696, 880, 0.65, 800)
+for k, t in beats(696, 880):
+    if k % 4 == 0:
+        dry.add(bass_note(ROOT[chord_k(k)], SPB * 3.8, 0.9), i=ats(t), gain=0.55)
+play_roll(860, 880)
+# 5 · retour : chat, Taste Complete (880-1004)
+play_pads(880, 1005, 0.85, 1500)
+play_groove(880, 1005)
+sidechain(dry.x, 880, 1005)
+# 6 · creux du Taste Check (1005-1079)
+play_pads(1005, 1080, 0.5, 700)
+arp(1053, 1080, 0.25, 2)
+play_roll(1066, 1080)
+# 7 · fort : grille, rapport, alertes (1080-1250)
+play_pads(1080, 1251, 0.95, 1800)
+play_groove(1080, 1251)
+sidechain(dry.x, 1080, 1251)
+sidechain(verb.x, 1080, 1251)
+# 8 · Ship it (1251-1307) : grosse caisse seule, montée
+play_pads(1251, 1308, 0.75, 1200)
+play_groove(1251, 1296, full=False, v=0.7)
+play_roll(1290, 1308)
+# 9 · montage (1308-1379)
+play_pads(1308, 1380, 0.95, 1900)
+play_groove(1308, 1380)
+sidechain(dry.x, 1308, 1380)
+# 10 · logo (1380-1445) puis fin (1446-1559)
+BOOM = max([c['f'] for c in CUES if c['k'] == 'boom'] or [1395])
 for n in [41, 53, 57, 60, 64, 67]:
-    l, r = pad_note(n, sec(CTA - 1 - BOOM), 0.7, 1500, attack=0.05, release=1.2)
+    l, r = pad_note(n, sec(1446 - BOOM), 0.7, 1500, attack=0.05, release=1.2)
     for b, w in ((dry, 1.0), (verb, 0.7)):
         b.x[at(BOOM):at(BOOM) + len(l), 0] += l * w
         b.x[at(BOOM):at(BOOM) + len(r), 1] += r * w
-play_pads(CTA, SEC['final'], 0.55, 1000)
+FINAL = first('final', 1494)
+play_pads(1446, FINAL, 0.5, 1000)
 for n in [53, 57, 60, 64, 67, 72]:
-    l, r = pad_note(n, sec(TOTAL - SEC['final']), 0.6, 1300, attack=0.4, release=1.5)
-    verb.x[at(SEC['final']):at(SEC['final']) + len(l), 0] += l * 0.8
-    verb.x[at(SEC['final']):at(SEC['final']) + len(r), 1] += r * 0.8
-    dry.x[at(SEC['final']):at(SEC['final']) + len(l), 0] += l * 0.6
-    dry.x[at(SEC['final']):at(SEC['final']) + len(r), 1] += r * 0.6
+    l, r = pad_note(n, sec(TOTAL - FINAL), 0.6, 1300, attack=0.4, release=1.5)
+    for b, w in ((verb, 0.8), (dry, 0.6)):
+        m = min(len(l), len(b.x) - at(FINAL))
+        b.x[at(FINAL):at(FINAL) + m, 0] += l[:m] * w
+        b.x[at(FINAL):at(FINAL) + m, 1] += r[:m] * w
 for i, n in enumerate([65, 69, 72, 76, 79]):
-    verb.add(bell(n, 2.5, 0.5), SEC['final'] + i * 2, gain=0.5, pan=-0.4 + i * 0.2)
-
-sidechain(dry.x, SEC['drop'], 450)
-sidechain(dry.x, 480, 510)
-sidechain(dry.x, SEC['drop2'], FLY)
-sidechain(verb.x, SEC['drop'], 450)
-sidechain(verb.x, SEC['drop2'], FLY)
+    verb.add(bell(n, 2.5, 0.5), FINAL + i * 2, gain=0.5, pan=-0.4 + i * 0.2)
 
 # ---------------------------------------------------------------- placement des bruitages
 for c in CUES:
@@ -426,11 +452,7 @@ for c in CUES:
         dry.add(sfx_impact(min(1.0, v), 1.6), f, gain=1.0)
         verb.add(sfx_impact(min(1.0, v), 1.6), f, gain=0.45)
 
-# « ok, too much. » : la musique passe sous l'eau jusqu'au retour à 100 %
 music = drums.x * 0.5
-i0, i1 = at(450), at(476)
-for ch in range(2):
-    music[i0:i1, ch] = lp(music[i0:i1, ch], 500, 4) * 0.8
 
 # ---------------------------------------------------------------- réverbe + master
 ir_t = tt(2.2)
