@@ -51,7 +51,7 @@ const IRI=(()=>{
   if(!gl) return null;
   const vs=`attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`;
   const fs=`precision highp float;
-  uniform vec2 R; uniform float T,S,Z,HOT,BANDS;
+  uniform vec2 R; uniform float T,S,Z,HOT,BANDS,TH;
   vec2 h2(vec2 p){p=vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3)));return -1.+2.*fract(sin(p)*43758.5453);}
   float n(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);
     return mix(mix(dot(h2(i),f),dot(h2(i+vec2(1,0)),f-vec2(1,0)),u.x),mix(dot(h2(i+vec2(0,1)),f-vec2(0,1)),dot(h2(i+vec2(1,1)),f-vec2(1,1)),u.x),u.y);}
@@ -62,6 +62,13 @@ const IRI=(()=>{
     vec3 a=c0,b=c1; float t=fract(x);
     if(x<1.){a=c0;b=c1;}else if(x<2.){a=c1;b=c2;}else if(x<3.){a=c2;b=c3;}else if(x<4.){a=c3;b=c4;}else if(x<5.){a=c4;b=c5;}else{a=c5;b=c0;}
     return mix(a,b,smoothstep(0.,1.,t));
+  }
+  vec3 therm(float x){
+    x=fract(x)*6.;
+    vec3 w=vec3(1.,.985,.97),pe=vec3(1.,.74,.52),co=vec3(1.,.38,.40),li=vec3(.83,.76,1.),cy=vec3(.70,.92,.99);
+    vec3 a=w,b=pe; float t=fract(x);
+    if(x<1.){a=w;b=pe;}else if(x<2.){a=pe;b=co;}else if(x<3.){a=co;b=w;}else if(x<4.){a=w;b=li;}else if(x<5.){a=li;b=cy;}else{a=cy;b=w;}
+    return mix(a,b,smoothstep(.25,.75,t));
   }
   void main(){
     vec2 p=(gl_FragCoord.xy-.5*R)/R.y*Z + vec2(S*3.1,S*1.7);
@@ -76,15 +83,16 @@ const IRI=(()=>{
     col=mix(col,vec3(1.,.31,.42),hot*HOT);
     float b=abs(fract(x*6.)-.5)*2.;
     col=mix(col,min(vec3(1.),col*1.04+.07),(1.-smoothstep(0.,.16,b))*BANDS);
+    col=mix(col,therm(x*1.9+v*.6),TH);
     gl_FragColor=vec4(col,1.);
   }`;
   function sh(t,src){const s=gl.createShader(t);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw gl.getShaderInfoLog(s);return s;}
   const pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,vs));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(pr);gl.useProgram(pr);
   const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
   const loc=gl.getAttribLocation(pr,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
-  const U={};for(const k of ['R','T','S','Z','HOT','BANDS'])U[k]=gl.getUniformLocation(pr,k);
+  const U={};for(const k of ['R','T','S','Z','HOT','BANDS','TH'])U[k]=gl.getUniformLocation(pr,k);
   gl.viewport(0,0,960,540); gl.uniform2f(U.R,960,540);
-  return {canvas:c,draw(o){gl.uniform1f(U.T,o.t||0);gl.uniform1f(U.S,o.seed||0);gl.uniform1f(U.Z,(o.zoom||1.5)*.62);gl.uniform1f(U.HOT,o.hot??.18);gl.uniform1f(U.BANDS,o.bands??.35);gl.drawArrays(gl.TRIANGLES,0,3);gl.finish();}};
+  return {canvas:c,draw(o){gl.uniform1f(U.T,o.t||0);gl.uniform1f(U.S,o.seed||0);gl.uniform1f(U.Z,(o.zoom||1.5)*.62);gl.uniform1f(U.HOT,o.hot??.18);gl.uniform1f(U.BANDS,o.bands??.35);gl.uniform1f(U.TH,o.therm||0);gl.drawArrays(gl.TRIANGLES,0,3);gl.finish();}};
 })();
 function iriTo(cv,o,src){ // src = [sx,sy,sw,sh] dans le canvas 960×540
   const ctx=cv.getContext('2d');

@@ -62,7 +62,7 @@ cue(880,'impact',{v:.55}); cue(918,'shimmer',{v:.45,end:928}); cue(922,'pop',{v:
 function shotChat(f){ push(CH.cam,f,880,0.0005);
   const swapped=f>=922; const zoom=f<927?1.0:lerp(1.0,1.18,approach(f,927,20));
   if(window.T3D) T3D.shaker(chShaker,{t:T(f),spin:0.3+(f-880)*0.045,drop:1,zoom,lookY:0.0,sprinkle:0,shadow:1,cap:swapped?0x151413:0xFF3D5E});
-  const th=f<918?0:f<921?(f-918)/3:f<924?1:1-(f-924)/3; show(chThermal,th>0); if(th>0){ chThermal.style.opacity=th.toFixed(2); iriTo(chThermal,{t:T(f),seed:4.7,zoom:1.2,hot:.6,bands:.8}); }
+  const th=f<918?0:f<921?(f-918)/3:f<924?1:1-(f-924)/3; show(chThermal,th>0); if(th>0){ chThermal.style.opacity=th.toFixed(2); iriTo(chThermal,{t:T(f),seed:4.7,zoom:1.2,hot:.6,bands:.8,therm:1}); }
   q1(chRoot,'.srow:nth-child(4) b').textContent=swapped?'#151413':'#FF3D5E';
 }
 
@@ -87,7 +87,7 @@ function shotDone(f){
     iriTo(q1(doD,'.dbg'),{t:T(f),seed:1.9,zoom:1.0,hot:.25,bands:.4}); render3dDone(q1(doD,'.d3'),f); }
   if(f>=990&&f<1006){ const s=2.3+0.004*(f-990); doFullIn.style.transform=`translate(${(960-700*s).toFixed(1)}px,${(540-420*s).toFixed(1)}px) scale(${s.toFixed(3)})`;
     iriTo(q1(doFullIn,'.dbg'),{t:T(f),seed:1.9,zoom:1.0,hot:.25,bands:.4}); render3dDone(q1(doFullIn,'.d3'),f); }
-  const th=f>=999; show(doTh,th); if(th){ iriTo(doTh,{t:T(f)*0.7,seed:7.4,zoom:1.25,hot:.85,bands:1.0}); const rr=approach(f,999,7)*2400;
+  const th=f>=999; show(doTh,th); if(th){ iriTo(doTh,{t:T(f)*0.7,seed:7.4,zoom:1.15,hot:.6,bands:.8,therm:1}); const rr=approach(f,999,7)*2400;
     doTh.style.webkitMaskImage=doTh.style.maskImage=f<1006?`radial-gradient(circle at 960px 560px,#000 ${Math.max(0,rr-280).toFixed(0)}px,transparent ${rr.toFixed(0)}px)`:''; }
   const bOn=f>=1020&&f<1068; show(doBtn,bOn); if(bOn){ const bl=accel(f,1060,8,1.6); place(doBtn,960,556,1+bl*0.08); doBtn.style.filter=bl>0?`blur(${(bl*16).toFixed(1)}px)`:'';
     doBtn.style.color=f<1023?'#FF3D5E':'#F3EFEA'; doBtn.style.background=f>=1049?'#FF3D5E':'#151413'; doBtn.style.transform+=` scale(${f>=1049&&f<1052?0.95:1})`; }
@@ -128,15 +128,15 @@ function shotGrid(f){ GR.cam.style.transform=`scale(${(1+0.0008*(f-1080)).toFixe
 /* ---------- 26 · BrandReport → Apply taste ---------- */
 const RE=scene('sReport',1131,1175,f=>shotReport(f));
 const reBg=canvas(RE.cam,960,540,'inset:0;width:1920px;height:1080px'); el(RE.cam,'full','', 'background:rgba(246,241,236,.42)');
-const reCard=el(RE.cam,'rcard'); reCard.innerHTML=`<div style="position:absolute;left:34px;top:30px;font-size:30px;letter-spacing:-0.02em">BrandReport <span class="m" style="font-size:14px;color:#8E877F;margin-left:10px">● public</span></div>
-  <div style="position:absolute;left:34px;top:82px;font-size:20px;color:#8E877F;font-weight:400"><span style="color:#FF3D5E">⊘</span>&nbsp; 47 boring issues found</div>
-  <div style="position:absolute;left:24px;right:24px;bottom:28px;height:100px;border-radius:16px;background:#F4F1ED"><span class="m" style="position:absolute;left:24px;top:38px;font-size:16px;color:#6d6760">arial · #2D6CDF · drop shadows · stock photos</span></div>`;
-const reBtn=el(reCard,'abs','Apply taste','left:auto;right:46px;top:194px;height:56px;line-height:56px;padding:0 26px;border-radius:12px;background:#151413;color:#F3EFEA;font-size:21px');
+const reCard=el(RE.cam,'rcard'); reCard.innerHTML=`<div style="position:absolute;left:36px;top:30px;font-size:38px;letter-spacing:-0.02em">BrandReport <span class="m" style="font-size:16px;color:#8E877F;margin-left:10px">● public</span></div>
+  <div style="position:absolute;left:36px;top:92px;font-size:24px;color:#8E877F;font-weight:400"><span style="color:#FF3D5E">⊘</span>&nbsp; 47 boring issues found</div>
+  <div style="position:absolute;left:24px;right:24px;bottom:28px;height:100px;border-radius:16px;background:#F4F1ED"><span class="m" style="position:absolute;left:24px;top:40px;font-size:17px;color:#6d6760">arial · #2D6CDF · drop shadows · stock photos</span></div>`;
+const reBtn=el(reCard,'abs','Apply taste','left:auto;right:44px;top:206px;height:62px;line-height:62px;padding:0 28px;border-radius:12px;background:#151413;color:#F3EFEA;font-size:24px');
 cue(1131,'impact',{v:.5}); cue(1161,'click',{v:1}); cue(1163,'pop',{v:.5,n:84});
 function shotReport(f){ push(RE.cam,f,1131,0.0008); iriTo(reBg,{t:T(f),seed:9.4,zoom:0.7,hot:.22,bands:.15});
   const p=approach(f,1131,4); place(reCard,960,545,lerp(0.97,1,p)); reCard.style.opacity=lerp(0.35,1,p).toFixed(3);
   const pr=f>=1161&&f<1164; reBtn.style.background=f>=1161?'#FF3D5E':'#151413'; reBtn.style.transform=`scale(${pr?0.94:1})`;
-  const cp=approach(f,1146,12); cursor(lerp(1380,1270,cp),lerp(1040,770,cp),pr?1:0,f>=1146);
+  const cp=approach(f,1146,12); cursor(lerp(1400,1290,cp),lerp(1040,785,cp),pr?1:0,f>=1146);
 }
 
 /* ---------- 27 · alertes rouges → cercles → convergence → la marque ---------- */
@@ -185,7 +185,7 @@ function shotMont(f){ let cur=MOS[0]; for(const m of MOS) if(f>=m[1]) cur=m;
   if(cur[0]===moP) iriTo(q1(moPD,'.kbg'),{t:T(f),seed:5.5,zoom:1.0,hot:.35,bands:.3});
   if(cur[0]===moDa){ updateDash(MOD,()=>1,f); iriTo(MOD.imgc,{t:T(f),seed:2.1,zoom:1.2,hot:.2,bands:.35}); }
   if(cur[0]===moL&&window.T3D) T3D.shaker(q1(moLD,'.lshaker'),{t:T(f),spin:T(f)*0.6+2.0,tilt:-0.62+0.14*Math.sin(T(f)*19),drop:1,zoom:0.92,lookY:0.15,sprinkle:1,shadow:0,camX:0.2});
-  setTint(moTint,{t:T(f),seed:5.2,zoom:1.2,hot:.6,bands:.7},approach(f,1373,4));
+  setTint(moTint,{t:T(f),seed:5.2,zoom:1.2,hot:.6,bands:.7,therm:1},approach(f,1373,4));
 }
 
 /* ---------- 31-32 · fragments → glyphes → marque → « vladan » → pill → e-mail ---------- */
@@ -195,9 +195,9 @@ const ouGl=gset(16,77,420,190).map(g=>{ const d=el(OU.cam,'abs c glyph'); d._g=g
 const ouDot=el(OU.cam,'abs','', 'border-radius:50%');
 const ouMark=el(OU.cam,'abs','', 'width:78px;height:78px'); ouMark.innerHTML=MARK_SVG;
 const ouWord=el(OU.cam,'abs','vladan','font-size:64px;font-weight:600;letter-spacing:-0.04em;line-height:1');
-const ouPill=el(OU.cam,'abs','', 'height:72px;border:3px solid #151413;border-radius:36px');
-const OUW=[[1449,'Give'],[1455,'it'],[1470,'<em style="font-size:48px;color:#FF3D5E">taste.</em>']];
-const ouWords=OUW.map(([f,h])=>el(OU.cam,'abs',h,'font-size:40px;line-height:1'));
+const ouPill=el(OU.cam,'abs','', 'height:86px;border:3.5px solid #151413;border-radius:43px');
+const OUW=[[1449,'Give'],[1455,'it'],[1470,'<em style="font-size:58px;color:#FF3D5E">taste.</em>']];
+const ouWords=OUW.map(([f,h])=>el(OU.cam,'abs',h,'font-size:48px;line-height:1'));
 const ouMail=el(OU.cam,'abs','vladan<span style="color:#FF3D5E">@</span>kwinndo.fr','font-size:44px;letter-spacing:-0.02em;line-height:1');
 const ouSub=el(OU.cam,'abs m','brand · UI · motion for SaaS','font-size:18px;color:#8E877F');
 let OUL={};
@@ -215,8 +215,8 @@ function shotOutro(f){ push(OU.cam,f,1380,0.0008);
   // pill tapée mot par mot, flash, la pill disparaît, l'e-mail arrive
   let k=-1; OUW.forEach(([wf],i)=>{ if(f>=wf) k=i; }); const sp=12, pad=30;
   let tw=0; for(let i=0;i<=k;i++){ const prev=i?OUL.ws.slice(0,i).reduce((a,b)=>a+b+sp,0)-sp:0; const cur=OUL.ws.slice(0,i+1).reduce((a,b)=>a+b+sp,0)-sp; tw=lerp(prev,cur,approach(f,OUW[i][0],6)); }
-  const pOn=f>=1449&&f<1488; show(ouPill,pOn); if(pOn){ const pw=tw+2*pad; Object.assign(ouPill.style,{width:pw+'px',left:(960-pw/2)+'px',top:'504px',borderColor:(f<1455||(f>=1485&&f<1488))?'#FF3D5E':'#151413'}); }
-  let cx=960-tw/2; ouWords.forEach((d,i)=>{ show(d,i<=k); if(i>k) return; placeTL(d,cx,540-22-(i==2?4:0)); cx+=OUL.ws[i]+sp; d.style.color=(f<1455&&i==0)?'#FF3D5E':''; });
+  const pOn=f>=1449&&f<1488; show(ouPill,pOn); if(pOn){ const pw=tw+2*pad; Object.assign(ouPill.style,{width:pw+'px',left:(960-pw/2)+'px',top:'497px',borderColor:(f<1455||(f>=1485&&f<1488))?'#FF3D5E':'#151413'}); }
+  let cx=960-tw/2; ouWords.forEach((d,i)=>{ show(d,i<=k); if(i>k) return; placeTL(d,cx,540-26-(i==2?6:0)); cx+=OUL.ws[i]+sp; d.style.color=(f<1455&&i==0)?'#FF3D5E':''; });
   show(ouMail,f>=1494); if(f>=1494){ const p=approach(f,1494,9); placeTL(ouMail,960-OUL.mw/2,630+(1-p)*40); ouMail.style.clipPath=`inset(-10px -10px ${((1-p)*100).toFixed(0)}% -10px)`; mblur(ouMail,0,vel(t=>(1-approach(t,1494,9))*40,f)*BLUR); }
   show(ouSub,f>=1506); if(f>=1506){ const p=approach(f,1506,9); placeTL(ouSub,960-OUL.sw/2,704+(1-p)*20); ouSub.style.clipPath=`inset(-10px -10px ${((1-p)*100).toFixed(0)}% -10px)`; }
 }

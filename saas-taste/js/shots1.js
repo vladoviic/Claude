@@ -40,7 +40,7 @@ function shotW(f){ push(W1.cam,f,0,0.0009);
     const born=(GK.filter(k=>k[0]<=f&&k[1][i]&&k[1][i][1]===d[1]&&k[1][i][2]===d[2]).map(k=>k[0])[0])??gk[0];
     g.textContent=d[0]; g.style.color=d[3]; place(g,960+d[1],540+d[2],back(f,born+((i*0.7)%3),4)); });
   wFr.forEach(d=>{ const on=f>=54+d._d&&f<63; show(d,on); if(on) placeTL(d,d._x+(f-54)*0.6,d._y,back(f,54+d._d,4)); });
-  if(f>=60&&f<63){ show(wHeat,true); iriTo(wHeat,{t:T(f),seed:4.4,zoom:1.4,hot:.7,bands:.6}); } else show(wHeat,false);
+  if(f>=60&&f<63){ show(wHeat,true); iriTo(wHeat,{t:T(f),seed:4.4,zoom:1.4,hot:.7,bands:.6,therm:1}); } else show(wHeat,false);
   // écrans fades : teintés irisé 9 images, puis normaux ; puis collage qui converge et rétrécit
   const pc=approach(f,93,16), g=1-0.62*accel(f,104,15,2.2);
   wB.forEach((d,i)=>{ if(f<63){ show(d,false); return; } show(d,true); const [x,y,w,h]=d._r, [cx,cy,cw]=BCL[i];
@@ -50,7 +50,7 @@ function shotW(f){ push(W1.cam,f,0,0.0009);
     d.style.transform=`translate(${(Xg-w*Sg/2).toFixed(1)}px,${(Yg-h*Sg/2).toFixed(1)}px) scale(${Sg.toFixed(4)})`;
     d.style.boxShadow=pc>0?`0 ${(20*pc).toFixed(0)}px ${(50*pc).toFixed(0)}px -20px rgba(40,30,30,${(.35*pc).toFixed(2)})`:'';
     d.style.borderRadius=(10*pc)+'px';
-    const tint=f<72?1-approach(f,68,4):approach(f,110,7); setTint(d._tint,{t:T(f),seed:1.7+i,zoom:1.1,hot:.55,bands:.5},tint);
+    const tint=f<72?1-approach(f,68,4):approach(f,110,7); setTint(d._tint,{t:T(f),seed:1.7+i,zoom:1.1,hot:.55,bands:.5,therm:1},tint);
     d.style.filter=f>=113?`blur(${(accel(f,113,7,1.6)*18).toFixed(1)}px)`:'';
     if(d._D) updateDash(d._D,()=>0,f); });
 }
@@ -93,7 +93,7 @@ function shotPrompt(f){ push(P1.cam,f,174,0.0008);
   prGly.forEach((d,i)=>{ const st=207+(i%6); const on=f>=st&&f<224; show(d,on); if(!on) return; const g=d._g; const drift=1+(f-st)*0.012;
     d.textContent=g[0]; d.style.color=f>=216?'#fff':g[3]; place(d,960+g[1]*drift,546+g[2]*drift,back(f,st,4)); });
   // l'irisé part du bouton et envahit le fond, puis avale le champ
-  if(f>=210){ show(prIri,true); const hot=lerp(.2,.75,approach(f,218,12)); iriTo(prIri,{t:T(f),seed:3.1,zoom:1.2,hot,bands:lerp(.35,.8,approach(f,220,10))});
+  if(f>=210){ show(prIri,true); const hot=lerp(.2,.75,approach(f,218,12)); iriTo(prIri,{t:T(f),seed:3.1,zoom:1.2,hot,bands:lerp(.35,.8,approach(f,220,10)),therm:approach(f,219,8)});
     const rr=approach(f,210,9)*2600; prIri.style.webkitMaskImage=prIri.style.maskImage=`radial-gradient(circle at 1404px 470px,#000 ${Math.max(0,rr-300).toFixed(0)}px,transparent ${rr.toFixed(0)}px)`; } else show(prIri,false);
   const dz=approach(f,220,9); prBox.style.opacity=(1-dz).toFixed(3); prBox.style.filter=dz>0?`blur(${(dz*14).toFixed(1)}px)`:''; prBox.style.transform=`scale(${(1+dz*0.04).toFixed(4)})`;
   prGhost.forEach((d,i)=>{ const on=f>=222; show(d,on); if(on){ placeTL(d,d._x-(f-222)*2,d._y); d.style.opacity=(0.8*approach(f,222+i,5)).toFixed(2); } });
@@ -103,7 +103,7 @@ function shotPrompt(f){ push(P1.cam,f,174,0.0008);
 const LA=scene('sLand',234,299,f=>shotLand(f)); sky(LA.cam);
 const laFrame=el(LA.cam); const laD=framed(laFrame,tplLanding(),1440,900,1240,730,'#F3EFEA');
 const laTint=canvas(laFrame,240,150,'inset:0;width:100%;height:100%;border-radius:18px;mix-blend-mode:hard-light;display:none');
-const laLabel=el(LA.cam,'abs','<span style="font-family:JB;margin-right:18px">›</span>Taste Files','font-size:52px;font-weight:400;color:#8E877F;letter-spacing:-0.01em');
+const laLabel=el(LA.cam,'abs','<span style="font-family:JB;margin-right:18px">›</span>Taste Files','font-size:62px;font-weight:400;color:#3A3633;letter-spacing:-0.01em');
 cue(234,'impact',{v:.5}); cue(279,'swish',{v:.4,peak:283,dur:8}); cue(294,'shimmer',{v:.35,end:300});
 function shotLand(f){
   const zIn=f<237?1.22:lerp(1.0,0.92,approach(f,237,42)); const mv=approach(f,279,8);
@@ -111,7 +111,7 @@ function shotLand(f){
   const gone=accel(f,296,3,1.5);
   place(laFrame,x,y,s*(1-0.3*gone)); laFrame.style.opacity=(1-gone).toFixed(3); mblur(laFrame,vel(t=>lerp(960,1362,approach(t,279,8)),f)*BLUR,0);
   q1(laD,'.lh1').style.transform=`translateX(${(-50*approach(f,237,50)).toFixed(1)}px)`; q1(laD,'.lh2').style.transform=`translateX(${(-30*approach(f,237,50)).toFixed(1)}px)`;
-  const tint=f<237?1-approach(f,234,3):approach(f,293,4); setTint(laTint,{t:T(f),seed:5.2,zoom:1.2,hot:.6,bands:.6},tint);
+  const tint=f<237?1-approach(f,234,3):approach(f,293,4); setTint(laTint,{t:T(f),seed:5.2,zoom:1.2,hot:.6,bands:.6,therm:1},tint);
   if(window.T3D) T3D.shaker(q1(laD,'.lshaker'),{t:T(f),spin:T(f)*0.6+2.0,tilt:-0.62+0.14*Math.sin(T(f)*19),drop:1,zoom:0.92,lookY:0.15,sprinkle:1,shadow:0,camX:0.2});
   show(laLabel,f>=282); if(f>=282){ const p=approach(f,282,6); placeTL(laLabel,156-(1-p)*24,540-30); laLabel.style.clipPath=`inset(-10px ${((1-p)*100).toFixed(0)}% -10px 0)`; }
 }
@@ -122,7 +122,7 @@ const TREE=[[300,'▾ Taste Files',156,0,'title'],[303,'Brand.ts',426,1,'file'],
   [315,'NoMoreArial.tsx',900,4,'file'],[321,'OneAccent.tsx',900,5,'file'],[324,'EaseOut.tsx',900,6,'file'],[330,'Taste.tsx',1278,7,'last']];
 const trEls=TREE.map(([f0,t,x,row,kind])=>{ const d=el(TR.cam,'titem'); d._k=kind; d._x=x; d._row=row; d._f=f0;
   d.innerHTML=kind==='title'?`<span style="font-family:JB;margin-right:16px">▾</span>Taste Files`:kind==='dir'?`<span class="chev" style="font-family:JB;display:inline-block;margin-right:16px">›</span>${t}`:`<span class="fi"></span>${t}`;
-  if(kind==='title') Object.assign(d.style,{fontSize:'56px',color:'#8E877F'}); if(kind==='last') Object.assign(d.style,{color:'#151413',fontSize:'50px'}); return d; });
+  if(kind==='title') Object.assign(d.style,{fontSize:'70px',color:'#3A3633'}); if(kind==='last') Object.assign(d.style,{color:'#151413',fontSize:'56px'}); return d; });
 const trLines=[[360,1,2],[612,3,3],[834,4,6]].map(([x,a,b])=>{ const l=el(TR.cam,'tline'); l._x=x-22; l._a=a; l._b=b; return l; });
 TREE.forEach(([f0],i)=>cue(f0,i==TREE.length-1?'pluck':'tick',{v:i==TREE.length-1?.5:.3,n:79}));
 function shotTree(f){ push(TR.cam,f,300,0.0011);
@@ -166,7 +166,7 @@ function shotHero(f){ const z=lerp(1,1.07,(f-381)/38); HE.cam.style.transform=`s
 const PI=scene('sPills',420,467,f=>shotPills(f));
 const piL=el(PI.cam,'pill','Lemme give it'), piR=el(PI.cam,'pill acc','<em>taste</em>'), piI=el(PI.cam,'picn',`<div style="position:absolute;inset:6px">${SHAKER_SVG('#151413',4)}</div>`);
 let PIL={};
-function pillsLayout(){ const wl=piL.offsetWidth, wr=piR.offsetWidth, ic=84; const sp=34, tg=4;
+function pillsLayout(){ const wl=piL.offsetWidth, wr=piR.offsetWidth, ic=90; const sp=34, tg=4;
   const t1=wl+ic+wr+2*sp, t2=wl+ic+wr+2*tg;
   PIL={wl,wr, l1:960-t1/2+wl/2, i1:960-t1/2+wl+sp+ic/2, r1:960+t1/2-wr/2, l2:960-t2/2+wl/2, i2:960-t2/2+wl+tg+ic/2, r2:960+t2/2-wr/2}; }
 cue(420,'pop',{v:.55,n:72}); cue(426,'swish',{v:.4,peak:428,dur:6}); cue(432,'pop',{v:.6,n:77}); cue(444,'tick',{v:.4}); cue(447,'swish',{v:.3,peak:451,dur:8}); cue(462,'whoosh',{v:.9,peak:465,dur:10});
@@ -232,7 +232,7 @@ function shotPhone(f){ push(PH.cam,f,561,0.0008);
   place(phone,960,lerp(560,540,approach(f,561,9)));
   iriTo(phImg,{t:T(f),seed:3.3,zoom:0.8,hot:.3,bands:.35}); if(window.T3D) T3D.shaker(ph3,{t:T(f),spin:T(f)*0.8,drop:1,zoom:0.95,lookY:-0.05,sprinkle:.6,shadow:.5});
   const sc=lerp(8.6,9.2,clamp((f-573)/30)); phNum.textContent=sc.toFixed(1); phTime.textContent='0:07:'+(23+Math.floor(clamp((f-573)/30)*2.99));
-  setTint(phTint,{t:T(f),seed:2.6,zoom:1,hot:.6,bands:.6},1-approach(f,561,9));
+  setTint(phTint,{t:T(f),seed:2.6,zoom:1,hot:.6,bands:.6,therm:1},1-approach(f,561,9));
   const dp=approach(f,606,10); phDone.style.transform=`translateY(${((1-dp)*440).toFixed(1)}px)`; mblur(phDone,0,vel(t=>(1-approach(t,606,10))*440,f)*BLUR);
 }
 

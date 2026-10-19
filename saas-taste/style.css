@@ -65,21 +65,21 @@ em{font-family:'IS';font-style:italic;font-weight:400;letter-spacing:0}
 
 /* prompt */
 .pbox{position:absolute;width:1020px;height:300px;border-radius:24px;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.04),0 30px 60px -30px rgba(60,40,40,.25)}
-.ptext{position:absolute;left:40px;top:34px;width:820px;font-size:31px;line-height:1.35;font-weight:400;color:#1c1a19;white-space:normal}
+.ptext{position:absolute;left:40px;top:44px;width:820px;font-size:34px;line-height:1.38;font-weight:400;color:#1c1a19;white-space:normal}
 .pcaret{display:inline-block;width:3px;height:36px;background:#1c1a19;vertical-align:-6px;margin-left:2px}
 .psend{position:absolute;right:30px;top:30px;width:72px;height:72px;border-radius:18px;background:var(--ink)}
 .picon{position:absolute;font-family:'JB';font-size:34px;color:#B9B2AB}
 
 /* arborescence */
-.titem{position:absolute;left:0;top:0;font-size:46px;font-weight:400;color:#B3ABA4;white-space:nowrap;letter-spacing:-0.01em}
+.titem{position:absolute;left:0;top:0;font-size:52px;font-weight:400;color:#B3ABA4;white-space:nowrap;letter-spacing:-0.01em}
 .titem .fi{display:inline-block;width:28px;height:34px;border:3px solid currentColor;border-radius:5px;margin-right:14px;vertical-align:-4px;opacity:.7}
 .tline{position:absolute;width:2px;background:#E2DCD5}
 
 /* pills */
-.pill{position:absolute;height:78px;border:3px solid var(--ink);border-radius:39px;font-size:42px;line-height:72px;padding:0 30px;white-space:nowrap;background:var(--paper)}
+.pill{position:absolute;height:90px;border:3.5px solid var(--ink);border-radius:45px;font-size:50px;line-height:83px;padding:0 34px;white-space:nowrap;background:var(--paper)}
 .pill.acc{border-color:var(--accent);color:var(--accent)}
-.pill em{font-size:50px;line-height:68px}
-.picn{position:absolute;width:84px;height:84px;border:3px solid var(--ink);border-radius:42px;background:var(--paper)}
+.pill em{font-size:60px;line-height:80px}
+.picn{position:absolute;width:90px;height:90px;border:3.5px solid var(--ink);border-radius:45px;background:var(--paper)}
 
 /* planning */
 .plan{position:absolute;left:0;top:0;width:1920px;height:1080px;background:#F6F2EE}
@@ -127,7 +127,7 @@ em{font-family:'IS';font-style:italic;font-weight:400;letter-spacing:0}
 .bbtn{position:absolute;height:72px;padding:0 34px;border-radius:14px;background:var(--ink);color:#F3EFEA;font-size:30px;line-height:72px;white-space:nowrap}
 
 /* carte de rapport */
-.rcard{position:absolute;width:820px;height:300px;border-radius:22px;background:#fff;box-shadow:0 30px 70px -30px rgba(60,30,40,.35)}
+.rcard{position:absolute;width:860px;height:320px;border-radius:22px;background:#fff;box-shadow:0 30px 70px -30px rgba(60,30,40,.35)}
 
 /* grille */
 .gline{position:absolute;background:rgba(255,255,255,.9)}
