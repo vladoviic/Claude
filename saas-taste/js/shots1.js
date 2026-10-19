@@ -217,7 +217,7 @@ DA.cam.style.transformOrigin='1383px 563px';   // le point du plan à l'écran :
 cR9(347,'impact',{v:.55}); cR9(350,'swish',{v:.3,peak:353,dur:6}); for(let k=0;k<5;k++) cR9(352+k*2,'tick',{v:.2}); cR9(358,'shimmer',{v:.3,end:366}); cR9(362,'pop',{v:.4,n:84}); cR9(374,'whoosh',{v:.5,peak:379,dur:6});
 function shotDash(F){ const f=F-1;   // numéros de la réf (REMAP +1)
   const arr=approach(f,347,15,0.2); place(daFrame,960-100*(1-arr)-(f-362>0?(f-362)*1:0),540);
-  daPlan.style.transform=`translateX(${(150*(1-arr)).toFixed(1)}px)`; daPlan.style.filter=`saturate(${lerp(0.4,1,approach(f,348,13)).toFixed(3)})`;
+  daPlan.style.transform=`translateX(${(80*(1-arr)).toFixed(1)}px)`; daPlan.style.filter=`saturate(${lerp(0.4,1,approach(f,348,13)).toFixed(3)})`;
   daFi.forEach((d,i)=>{ const p=approach(f,348+i*0.6,5); d.style.opacity=p.toFixed(3); d.style.transform=`translateY(${((1-p)*12).toFixed(1)}px)`; });
   daPw.forEach((p,i)=>{ p.style.strokeDashoffset=(1-approach(f,348+i,8)).toFixed(4); });
   daPf.forEach((p,i)=>{ const k=back(f,351+i*1.0,5); p.style.transform=`scale(${k.toFixed(3)})`; p.style.opacity=clamp(k*2).toFixed(2); });
@@ -300,7 +300,7 @@ function shotPlan(F){ const f=F-2;   // numéros de la réf (REMAP +2)
   PL_BARS.forEach(b=>{ const a=f-b._st; const on=a>=0&&a<14&&f<532; show(b,on); if(!on) return; const grow=Math.min(a,5)*b._g, tail=Math.max(0,a-5)*b._c;
     b.style.left=(b._x+tail)+'px'; b.style.width=Math.max(10,180+grow-tail)+'px'; b.style.opacity=(1-clamp((a-8)/6)).toFixed(3); });
   plChips.forEach((c,i)=>{ const blob=f>=486+(i%6)*1.4, sharp=approach(f,c._st,3,0.3);
-    c.style.visibility=blob?'visible':'hidden'; c.style.transform=f>=555&&i==4?`scaleY(${(1+0.4*accel(f,555,4,2)).toFixed(3)})`:'';
+    c.style.visibility=blob?'visible':'hidden'; c.style.transform=f>=555&&i==3?`scaleY(${(1+0.4*accel(f,555,4,2)).toFixed(3)})`:''; if(i==3) c.style.transformOrigin='50% 0';
     c.style.filter=sharp<1?`blur(${(14*(1-sharp)).toFixed(1)}px)`:''; c.firstChild.style.opacity=c.lastChild.style.opacity=sharp.toFixed(2); c.style.background=c._bg; });
   plDays.forEach((d,i)=>{ const st=494+i*2.4; d.style.visibility=f>=st?'visible':'hidden'; d.style.color=f<st+4?mixc('#FFA6C9','#151413',clamp((f-st)/4)):(i>=5?'#C9A7F0':'#151413'); });
   plDn.forEach((d,i)=>{ d.style.visibility=f>=497+i*2.4?'visible':'hidden'; });

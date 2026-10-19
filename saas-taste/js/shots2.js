@@ -56,6 +56,7 @@ function shotTerm(F){ const f=F-1;
     // le code arrive par paquets : insertion avec sélection (773, frappe 2 car./image jusqu'à 784), sauts d'indentation (784), paquets (788, 792, 796, 799)
     let row=0; teCode.forEach((d,i)=>{ const t0=CODE_T[i], on=f>=t0&&f>=767; show(d,on); if(!on) return;
       d.style.fontSize=fs+'px'; d.style.left=(lx+(i==5||i==6?45*(1-approach(f,784,3,0.4)):0))+'px'; d.style.top=(70+row*lh)+'px'; row++;
+      if(i!==4&&t0>767&&f<t0+3) d.style.clipPath=`inset(0 ${((1-(f-t0+1)/3)*100).toFixed(0)}% 0 0)`; else d.style.clipPath='';
       d.innerHTML=i==4&&f<784?`<span class="n" style="display:inline-block;width:64px">5</span>`+'  motion: { arrive: "fast", land: "soft" },'.slice(0,2+(f-773)*4):d._h; });
     show(teSel,f>=773&&f<786); if(f>=773){ Object.assign(teSel.style,{left:(lx-6)+'px',top:(70+4*lh-4)+'px',width:(f<784?260+(f-773)*30:600)+'px'}); }
     show(teTok,f>=792); if(f>=792){ const sp=approach(f,792,4); Object.assign(teTok.style,{left:(lx+64*(fs/34)+16)+'px',top:(70+5*lh-4)+'px',width:(300*sp*(fs/34))+'px'}); } }
@@ -167,16 +168,16 @@ function shotDone(F){ const f=F-2;
   if(f>=989&&f<1003){ const s=1.62*(1+0.085*approach(f,989,13)); doFullIn.style.transform=fullT(s); seqDraw(doFSeq,SEQ.done,f-952);
     doFTitle.forEach(t=>{ t.style.opacity=(1-approach(f,989,6)).toFixed(3); t.style.translate=`0 ${(-40*approach(f,989,6)).toFixed(1)}px`; }); }
   const thMask=f>=995&&f<1003, thFull=f>=1003; show(doTh,thMask||thFull);
-  if(thMask||thFull){ iriTo(doTh,{t:T(f)*2,seed:7.4,zoom:1.15,hot:.6,bands:.8,therm:1});
+  if(thMask||thFull){ iriTo(doTh,{t:T(f)*(thFull?5:2),seed:7.4,zoom:1.15,hot:.6,bands:.8,therm:1});
     if(thMask){ const m=SEQ.doneMask[clamp(f-952,43,56)], s=1.62*(1+0.085*approach(f,989,13)), g=approach(f,995,8,0.15);
       const mc=doMaskC.getContext('2d'); mc.clearRect(0,0,960,540); mc.filter=`blur(${(4+26*g).toFixed(1)}px)`;
       const w=1240*s*0.5, h=830*s*0.5, x0=(960-560*s)*0.5, y0=(540-300*s)*0.5, k=1+1.6*g; mc.drawImage(m,x0+w*(1-k)/2,y0+h*(1-k)/2,w*k,h*k); mc.filter='none';
       const t2=doTh.getContext('2d'); t2.globalCompositeOperation='destination-in'; t2.drawImage(doMaskC,0,0); t2.globalCompositeOperation='source-over'; doTh.style.opacity='1'; }
-    else doTh.style.opacity=lerp(0.25,0.5,approach(f,1003,8)).toFixed(3); }
+    else { doTh.style.opacity=lerp(0.55,0.3,approach(f,1003,8)).toFixed(3); doTh.style.mixBlendMode='soft-light'; } }
   // 1003 : coupe franche sur la photo en table thermique, qui continue de glisser ; défocalisation + blanchiment dès 1067
-  show(doTP,thFull); if(thFull){ const s=1.62*1.085*(1+0.004*(f-1003)), pan=f<1062?0:f<1075?(f-1062)*15:13*15+(f-1075)*40, z=f<1075?1:1-0.045*(f-1075);
+  show(doTP,thFull); if(thFull){ doTP.style.filter=`hue-rotate(${(18*(1-approach(f,1003,7))).toFixed(1)}deg)`; const s=1.62*1.085*(1+0.006*(f-1003)), pan=f<1062?0:f<1075?(f-1062)*15:13*15+(f-1075)*40, z=f<1075?1:1-0.045*(f-1075);
     doTPi.style.transform=`translate(${(960-560*s*z+pan).toFixed(1)}px,${(540-300*s*z+pan*0.6).toFixed(1)}px) scale(${(s*z).toFixed(4)})`;
-    const df=approach(f,1067,10); doTP.style.filter=df>0?`blur(${(20*df).toFixed(1)}px) brightness(${(1+0.6*df).toFixed(2)}) saturate(${(1-0.6*df).toFixed(2)})`:''; }
+    const df=approach(f,1067,10); if(df>0) doTP.style.filter=`blur(${(20*df).toFixed(1)}px) brightness(${(1+0.6*df).toFixed(2)}) saturate(${(1-0.6*df).toFixed(2)})`; }
   // le bouton : apparaît à 0,91, texte accent 1 image, grandit de 10 % ; clic 1050 = 1 image à 0,82, brun chaud qui reste
   const bOn=f>=1020&&f<1072; show(doBtn,bOn); if(bOn){ const sc=lerp(0.91,1,approach(f,1020,14))*(f==1050?0.82/1:f==1051?0.97:1);
     place(doBtn,960,556,sc); doBtn.style.color=f==1020?'#FF3D5E':'#F3EFEA'; doBtn.style.background=f>=1050?mixc('#151413','#FF3D5E',0.35):'#151413';
@@ -279,7 +280,7 @@ const alMark=el(AL.cam,'abs','', 'width:150px;height:150px'); alMark.innerHTML=M
 const alFade=el(AL.s,'','', 'position:absolute;left:0;right:0;bottom:0;height:430px;background:linear-gradient(transparent,#3C3C3C);opacity:0');
 cR27(1175,'hush',{}); for(let k=0;k<5;k++) cR27(1188+k*5,'tick',{v:.25}); cR27(1226,'reverse',{v:.6,end:1232}); cR27(1232,'boom',{v:.8});
 function shotAlerts(F){ const f=F-1; push(AL.cam,f,1175,0.0007);
-  iriTo(alBg,{t:T(f)*6,seed:5.9,zoom:0.8,hot:.4,bands:.3}); alBg.style.opacity=lerp(1,0.08,approach(f,1175,12)).toFixed(3); alBg.style.filter='brightness(.32) saturate(1.5)';
+  iriTo(alBg,{t:f<1188?T(f)*6:T(1188)*6+(f-1188)/FPS*1.2,seed:5.9,zoom:0.8,hot:.4,bands:.3}); alBg.style.opacity=lerp(1,0.05,approach(f,1175,12)).toFixed(3); alBg.style.filter='brightness(.32) saturate(1.5)';
   const cv=approach(f,1226,5,0.25), n=alIcons.length;
   alIcons.forEach(d=>{ const cull=f>=1226&&d._rank>=Math.round(lerp(n,13,clamp((f-1226)/4))); const on=f>=d._a&&f<1232&&!cull; show(d,on); if(!on) return;
     d.innerHTML=f>=d._b?AL_OK:AL_I[d._kind];
