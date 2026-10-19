@@ -7,7 +7,7 @@
 const VA='#FF3D5E', VINK='#121110', VG='#8E877F';
 const IMG=n=>`img/${n}.jpg`;
 // tracé du plan reporté sur la vue plongeante (coordonnées dans room_top recadrée 2080×1170)
-const HERO_ROUTE='M1000 980 C1010 860 1160 820 1240 760 S1360 690 1350 660', HERO_DOT=[1350,660];
+const HERO_ROUTE='M1000 1000 C1010 880 1170 840 1250 780 S1370 690 1380 655', HERO_DOT=[1380,655];
 const vimg=(n,css,pos='50% 50%')=>`<img class="vi" src="${IMG(n)}" style="${css};object-position:${pos}">`;
 const VLOGO=(c='#F3EFEA',s=22)=>`<span style="font-family:'ID';font-weight:600;font-size:${s}px;letter-spacing:-0.035em;color:${c};white-space:nowrap"><span style="display:inline-block;width:${(s*0.62).toFixed(1)}px;height:${(s*0.62).toFixed(1)}px;border-radius:${(s*0.2).toFixed(1)}px;background:${VA};margin-right:${(s*0.32).toFixed(1)}px"></span>velvetly</span>`;
 const CHAIR_SVG=(c='#151413',w=4)=>`<svg viewBox="0 0 88 88" width="100%" height="100%"><g fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"><path d="M26 22 Q26 16 32 16 H56 Q62 16 62 22 V42 H26 Z"/><path d="M20 46 Q20 42 26 42 H62 Q68 42 68 46 V54 Q68 58 62 58 H26 Q20 58 20 54 Z"/><path d="M28 58 L24 72 M60 58 L64 72"/></g></svg>`;
