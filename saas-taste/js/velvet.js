@@ -31,7 +31,7 @@ function tplVLanding(){ return `<div class="full" style="background:${VINK};over
   <div class="vhead lnh big" style="left:-18px;top:352px;font-size:185px">Plan with ${VMARK(136)} <em style="font-size:180px">taste.</em></div>
   <div class="m" style="position:absolute;left:24px;top:548px;font-size:12px;color:#F3EFEA">▪ Used by 140 furniture brands¹</div>
   <div class="m" style="position:absolute;left:330px;top:548px;font-size:11px;color:${VG}">Room planner · 3D hero · AR · one line of JS</div>
-  ${FEATS.map(([k,t,n],i)=>`<div class="vtile" style="left:${12+i*244}px;top:572px;width:${i==3?250:236}px">${vimg('tile_'+k,'inset:0;width:100%;height:100%','50% 62%')}<div class="vtl">${t}</div><div class="m vtn">${n}</div></div>`).join('')}
+  ${FEATS.map(([k,t,n],i)=>`<div class="vtile" style="left:${12+i*244}px;top:572px;width:${i==3?250:236}px">${vimg('tile_'+k,'inset:0;width:100%;height:100%','50% 62%')}<div style="position:absolute;left:0;right:0;top:0;height:64px;background:linear-gradient(rgba(21,20,19,.72),rgba(21,20,19,0))"></div><div class="vtl">${t}</div><div class="m vtn">${n}</div></div>`).join('')}
   </div>`; }
 
 /* ---------- Build your Room : panneau sombre + plan d'archi + tracé ---------- */
@@ -125,11 +125,11 @@ function tplVChat(){ return `<div class="full" style="background:#F3EFEA">
     <div class="citem" style="top:326px">▾ Installed 2 packages</div><div class="citem" style="top:356px;color:#A39C94">&nbsp;&nbsp;three · velvet-shader</div>
     <div style="position:absolute;left:32px;right:32px;top:398px;height:150px;border-radius:16px;background:#fff;box-shadow:0 0 0 1px #E6E1DB">
       <div style="position:absolute;left:20px;top:18px;font-size:17px">Approval required</div><div class="m" style="position:absolute;left:20px;top:44px;font-size:12px;color:${VG}">These will be removed for good</div>
-      <div class="m" style="position:absolute;left:20px;top:70px;font-size:22px;color:#151413">– font-family: Arial;</div><div class="m" style="position:absolute;left:20px;top:102px;font-size:22px;color:#151413">– #2D6CDF</div>
-      <div class="m chapp" style="position:absolute;left:20px;bottom:-56px;height:38px;line-height:38px;padding:0 18px;border-radius:19px;background:var(--ink);color:#fff;font-size:14px">Approve</div>
-      <div class="m" style="position:absolute;left:130px;bottom:-56px;height:38px;line-height:36px;padding:0 18px;border-radius:19px;border:1px solid #D9D2CA;color:#6d6760;font-size:14px">Reject</div></div>
-    <div class="m cfix" style="position:absolute;left:32px;top:704px;font-size:22px;color:#151413;visibility:hidden">✓ fabric · polyester → velvet</div>
-    <div class="m clog" data-t="892" data-s="✓ three · velvet-shader" style="position:absolute;left:32px;top:640px;font-size:22px;color:#5C5650"></div><div class="m clog" data-t="904" data-s="✓ hero viewport 918×666" style="position:absolute;left:32px;top:672px;font-size:22px;color:#5C5650"></div>
+      <div class="m crm" style="position:absolute;left:20px;top:70px;font-size:22px;color:#151413">– font-family: Arial;</div><div class="m crm" style="position:absolute;left:20px;top:102px;font-size:22px;color:#151413">– #2D6CDF</div>
+      <div class="m chapp" style="position:absolute;left:20px;bottom:-56px;white-space:nowrap;height:38px;line-height:38px;padding:0 18px;border-radius:19px;background:var(--ink);color:#fff;font-size:14px">Approve</div>
+      <div class="m crej" style="position:absolute;left:130px;bottom:-56px;height:38px;line-height:36px;padding:0 18px;border-radius:19px;border:1px solid #D9D2CA;color:#6d6760;font-size:14px">Reject</div></div>
+    <div class="m cfix" style="position:absolute;left:32px;top:698px;font-size:18px;color:#151413;visibility:hidden">✓ fabric · polyester → velvet</div>
+    <div class="m clog" data-t="892" data-s="✓ three · velvet-shader" style="position:absolute;left:32px;top:648px;font-size:15px;color:#7A736C"></div><div class="m clog" data-t="904" data-s="✓ hero viewport 918×666" style="position:absolute;left:32px;top:672px;font-size:15px;color:#7A736C"></div>
     <div class="m" style="position:absolute;left:32px;top:860px;font-size:13px;color:${VG}">▪ SUGGESTIONS</div>
     ${['Add a sofa','Warmer light','Show in room'].map((t,i)=>`<div class="m" style="position:absolute;left:${32+i*180}px;top:890px;height:38px;line-height:36px;padding:0 14px;border-radius:19px;border:1px solid #D9D2CA;font-size:14px;color:#5f5952">${t}</div>`).join('')}
     <div style="position:absolute;left:24px;right:24px;bottom:28px;height:84px;border-radius:20px;background:#fff;box-shadow:0 0 0 1px #E6E1DB"><span style="position:absolute;left:22px;top:28px;font-size:19px;color:#A39C94;font-weight:400">What would you like to change?</span><span style="position:absolute;right:16px;top:16px;width:52px;height:52px;border-radius:14px;background:var(--ink)"></span></div></div>

@@ -86,7 +86,10 @@ function shotW(f){ push(W1.cam,f,0,0.0009);
   wA.textContent=f>=80&&f<85?'is ':ta; wB2.textContent=tb;
   const k=approach(f,43,6,0.2); wI.textContent=ins?W_INS.slice(0,clamp(f-42,0,6)):''; wI.style.width=ins?(W_INSW*k).toFixed(1)+'px':'0px';
   if(f>=85) wI.style.width='0px';
-  if(ta||tb) place(wWord,960,540);
+  // à partir de 85, « boring. » passe dans la caméra, sous les sites : le beau travail l'enterre, la carte bleue du fondateur reste dessus
+  const buried=f>=85; if(buried&&wWord.parentNode!==W1.cam){ W1.cam.appendChild(wWord); } else if(!buried&&wWord.parentNode!==W1.s){ W1.s.appendChild(wWord); }
+  wWord.style.zIndex=buried?1:30;
+  if(ta||tb) place(wWord,960,540,buried?1/(1+0.0009*f):1);
   // M1 : le caret rouge sous l'espace entre « is » et « boring. » ; ses jambes rentrent dans la pointe pendant l'insertion
   const cx=inkClear(wInk);
   if(f>=37&&f<48){ const st=penPlace('G01',[W_GAP[0]-30,W_GAP[1]+2,W_GAP[0]+30,W_GAP[1]+62]); const r=approach(f,43,4,0.25);
@@ -106,7 +109,7 @@ function shotW(f){ push(W1.cam,f,0,0.0009);
   wB.forEach((d,i)=>{ if(f<62){ show(d,false); return; } show(d,true); const [x,y,w,h]=d._r, [cx,cy,cw]=BCL[i];
     const pc=ease3(clamp((f-BST[i])/14)), dr=approach(f,62,27,0.08);   // convergence 1,3× plus vive (le collage garde son énergie autour de la carte)
     const s0=1+0.0012*(f-62), X=lerp(x+w/2+BDR[i][0]*dr,960+cx+BSW[i][0]*Math.sin(2*Math.PI*(f-98)/13.33+BSW[i][1])*(f>=98?1:0),pc), Y=lerp(y+h/2+BDR[i][1]*dr,540+cy,pc), S=lerp(s0,cw/w,pc);
-    const Xg=960+(X-960)*g, Yg=540+(Y-540)*g, Sg=S*g; d.style.zIndex=f<104?i:f<108?(5-i):f<113?((i*3)%5):i;
+    const Xg=960+(X-960)*g, Yg=540+(Y-540)*g, Sg=S*g; d.style.zIndex=(f<104?i:f<108?(5-i):f<113?((i*3)%5):i)+2;   // +2 : au-dessus du mot « boring. » (z 1)
     mblur(d,f>=84&&f<100?vel(t=>lerp(x+w/2,960+cx,ease3(clamp((t-BST[i])/14))),f)*BLUR*0.6:0,0);
     d.style.transform=`translate(${(Xg-w*Sg/2).toFixed(1)}px,${(Yg-h*Sg/2).toFixed(1)}px) scale(${Sg.toFixed(4)})`;
     d.style.boxShadow=pc>0?`0 ${(20*pc).toFixed(0)}px ${(50*pc).toFixed(0)}px -20px rgba(40,30,30,${(.35*pc).toFixed(2)})`:''; d.style.borderRadius=(10*pc)+'px';
@@ -467,9 +470,11 @@ cR14(559,'impact',{v:.55}); cR14(566,'shimmer',{v:.35,end:578}); [588,603].forEa
 function shotPhone(F){ const f=F-2;   // numéros de la réf (REMAP +2)
   // dépli en hauteur (478 → 861 px), puis la caméra s'approche (×0,9 → ×1,28, décélération) en tournant de 4° : le téléphone vit
   const pt=clamp((f-559)/82), ps=lerp(0.9,1.18,1-Math.pow(1-pt,2.2)), ry=lerp(-2.5,1.5,pt);   // 1,18 : ~60 px de marge, le téléphone ne touche jamais le cadre
-  phone.style.transform=`translate(960px,540px) translate(-50%,-50%) perspective(2400px) rotateY(${ry.toFixed(2)}deg) scale(${ps.toFixed(4)}) scaleY(${lerp(0.555,1,approach(f,559,13,0.25)).toFixed(4)})`;
-  phShadow.style.transform=`translateY(${(430*(ps-1)).toFixed(1)}px) scale(${ps.toFixed(3)},1)`;
-  seqDraw(phSeq,SEQ.phone,f-559); phSeq.style.transform=`scale(1.14) translateX(${lerp(-24,24,pt).toFixed(1)}px)`;
+  // tenu à la main : ±6 px, ±0,5° de roulis, ~0,3 Hz (deux fréquences, déterministe)
+  const hx=6*Math.sin(f*0.063+1.1)*0.7+2*Math.sin(f*0.17), hy=5*Math.sin(f*0.051+2.3)*0.8+1.5*Math.sin(f*0.21+0.4), hr=0.5*Math.sin(f*0.058+0.7);
+  phone.style.transform=`translate(${(960+hx).toFixed(2)}px,${(540+hy).toFixed(2)}px) translate(-50%,-50%) rotate(${hr.toFixed(3)}deg) perspective(2400px) rotateY(${ry.toFixed(2)}deg) scale(${ps.toFixed(4)}) scaleY(${lerp(0.555,1,approach(f,559,13,0.25)).toFixed(4)})`;
+  phShadow.style.transform=`translate(${(hx*0.6).toFixed(1)}px,${(430*(ps-1)).toFixed(1)}px) scale(${ps.toFixed(3)},1)`;
+  seqDraw(phSeq,SEQ.phone,f-559); phSeq.style.transform=`scale(1.14) translateX(${lerp(-24,40,pt).toFixed(1)}px)`;
   // démarrage d'une caméra AR : la mise au point cherche (22 → 0 → 4 → 0 px) et l'exposition se pose (+0,6 IL → 0), en 6 images
   const b=f<561?22:f<563?lerp(22,0,(f-561)/2):f<565?lerp(0,4,(f-563)/2):f<567?lerp(4,0,(f-565)/2):0, ev=0.6*(1-vl(f,561,6));
   phSeq.style.filter=(b>0.05?`blur(${b.toFixed(1)}px) `:'')+(ev>0.01?`brightness(${Math.pow(2,ev).toFixed(3)})`:'');
