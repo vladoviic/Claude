@@ -118,7 +118,12 @@ function chView3(f){ // caméra de la vue produit (réf) : recul + travelling fl
   const a=approach(f,880,10,0.25); let s=lerp(1.25,1,a), x=120*(1-a), y=0, r=3*(approach(f,892,4)-approach(f,898,6));
   y+=22*(approach(f,924,2,0.5)-approach(f,927,8)); const an=approach(f,936,3); s*=1-0.04*an; r-=2.4*an*(1-approach(f,940,4));
   s*=1+0.06*(0.5-0.5*Math.cos(Math.PI*clamp((f-890)/46)));   // lente poussée dans la vue 3D seulement : les panneaux et le texte ne bougent pas
-  const pu=accel(f,940,10,3); s*=1+0.8*pu; y-=150*pu; return {s,x,y,r,bx:vel(t=>120*(1-approach(t,880,10,0.25)),f), by:vel(t=>-150*accel(t,940,10,3),f)}; }
+  const pu=accel(f,940,10,3); s*=1+0.8*pu; y-=150*pu;
+  // la vue doit toujours couvrir son cadre (630,196)-(1548,862) : échelle minimale pour que les 4 coins restent dans l'image tournée
+  { const c=Math.cos(r*Math.PI/180), sn=Math.sin(r*Math.PI/180); let need=1;
+    for(const [cx,cy] of [[-459,-334],[459,-334],[-459,334],[459,334]]){ const dx=cx-x, dy=cy-y, u=dx*c+dy*sn, v=-dx*sn+dy*c; need=Math.max(need,Math.abs(u)/459,Math.abs(v)/334); }
+    s=Math.max(s,need*1.01); }
+  return {s,x,y,r,bx:vel(t=>120*(1-approach(t,880,10,0.25)),f), by:vel(t=>-150*accel(t,940,10,3),f)}; }
 // le plateau tourne à vitesse constante (1,9°/image) jusqu'à 930, puis ralentit sur vladan et se pose de trois quarts
 function chIdx(f){ if(f<=930) return f-880; const t=clamp((f-930)/15); return 50+10*(1-(1-t)*(1-t)); }
 // M7 : le grand coup de feutre traverse l'assise ; l'encre boit dans le velours (926-932) en suivant le poil (luminance du rendu)
@@ -169,7 +174,10 @@ function shotChat(f){
   qa(chRoot,'.clog').forEach(l=>{ const t0=+l.dataset.t; l.textContent=f<t0?'':l.dataset.s.slice(0,Math.ceil((f-t0+1)*2.5)); });
   chKids[7].style.visibility=f>=916?'visible':'hidden'; chKids[7].style.color=f>=926?'#151413':'#7A736C';
   // la carte d'approbation se résout quand le changement arrive (926) : les deux lignes barrées, « ✓ applied by v vladan »
-  const done=f>=926; qa(chRoot,'.crm').forEach(e=>{ e.style.textDecoration=done?'line-through 2px #151413':''; e.style.color=done?'#8E877F':'#151413'; });
+  const done=f>=926; qa(chRoot,'.crm').forEach((e,k)=>{ e.style.textDecoration=''; e.style.color=f>=926+k*2?'#8E877F':'#151413';
+    // le stylo barre chaque ligne en rouge (924-926, 926-928) : c'est lui qui applique le changement, pas le fondateur
+    if(f>=924+k*2){ const b=e.getBoundingClientRect(), st=CH.s.getBoundingClientRect(), kk=st.width/W; const L=(b.left-st.left)/kk, R=(b.right-st.left)/kk, Y=((b.top+b.bottom)/2-st.top)/kk;
+      penDraw(ix,penPlace('G03',[L-6,Y-13,R+8,0]),f,924+k*2,{size:3.2,ground:'dark'}); } });
   const ca=q1(chRoot,'.chapp'); ca.innerHTML=done?'✓ applied by <span style="display:inline-block;width:20px;height:20px;border-radius:10px;background:#FF3D5E;color:#fff;font-size:12px;line-height:20px;text-align:center;margin:0 4px">v</span>vladan':'Approve';
   if(ca._b===undefined){ ca._b=ca.style.background; ca._c=ca.style.color; ca._p=ca.style.paddingLeft; }   // garder les couleurs d'origine (les remettre à '' les effacerait)
   ca.style.background=done?'transparent':ca._b; ca.style.color=done?'#151413':ca._c; ca.style.paddingLeft=done?'0':ca._p; show(q1(chRoot,'.crej'),!done);
@@ -445,10 +453,12 @@ const shShaft=el(SH.cam,'','', 'position:absolute;left:-200px;top:-200px;width:2
 // la tache de soleil au sol, dans le prolongement du rayon : parallélogramme à −28°, + ~18 niveaux (screen), bord flou
 SH.cam.insertBefore(shShaft,shWin);   // le rayon passe sous le cadre : les montants restent mats
 // les montants (x 632 et 1287) projettent leur ombre dans la tache : c'est le soleil à travers CETTE fenêtre
-const shPatch=el(SH.cam,'','', 'position:absolute;left:560px;top:1100px;width:800px;height:420px;pointer-events:none;mix-blend-mode:screen;filter:blur(12px);transform-origin:50% 0;background:linear-gradient(90deg,rgba(255,236,214,.22) 0 72px,rgba(255,236,214,.06) 72px 90px,rgba(255,236,214,.22) 90px 727px,rgba(255,236,214,.06) 727px 745px,rgba(255,236,214,.22) 745px)');
+const shPatch=el(SH.cam,'','', `position:absolute;left:480px;top:1100px;width:960px;height:420px;pointer-events:none;mix-blend-mode:screen;filter:blur(10px);transform-origin:50% 0;background:rgba(255,236,214,.24);${['-webkit-mask','mask'].map(k=>`${k}-image:linear-gradient(90deg,#000 0 139px,transparent 139px 165px,#000 165px 794px,transparent 794px 820px,#000 820px),linear-gradient(180deg,#000 0 330px,transparent 330px 352px,#000 352px);`).join('')}-webkit-mask-composite:source-in;mask-composite:intersect`);   // ombres des montants (x 632, 1287) et de la traverse haute
 // dehors : une silhouette d'arbre très floue (4 % d'encre) qui glisse contre la poussée (parallaxe)
 const shTree=el(SH.cam,'','', 'position:absolute;left:1180px;top:240px;width:760px;height:900px;pointer-events:none;filter:blur(30px);background:radial-gradient(38% 30% at 45% 40%,rgba(21,20,19,.05),transparent),radial-gradient(30% 26% at 70% 55%,rgba(21,20,19,.045),transparent),radial-gradient(8% 40% at 52% 90%,rgba(21,20,19,.04),transparent)');
 SH.cam.insertBefore(shTree,shWin);
+// les vitres : plus fraîches en haut, plus chaudes en bas (elles suivent la fenêtre)
+const shPane=el(SH.cam,'','', 'position:absolute;left:0;top:0;width:1920px;height:1080px;pointer-events:none;opacity:.5;background:linear-gradient(#F3EAE3,#F7E3D0)'); SH.cam.insertBefore(shPane,shTree);
 const shBtn=el(SH.s,'bbtn',''); shBtn.style.zIndex=5; shBtn.style.width='228px'; shBtn.style.padding='0'; shBtn.style.textAlign='center'; shBtn.style.borderRadius='14px';
 const shRing=el(SH.s,'','', 'position:absolute;left:960px;top:540px;width:0;height:0;border-radius:50%;box-shadow:0 0 0 1px #151413;z-index:4');
 cR28(1250,'impact',{v:.5}); cR28(1293,'beep',{v:.6}); cR28(1298,'riser',{v:.55,end:1306});
@@ -460,7 +470,7 @@ function shotShip(F){ const f=F-1; SH.cam.style.transform=`scale(${(1+0.03*clamp
   shPatch.style.transform=`translate(${(60*clamp((f-1250)/56)).toFixed(1)}px,${(y*0.42).toFixed(1)}px) skewX(-28deg)`;
   // la tache commence sous le rail bas de la fenêtre (jamais par-dessus) ; l'arbre dehors suit le ciel, en retard
   shPatch.style.clipPath=`inset(${Math.max(0,(1080+y*0.35)-(1100+y*0.42)+2).toFixed(0)}px 0 0 0)`;
-  shTree.style.transform=`translate(${(-10*clamp((f-1250)/56)).toFixed(1)}px,${(y*0.6).toFixed(1)}px)`;
+  shPane.style.transform=`translateY(${(y*0.35).toFixed(1)}px)`; shTree.style.transform=`translate(${(-10*clamp((f-1250)/56)).toFixed(1)}px,${(y*0.6).toFixed(1)}px)`;
   const n=clamp(f-1250,0,7); shBtn.innerHTML='Ship it'.slice(0,n)+(f<1262||Math.floor(f/8)%2?'<span style="display:inline-block;width:3px;height:40px;background:#F3EFEA;vertical-align:-6px;margin-left:3px"></span>':'');
   // le clic tombe à 1293, comme dans la réf
   const pr=f>=1293&&f<1295; place(shBtn,960,540,pr?0.94:1); shBtn.style.background='#151413';

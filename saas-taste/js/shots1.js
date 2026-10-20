@@ -249,14 +249,14 @@ function shotLand(f){
   const fl=Math.max(f,234);
   // réf : recul qui ralentit (235-273), accélération dans la coupe (274-280), puis petit écran qui se pose (281+)
   let sc,x=960,y=540;
-  if(f<235) sc=1.08; else if(f<274) sc=lerp(1.08,0.87,approach(f,235,38,0.09));   // recul plus ample (juge : 0,40× la réf)
-  else if(f<281){ const a=accel(f,274,6.5,2.6); sc=lerp(0.87,0.80,a); x=960+40*a; }
+  if(f<235) sc=1.08; else if(f<274) sc=lerp(1.08,0.81,approach(f,235,38,0.09));   // recul par l'échelle (le titre reste entier)
+  else if(f<281){ const a=accel(f,274,6.5,2.6); sc=lerp(0.81,0.75,a); x=960+40*a; }
   else { const p=approach(f,281,14,0.25); sc=lerp(0.683,0.632,p); x=1588-720*sc+lerp(16,0,p); y=548; }
   const gone=f>=294?approach(f,294,5):0;
   place(laFrame,x,y,sc); laFrame.style.filter=gone>0?`blur(${(10*gone).toFixed(1)}px) brightness(${(1+0.35*gone).toFixed(2)})`:''; laFrame.style.opacity=(1-0.85*clamp((f-297)/3)).toFixed(3);
   mblur(LA.cam,f>=276&&f<281?vel(t=>40*accel(t,274,6.5,2.6),f):0,0);
   seqDraw(laSeq,SEQ.land,fl-234);
-  { const t=0.5-0.5*Math.cos(Math.PI*clamp((f-238)/52)); laSeq.style.transformOrigin='50% 55%'; laSeq.style.transform=`translateX(${(-40*t).toFixed(1)}px) scale(${(1+0.06*t).toFixed(4)})`; }   // Ken Burns dans la carte
+  { const t=0.5-0.5*Math.cos(Math.PI*clamp((f-238)/52)); laSeq.style.transformOrigin='50% 55%'; laSeq.style.transform=`translateX(${(-40*t).toFixed(1)}px) scale(${(1+0.08*t).toFixed(4)})`; }   // Ken Burns dans la carte
   // le titre glisse de 140 px mais reste entier : « Plan with ▢ taste. » (seul le fût du P et le point frôlent les bords)
   q1(laD,'.lnh').style.transform=`translateX(${(70-110*approach(f,235,36,0.10)).toFixed(1)}px)`;
   qa(laMark,'svg path').forEach(p=>p.style.strokeDashoffset=(1-vl(f,234,4)).toFixed(3));
@@ -471,10 +471,10 @@ function shotPhone(F){ const f=F-2;   // numéros de la réf (REMAP +2)
   // dépli en hauteur (478 → 861 px), puis la caméra s'approche (×0,9 → ×1,28, décélération) en tournant de 4° : le téléphone vit
   const pt=clamp((f-559)/82), ps=lerp(0.9,1.18,1-Math.pow(1-pt,2.2)), ry=lerp(-2.5,1.5,pt);   // 1,18 : ~60 px de marge, le téléphone ne touche jamais le cadre
   // tenu à la main : ±6 px, ±0,5° de roulis, ~0,3 Hz (deux fréquences, déterministe)
-  const hx=6*Math.sin(f*0.063+1.1)*0.7+2*Math.sin(f*0.17), hy=5*Math.sin(f*0.051+2.3)*0.8+1.5*Math.sin(f*0.21+0.4), hr=0.5*Math.sin(f*0.058+0.7);
+  const hx=10*Math.sin(f*0.063+1.1)*0.75+2.5*Math.sin(f*0.17), hy=8*Math.sin(f*0.051+2.3)*0.8+2*Math.sin(f*0.21+0.4), hr=0.8*Math.sin(f*0.058+0.7);
   phone.style.transform=`translate(${(960+hx).toFixed(2)}px,${(540+hy).toFixed(2)}px) translate(-50%,-50%) rotate(${hr.toFixed(3)}deg) perspective(2400px) rotateY(${ry.toFixed(2)}deg) scale(${ps.toFixed(4)}) scaleY(${lerp(0.555,1,approach(f,559,13,0.25)).toFixed(4)})`;
   phShadow.style.transform=`translate(${(hx*0.6).toFixed(1)}px,${(430*(ps-1)).toFixed(1)}px) scale(${ps.toFixed(3)},1)`;
-  seqDraw(phSeq,SEQ.phone,f-559); phSeq.style.transform=`scale(1.14) translateX(${lerp(-24,40,pt).toFixed(1)}px)`;
+  seqDraw(phSeq,SEQ.phone,f-559); phSeq.style.transform=`scale(${(1.14*(1+0.06*clamp((f-606)/35))).toFixed(4)}) translateX(${lerp(-24,40,pt).toFixed(1)}px)`;
   // démarrage d'une caméra AR : la mise au point cherche (22 → 0 → 4 → 0 px) et l'exposition se pose (+0,6 IL → 0), en 6 images
   const b=f<561?22:f<563?lerp(22,0,(f-561)/2):f<565?lerp(0,4,(f-563)/2):f<567?lerp(4,0,(f-565)/2):0, ev=0.6*(1-vl(f,561,6));
   phSeq.style.filter=(b>0.05?`blur(${b.toFixed(1)}px) `:'')+(ev>0.01?`brightness(${Math.pow(2,ev).toFixed(3)})`:'');

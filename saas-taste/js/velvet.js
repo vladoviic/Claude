@@ -31,7 +31,7 @@ function tplVLanding(){ return `<div class="full" style="background:${VINK};over
   <div class="vhead lnh big" style="left:-18px;top:352px;font-size:185px">Plan with ${VMARK(136)} <em style="font-size:180px">taste.</em></div>
   <div class="m" style="position:absolute;left:24px;top:548px;font-size:12px;color:#F3EFEA">▪ Used by 140 furniture brands¹</div>
   <div class="m" style="position:absolute;left:330px;top:548px;font-size:11px;color:${VG}">Room planner · 3D hero · AR · one line of JS</div>
-  ${FEATS.map(([k,t,n],i)=>`<div class="vtile" style="left:${12+i*244}px;top:572px;width:${i==3?250:236}px">${vimg('tile_'+k,'inset:0;width:100%;height:100%','50% 62%')}<div style="position:absolute;left:0;right:0;top:0;height:64px;background:linear-gradient(rgba(21,20,19,.72),rgba(21,20,19,0))"></div><div class="vtl">${t}</div><div class="m vtn">${n}</div></div>`).join('')}
+  ${FEATS.map(([k,t,n],i)=>`<div class="vtile" style="left:${12+i*244}px;top:572px;width:${i==3?250:236}px">${vimg('tile_'+k,'inset:0;width:100%;height:100%','50% 62%')}<div style="position:absolute;left:0;right:0;top:0;height:84px;background:linear-gradient(rgba(21,20,19,.74) 0,rgba(21,20,19,.72) 50px,rgba(21,20,19,0) 84px)"></div><div class="vtl">${t}</div><div class="m vtn">${n}</div></div>`).join('')}
   </div>`; }
 
 /* ---------- Build your Room : panneau sombre + plan d'archi + tracé ---------- */
