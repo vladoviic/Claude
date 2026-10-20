@@ -34,13 +34,14 @@ function wLayout(){ show(W1.s,true); wA.textContent='Your SaaS is '; wB2.textCon
 const wInk=inkLayer(W1.s);
 const GACC='#FF3D5E', GLIL='#9C86FF', GINK='#151413', GBORN='#C9D9F6';
 // Les glyphes s'accumulent jusqu'à 53 (comme dans la réf) ; les deux grands « / » s'écartent de part et d'autre de la phrase.
-const GLY=[{ch:[[0,'/'],[24,'<']],pos:[[0,0,0],[8,-18,0],[13,-124,0],[19,-232,0],[30,-450,0]],col:GINK,born:0,big:1},
-           {ch:[[8,'/'],[24,'>']],pos:[[8,18,0],[13,124,0],[19,232,0],[30,450,0]],col:GINK,born:8,big:1}];
+// ils s'écartent toujours un temps avant le mot qui arrive (10, 17, 30) : jamais un « / » sur une lettre
+const GLY=[{ch:[[0,'/'],[24,'<']],pos:[[0,0,0],[5,-18,0],[8,-124,0],[14,-232,0],[25,-450,0]],col:GINK,born:0,big:1},
+           {ch:[[7,'/'],[24,'>']],pos:[[7,18,0],[8,124,0],[14,232,0],[25,450,0]],col:GINK,born:7,big:1}];
 (()=>{ const r=rng(7), ex=[]; [27,30,30,33,36,36,36,39,42,45,45,45,45,47,49,51,51,51,52,52].forEach(b=>{ let x,y,t=0;
   do{ x=(r()*2-1)*560; y=(r()*2-1)*330; t++; }while(t<500&&((Math.abs(x)<470&&Math.abs(y)<70)||x*x/(560*560)+y*y/(330*330)>1||ex.some(e=>Math.hypot(e[0]-x,e[1]-y)<74)));
   ex.push([x,y]); GLY.push({ch:[[b,['/','/','/','<','>','*','|','\\'][(r()*8)|0]]],pos:[[b,x,y]],col:GINK,born:b}); }); })();
 // glyphes épars (prompt, outro) : encre seulement (loi des couleurs : pas de rouge que le stylo n'a pas posé)
-function gset(n,seed,rx,ry){ const r=rng(seed), a=[]; let t=0; while(a.length<n&&t++<600){ const x=(r()*2-1)*rx, y=(r()*2-1)*ry; if(Math.abs(x)<70&&Math.abs(y)<46) continue; if(x*x/(rx*rx)+y*y/(ry*ry)>1) continue; if(a.some(g=>Math.hypot(g[1]-x,g[2]-y)<54)) continue;
+function gset(n,seed,rx,ry,keep=(x,y)=>Math.abs(x)>=70||Math.abs(y)>=46){ const r=rng(seed), a=[]; let t=0; while(a.length<n&&t++<900){ const x=(r()*2-1)*rx, y=(r()*2-1)*ry; if(!keep(x,y)) continue; if(x*x/(rx*rx)+y*y/(ry*ry)>1) continue; if(a.some(g=>Math.hypot(g[1]-x,g[2]-y)<54)) continue;
   r(); a.push([['/','/','/','<','>','*','|','\\'][(r()*8)|0],x,y,GINK]); } return a; }
 const wGly=GLY.map(g=>el(W1.cam,'abs c glyph','',g.big?'font-size:64px':''));
 function gpos(g,f){ let i=0; for(let k=0;k<g.pos.length;k++) if(f>=g.pos[k][0]) i=k; const c=g.pos[i], p=i?g.pos[i-1]:c, t=approach(f,c[0],5); return [lerp(p[1],c[1],t),lerp(p[2],c[2],t)]; }
@@ -163,7 +164,8 @@ const PROMPT='Make my SaaS less boring. It’s blue, it’s Arial, and there’s
 const PR_INC=[3,2,3,2,2, 2,3,2,2,3,2,2,2,2, 0,0,-1,0,1, 2,2,3,2,2];
 const PR_N=(()=>{ const a=[36]; for(const k of PR_INC) a.push(a[a.length-1]+k); return a; })();
 for(let i=0;i<PR_INC.length;i++) if(PR_INC[i]) cue(175+i,'key',{v:.2+Math.abs(PR_INC[i])*0.08});
-const prGly=gset(12,33,640,250).map(g=>{ const d=el(P1.cam,'abs c glyph'); d._g=g; return d; });
+// autour de la carte (443-1476 × 371-675, marge 40 px), jamais sur son texte
+const prGly=gset(12,33,860,430,(x,y)=>!(Math.abs(x)<560&&y>-215&&y<170)).map(g=>{ const d=el(P1.cam,'abs c glyph'); d._g=g; return d; });
 cue(207,'scratch',{v:.8,end:212}); cue(212,'rub',{v:.7,peak:226,dur:16});
 let PR_ARIAL=[0,0,0,0], PR_XH=15.6;
 function prLayout(){ show(P1.s,true); prText.innerHTML=prSeg(PROMPT.length); const sp=prText.querySelector('.ari'), r=sp.getBoundingClientRect(), st=P1.s.getBoundingClientRect(), k=st.width/W;
