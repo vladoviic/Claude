@@ -170,8 +170,8 @@ function shotDone(F){ const f=F-2;
   const thMask=f>=995&&f<1003, thFull=f>=1003; show(doTh,thMask||thFull);
   if(thMask||thFull){ iriTo(doTh,{t:T(f)*(thFull?5:2),seed:7.4,zoom:1.15,hot:.6,bands:.8,therm:1});
     if(thMask){ const m=SEQ.doneMask[clamp(f-952,43,56)], s=1.62*(1+0.085*approach(f,989,13)), g=approach(f,995,8,0.15);
-      const mc=doMaskC.getContext('2d'); mc.clearRect(0,0,960,540); mc.filter=`blur(${(4+26*g).toFixed(1)}px)`;
-      const w=1240*s*0.5, h=830*s*0.5, x0=(960-560*s)*0.5, y0=(540-300*s)*0.5, k=1+1.6*g; mc.drawImage(m,x0+w*(1-k)/2,y0+h*(1-k)/2,w*k,h*k); mc.filter='none';
+      const mc=doMaskC.getContext('2d'); mc.clearRect(0,0,960,540); mc.filter=`blur(${(3+12*g).toFixed(1)}px)`;
+      const w=1240*s*0.5, h=830*s*0.5, x0=(960-560*s)*0.5, y0=(540-300*s)*0.5, k=1+0.45*g; mc.drawImage(m,x0+w*(1-k)/2,y0+h*(1-k)/2,w*k,h*k); mc.filter='none';
       const t2=doTh.getContext('2d'); t2.globalCompositeOperation='destination-in'; t2.drawImage(doMaskC,0,0); t2.globalCompositeOperation='source-over'; doTh.style.opacity='1'; }
     else { doTh.style.opacity=lerp(0.55,0.3,approach(f,1003,8)).toFixed(3); doTh.style.mixBlendMode='soft-light'; } }
   // 1003 : coupe franche sur la photo en table thermique, qui continue de glisser ; défocalisation + blanchiment dès 1067

@@ -11,7 +11,7 @@ const T=f=>f/FPS;
 // tables de couleurs : la teinte suit les clairs et les ombres de l'image (réf 62-69, 114-116, 232)
 (()=>{ const tab=cs=>{ const c=cs.map(h=>[1,3,5].map(k=>parseInt(h.slice(k,k+2),16)/255)); return [0,1,2].map(j=>c.map(x=>x[j].toFixed(3)).join(' ')); };
   const gm=(id,cs)=>{ const [r,g,b]=tab(cs); return `<filter id="${id}" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues="${r}"/><feFuncG type="table" tableValues="${g}"/><feFuncB type="table" tableValues="${b}"/></feComponentTransfer></filter>`; };
-  $('fx').innerHTML+=gm('gmTherm',['#20205E','#3070D0','#5CC8E8','#FFE59A','#FF8A4D','#FF6B6B','#FFC9A3'])+gm('gmHeat',['#2A0718','#8E1B3C','#E8364F','#FF8A4D','#FFD59A','#BFE6F2','#F6FCFF'])+gm('gmPastel',['#7E6BE0','#B9A8FF','#FFA6C9','#FFC7A1','#FFF1E6','#FFFAF6']); })();
+  $('fx').innerHTML+=gm('gmTherm',['#20205E','#3070D0','#5CC8E8','#FFE59A','#FF8A4D','#FF6B6B','#FFC9A3'])+gm('gmHeat',['#2A0718','#8E1B3C','#FF5A5A','#FFB070','#BFE6F2','#E6F7FF','#FFFFFF'])+gm('gmPastel',['#7E6BE0','#B9A8FF','#FFA6C9','#FFC7A1','#FFF1E6','#FFFAF6']); })();
 const GM=k=>k===1?'url(#gmTherm)':k===2?'url(#gmPastel)':'';
 function setTint(c,o,a){ if(a<=0.003){ c.style.display='none'; return; } c.style.display='block'; c.style.opacity=a.toFixed(3); iriTo(c,o); }
 
