@@ -146,7 +146,8 @@ function shotLogo(f){ push(L1.cam,f,140,0.0007);
   const ix=inkClear(lgInk); const crisp=f>=128; lgSlash.style.opacity=crisp?1:0;
   if(!crisp){ const paper=S>132*0.6; lgInk.style.mixBlendMode=paper?'normal':'multiply'; slashThread(ix,f,paper?'#EEE9E4':null); }
   // le geste d'origine, fantôme graphite à 7 % : main libre → marque nette
-  const gx=inkClear(lgGhost); const ga=0.07*vl(f,124,6)*(1-vl(f,137,4)); if(ga>0.002){ lgGhost.style.display='block'; penDraw(gx,M2(),1e6,0,{size:13,color:`rgba(21,20,19,${(ga/0.07).toFixed(3)})`,alpha:0.07}); }
+  // le fantôme gris de la barre se lisait comme une trace sale : retiré (le calque reste vide)
+  inkClear(lgGhost);
   show(lgWord,f>=139); if(f>=139){ placeTL(lgWord,x+40.5+gap,540-42,1+0.07*approach(f,139,16)); revealWord(lgWord,f,139); }
   L1.cam.style.translate=`0 ${(-12*accel(f,167,6,2)).toFixed(1)}px`;
 }
@@ -188,7 +189,8 @@ function shotPrompt(f){
   const blink=f>=189&&f<194?Math.floor((f-189)/1)%2==0:(!done||Math.floor(f/7)%2==0);
   prText.innerHTML=prSeg(n)+(blink&&f<207?'<span class="pcaret"></span>':'');
   // le curseur du fondateur : linéaire, sur deux images, jusqu'au bouton ; il devient une main et reste en survol. Pas de clic.
-  const hov=f>=204; prSend.classList.toggle('hover',hov);
+  // la main survole Envoyer sans rien presser : le bouton ne change pas (sinon on lit un envoi, et la fin dit qu'il n'est jamais parti)
+  const hov=f>=204;
   const cf=twos(f,199), cp=clamp((cf-199)/5);
   const sx=450+1020-30-36, sy=396+30+36;   // centre du bouton dans la caméra
   const px=lerp(1290,sx-4,cp), py=lerp(640,sy+4,cp), scr=[t[0]+px*k,t[1]+py*k];
@@ -222,8 +224,8 @@ function shotLand(f){
   const fl=Math.max(f,234);
   // réf : recul qui ralentit (235-273), accélération dans la coupe (274-280), puis petit écran qui se pose (281+)
   let sc,x=960,y=540;
-  if(f<235) sc=1.08; else if(f<274) sc=lerp(1.08,0.915,approach(f,235,38,0.09));
-  else if(f<281){ const a=accel(f,274,6.5,2.6); sc=lerp(0.915,0.823,a); x=960+40*a; }
+  if(f<235) sc=1.08; else if(f<274) sc=lerp(1.08,0.87,approach(f,235,38,0.09));   // recul plus ample (juge : 0,40× la réf)
+  else if(f<281){ const a=accel(f,274,6.5,2.6); sc=lerp(0.87,0.80,a); x=960+40*a; }
   else { const p=approach(f,281,14,0.25); sc=lerp(0.683,0.632,p); x=1588-720*sc+lerp(16,0,p); y=548; }
   const gone=f>=294?approach(f,294,5):0;
   place(laFrame,x,y,sc); laFrame.style.filter=gone>0?`blur(${(10*gone).toFixed(1)}px) brightness(${(1+0.35*gone).toFixed(2)})`:''; laFrame.style.opacity=(1-0.85*clamp((f-297)/3)).toFixed(3);
@@ -248,7 +250,7 @@ function shotLand(f){
 /* ---------- 8 · l'arborescence « Taste Files » : défilement par paliers, couleurs qui passent cyan → lilas → pêche → gris ---------- */
 const TR=scene('sTree',300,347,f=>shotTree(f));
 const TREE=[[300,'▾ Taste Files',150,0,'title'],[305,'Brand.ts',380,1,'file'],[308,'Typography.ts',380,2,'file'],[312,'Components',380,3,'dir'],
-  [317,'NoMoreArial.tsx',610,4,'file'],[320,'OneAccent.tsx',610,5,'file'],[322,'EaseOut.tsx',610,6,'file'],[329,'Taste.tsx',840,7,'last']];
+  [317,'NoMoreArial.tsx',610,4,'file'],[320,'OneAccent.tsx',610,5,'file'],[322,'EaseOut.tsx',610,6,'file'],[329,'Taste.tsx',610,7,'last']];
 // chaque nom arrive en faisant ce qu'il dit : NoMoreArial change de police lettre à lettre, OneAccent sèche à l'encre,
 // EaseOut arrive sur la courbe vladan (+ son tracé) ; les autres se posent à l'encre
 const glyphs=t=>[...t].map(c=>`<span class="g">${c}</span>`).join('');
@@ -401,6 +403,7 @@ function shotPlan(F){ const f=F-2;   // numéros de la réf (REMAP +2)
   const sw=vl(f,523,6); const sx=PL_TC._x0-PL_SHIP._x0, sy=PL_TC._y0-PL_SHIP._y0;
   [[PL_TC,-1,-140],[PL_SHIP,1,140]].forEach(([c,dir,bow])=>{ const u=sw; const dx=-dir*sx*u*-1, dy=dir*sy*u*-1;
     const ox=dir>0?sx*u:-sx*u, oy=(dir>0?sy:-sy)*u+bow*Math.sin(Math.PI*u)*(dir>0?1:-1)*0.5; c.style.translate=`${ox.toFixed(1)}px ${oy.toFixed(1)}px`; c.style.zIndex=u>0?5:''; });
+  PL_SHIP.classList.toggle('fd',f<530);   // une fois déplacée par le stylo, « Ship » n'est plus au fondateur : contour encre
   const ix=inkClear(plInk); if(f>=514&&f<530){ const r=vl(f,523,6); penDraw(ix,M4(),f,514,{size:5,u0:0.5*r,u1:1-0.5*r}); }
   plDays.forEach((d,i)=>{ const st=494+i*2.4; d.style.visibility=f>=st?'visible':'hidden'; d.style.color=f<st+4?mixc('#C6D8F7','#151413',clamp((f-st)/4)):(i>=5?'#B3ABA4':'#151413'); });
   plDn.forEach((d,i)=>{ d.style.visibility=f>=497+i*2.4?'visible':'hidden'; });
@@ -423,11 +426,11 @@ el(phScr,'','', 'position:absolute;inset:0;background:linear-gradient(180deg,rgb
 el(phScr,'island');
 el(phScr,'glass',`${VMARK(18)}<span style="margin-left:8px">velvetly AR</span>`,'position:absolute;left:22px;top:58px;height:38px;line-height:38px;padding:0 14px;border-radius:12px;color:#fff;font-size:15px;display:flex;align-items:center');
 el(phScr,'abs','Living room','left:24px;top:108px;font-size:46px;color:#fff;letter-spacing:-0.04em');
-el(phScr,'abs m','▪ ROOM FIT','left:26px;top:478px;font-size:12px;letter-spacing:.08em;color:rgba(255,255,255,.7)');
+const phStats=[el(phScr,'abs m','▪ ROOM FIT','left:26px;top:478px;font-size:12px;letter-spacing:.08em;color:rgba(255,255,255,.7)')];
 const phNum=el(phScr,'abs','92%','left:22px;top:498px;font-size:104px;color:#fff;letter-spacing:-0.05em;line-height:1');
-el(phScr,'abs m','▪ TIME TO FIRST ROOM','left:26px;top:612px;font-size:12px;letter-spacing:.08em;color:rgba(255,255,255,.7)');
+phStats.push(phNum, el(phScr,'abs m','▪ TIME TO FIRST ROOM','left:26px;top:612px;font-size:12px;letter-spacing:.08em;color:rgba(255,255,255,.7)'));
 const phTime=el(phScr,'abs','2:59','left:22px;top:632px;font-size:58px;color:#fff;letter-spacing:-0.04em;line-height:1');
-el(phScr,'abs m','chair 0.83 m · sofa 2.19 m','left:26px;top:700px;font-size:12px;color:rgba(255,255,255,.55)');
+phStats.push(phTime, el(phScr,'abs m','chair 0.83 m · sofa 2.19 m','left:26px;top:700px;font-size:12px;color:rgba(255,255,255,.55)'));
 el(phScr,'','Share this room →','position:absolute;left:18px;right:18px;bottom:22px;height:62px;border-radius:16px;background:#151413;box-shadow:inset 0 0 0 1px rgba(243,239,234,.2);color:#F3EFEA;font-size:20px;line-height:62px;padding-left:22px');
 const phSheen=el(phScr,'','', 'position:absolute;left:-120px;top:-40px;width:160px;height:900px;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.10),rgba(255,255,255,0));transform:rotate(18deg)');
 const phDone=el(phScr,'','', 'position:absolute;left:0;right:0;bottom:0;height:420px;background:linear-gradient(180deg,rgba(18,17,16,0),#121110 26%)');
@@ -437,16 +440,20 @@ phDone.innerHTML=`<div style="position:absolute;left:24px;top:96px;width:44px;he
   <div style="position:absolute;left:18px;right:18px;bottom:22px;height:62px;border-radius:16px;background:#F3EFEA;color:#151413;font-size:20px;line-height:62px;text-align:center">Share this room →</div>`;
 cR14(559,'impact',{v:.55}); cR14(566,'shimmer',{v:.35,end:578}); [588,603].forEach(f=>cR14(f,'tick',{v:.3})); cR14(606,'swish',{v:.45,peak:609,dur:8}); cR14(608,'pop',{v:.5,n:84});
 function shotPhone(F){ const f=F-2;   // numéros de la réf (REMAP +2)
-  // dépli en hauteur seulement (478 → 861 px), largeur fixe ; pas de poussée ensuite
-  place(phone,960,540,1,0,1); phone.style.transform+=` scaleY(${lerp(0.555,1,approach(f,559,13,0.25)).toFixed(4)})`;
-  seqDraw(phSeq,SEQ.phone,f-559);
+  // dépli en hauteur (478 → 861 px), puis la caméra s'approche (×0,9 → ×1,28, décélération) en tournant de 4° : le téléphone vit
+  const pt=clamp((f-559)/82), ps=lerp(0.9,1.28,1-Math.pow(1-pt,2.2)), ry=lerp(-2.5,1.5,pt);
+  phone.style.transform=`translate(960px,540px) translate(-50%,-50%) perspective(2400px) rotateY(${ry.toFixed(2)}deg) scale(${ps.toFixed(4)}) scaleY(${lerp(0.555,1,approach(f,559,13,0.25)).toFixed(4)})`;
+  phShadow.style.transform=`translateY(${(430*(ps-1)).toFixed(1)}px) scale(${ps.toFixed(3)},1)`;
+  seqDraw(phSeq,SEQ.phone,f-559); phSeq.style.transform=`scale(1.14) translateX(${lerp(-24,24,pt).toFixed(1)}px)`;
   // démarrage d'une caméra AR : la mise au point cherche (22 → 0 → 4 → 0 px) et l'exposition se pose (+0,6 IL → 0), en 6 images
   const b=f<561?22:f<563?lerp(22,0,(f-561)/2):f<565?lerp(0,4,(f-563)/2):f<567?lerp(4,0,(f-565)/2):0, ev=0.6*(1-vl(f,561,6));
   phSeq.style.filter=(b>0.05?`blur(${b.toFixed(1)}px) `:'')+(ev>0.01?`brightness(${Math.pow(2,ev).toFixed(3)})`:'');
   phNum.textContent=Math.round(lerp(92,98,clamp((f-573)/30)))+'%';
-  const secs=Math.round(lerp(179,42,vladan(clamp((f-580)/25)))); phTime.textContent=`${Math.floor(secs/60)}:${String(secs%60).padStart(2,'0')}`;
+  // se pose sur 0:42 (comme la carte de 1318) avant « Fits perfectly »
+  const secs=Math.round(lerp(179,42,vladan(clamp((f-580)/21)))); phTime.textContent=`${Math.floor(secs/60)}:${String(secs%60).padStart(2,'0')}`;
   phSheen.style.translate=`${(140*clamp((f-559)/80)).toFixed(1)}px 0`;
   const dp=approach(f,606,10); phDone.style.transform=`translateY(${((1-dp)*440).toFixed(1)}px)`;
+  phStats.forEach(e=>e.style.opacity=(1-clamp((f-604)/6)).toFixed(2));   // pas de « ROOM FIT » fantôme derrière le panneau
 }
 
 /* ---------- 15-16 · l'avant/après : la v1 exacte du fondateur, deux marques au stylo, puis la v2 en une vague ; gros plan de la barre d'outils ---------- */
@@ -484,7 +491,7 @@ el(clBand,'abs','Share','left:1640px;top:96px;height:170px;line-height:166px;pad
 cue(642,'impact',{v:.5}); cue(646,'scratch',{v:.6,end:650}); cue(651,'scratch',{v:.6,end:656}); cue(659,'glide',{v:.5,end:665}); cue(668,'whoosh',{v:.45,peak:671,dur:4}); cue(676,'tick',{v:.25}); cue(690,'click',{v:.95}); cue(687,'whoosh',{v:.4,peak:694,dur:7});
 function shotClients(f){ const z=f>=672; show(clZoom,z); show(CL.cam,!z);
   if(!z){ const y=60+40*(1-approach(f,642,4,0.3)); placeTL(clCard,260,y,1.0);
-    CL.cam.style.transform=`scale(${(1+0.058*accel(f,668,4,3)).toFixed(4)})`;
+    CL.cam.style.transform=`scale(${((1+0.035*clamp((f-642)/26))*(1+0.058*accel(f,668,4,3))).toFixed(4)})`;   // lente poussée vers la barre d'outils pendant l'avant/après
     updateDash(clDash,(k,i)=>clFront(k,i,f),f);
     // la salutation : la v1 s'efface, « Morning, Léa. » se tape ; pas de glissement
     const pg=clFront(3,0,f); const sa=clDash.greet.parentNode.parentNode; sa.children[0].style.transform=''; sa.children[0].style.opacity=(1-pg).toFixed(3);

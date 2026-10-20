@@ -30,12 +30,13 @@ site('KOVA','#D4FF3F',884,405,`<div style="position:absolute;inset:0;background:
 </div>`);
 
 // 1 · festival de création : bleu électrique, grotesque blanche géante, bandeau défilant
-site('Driftweek','#0039FF',740,480,`<div style="position:absolute;inset:0;background:#0039FF;color:#fff;overflow:hidden">
+// Driftweek en sarcelle : le bleu électrique d'origine se confondait avec le bleu « ennuyeux » du fondateur
+site('Driftweek','#007A6E',740,480,`<div style="position:absolute;inset:0;background:#007A6E;color:#fff;overflow:hidden">
   <div style="position:absolute;left:26px;top:20px;right:26px;display:flex;justify-content:space-between;font:500 12px 'JB'"><span>DRIFTWEEK ®</span><span>LISBON — 02/06 → 07/06/26</span><span>(TICKETS)</span></div>
   <div style="position:absolute;left:20px;top:64px;font:800 156px/0.84 'AV';font-stretch:100%;letter-spacing:-.06em">Drift<br>week<span style="font:400 italic 156px 'DS';letter-spacing:-.03em">26</span></div>
   <div style="position:absolute;right:26px;top:84px;width:200px;font:500 14px/1.35 'ID'">Six days of talks, raves and badly parked bikes. 140 speakers. One river.</div>
   <div style="position:absolute;right:30px;top:210px;width:150px;height:150px;border-radius:50%;border:1.5px solid #fff;display:grid;place-items:center;font:600 13px 'JB';text-align:center">GET<br>TICKETS<br>→</div>
-  <div style="position:absolute;left:0;right:0;bottom:0;height:54px;background:#fff;color:#0039FF;font:800 30px/54px 'AV';font-stretch:120%;white-space:nowrap;letter-spacing:-.02em">✺ TALKS ✺ WORKSHOPS ✺ NIGHT RIDES ✺ TALKS ✺ WORKSHOPS ✺</div>
+  <div style="position:absolute;left:0;right:0;bottom:0;height:54px;background:#fff;color:#007A6E;font:800 30px/54px 'AV';font-stretch:120%;white-space:nowrap;letter-spacing:-.02em">✺ TALKS ✺ WORKSHOPS ✺ NIGHT RIDES ✺ TALKS ✺ WORKSHOPS ✺</div>
 </div>`);
 
 // 2 · application mobile : un petit monde en 3D à travers lequel on envoie une lettre (esprit portfolio WebGL)

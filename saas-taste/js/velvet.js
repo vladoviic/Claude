@@ -166,22 +166,3 @@ function tplVInsights(){ const sp=[8,10,9,13,12,16,18,17,22,26,31,36,45]; const 
     <div><div class="m" style="font-size:15px;color:${VG}">TIME TO FIRST ROOM</div><div class="mst2" style="font-size:64px;letter-spacing:-0.04em">52 s</div></div>
     <div><div class="m" style="font-size:15px;color:${VG}">ARIAL</div><div style="font-size:64px;letter-spacing:-0.04em">0</div></div></div>
   <div class="m" style="position:absolute;left:34px;bottom:26px;font-size:22px;color:#8E877F">¹ velvetly is fictional. The taste isn't.</div></div>`; }
-// la table des membres : même géométrie que la v1, re-composée (Inter, encre, initiales, pas d'ombre)
-const MEMBERS=[['Léa Moreau','LM','Owner'],['Hugo Martin','HM','Editor'],['Inès Petit','IP','Editor'],['Noah Roux','NR','Viewer'],['Chloé Faure','CF','Editor'],['Sacha Girard','SG','Viewer']];
-function tplVMembers(){ return `<div class="full" style="background:#F7F4F0;color:#151413">
-  <div style="position:absolute;left:40px;top:34px;font-size:40px;letter-spacing:-0.03em">Members</div><div class="m" style="position:absolute;left:42px;top:90px;font-size:15px;color:${VG}">velvetly · 14 of 20 seats</div>
-  ${['Name','Role','Last active'].map((h,i)=>`<div class="m" style="position:absolute;left:${40+[0,520,820][i]}px;top:150px;font-size:14px;color:${VG};letter-spacing:.06em">${h.toUpperCase()}</div>`).join('')}
-  ${MEMBERS.map(([n,ini,r],j)=>`<div class="mrow" style="position:absolute;left:28px;right:28px;top:${184+j*86}px;height:76px">
-    <div style="position:absolute;inset:0;border-radius:12px;background:#ECE6DF"></div>
-    <div style="position:absolute;left:16px;top:14px;width:48px;height:48px;border-radius:24px;background:#151413;color:#F3EFEA;font-size:18px;line-height:48px;text-align:center">${ini}</div>
-    <div style="position:absolute;left:82px;top:24px;font-size:26px">${n}</div><div style="position:absolute;left:532px;top:24px;font-size:24px;color:#5C5650">${r}</div>
-    <div class="m" style="position:absolute;left:832px;top:28px;font-size:18px;color:${VG}">${['now','2 min','1 h','today','yesterday','3 d'][j]}</div></div>`).join('')}</div>`; }
-// la marque sur un vrai objet : l'icône de l'app velvetly AR sur l'écran d'accueil d'un téléphone
-function tplVHome(){ const ic=(c,t)=>`<div style="display:grid;justify-items:center;gap:8px"><div style="width:96px;height:96px;border-radius:24px;background:${c}"></div><span style="font-size:15px;color:#F3EFEA">${t}</span></div>`;
-  return `<div class="full" style="background:linear-gradient(160deg,#3A3633,#151413);overflow:hidden">
-  <div style="position:absolute;left:50%;top:50%;width:400px;height:800px;margin:-400px 0 0 -200px;border-radius:64px;background:linear-gradient(135deg,#3A3836,#151413 30%,#2A2827 55%,#0E0D0C 80%,#3A3836);box-shadow:0 60px 100px -40px rgba(0,0,0,.6)">
-    <div style="position:absolute;inset:13px;border-radius:52px;overflow:hidden;background:linear-gradient(180deg,#5C4A44,#2A2321 60%,#151413)">
-      <div style="position:absolute;left:128px;top:13px;width:118px;height:34px;border-radius:17px;background:#050505"></div>
-      <div style="position:absolute;left:26px;top:110px;display:grid;grid-template-columns:repeat(3,96px);gap:30px 22px">
-        ${ic('#4A4542','Notes')}${ic('#3A3633','Photos')}<div style="display:grid;justify-items:center;gap:8px"><div style="width:96px;height:96px;border-radius:24px;background:#151413;display:grid;place-items:center;box-shadow:0 0 0 1px rgba(243,239,234,.15)">${VMARK(58)}</div><span style="font-size:15px;color:#F3EFEA">velvetly AR</span></div>
-        ${ic('#4A4542','Maps')}${ic('#3A3633','Mail')}${ic('#4A4542','Files')}</div></div></div></div>`; }

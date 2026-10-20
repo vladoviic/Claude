@@ -124,7 +124,8 @@ const CH_MASK=document.createElement('canvas'); CH_MASK.width=275; CH_MASK.heigh
 function chToView(p,V){ // écran → pixels du canvas de la vue (inverse de la transformation CSS)
   const cx=630+459, cy=196+334; let x=p[0]-cx-V.x, y=p[1]-cy-V.y; const c=Math.cos(-V.r*Math.PI/180), s=Math.sin(-V.r*Math.PI/180);
   const xr=(x*c-y*s)/V.s, yr=(x*s+y*c)/V.s; return [(xr+459)*1100/918,(yr+334)*800/668]; }
-function chSoak(f,V,red){ const tt=clamp((f-925)/7), R=260*1100/918*(0.5-0.5*Math.cos(Math.PI*tt)); const k=CH_MASK.width/1100;
+// le front couvre le dossier dès 930
+function chSoak(f,V,red){ const tt=clamp((f-924)/6), R=330*1100/918*(0.5-0.5*Math.cos(Math.PI*tt)); const k=CH_MASK.width/1100;
   const pts=penResample(M7().flat(),40).map(p=>chToView(p,V));
   const x=CH_MASK.getContext('2d'); const im=x.createImageData(CH_MASK.width,CH_MASK.height);
   // luminance du velours rouge, lue une fois à basse résolution pour moduler le front
@@ -142,10 +143,11 @@ function shotChat(f){
   seqDrawRaw(chTurn,TURN.blue[Math.min(47,i)]);
   // le coup de pinceau (918-924), puis le velours apparaît là où l'encre a bu, jusqu'à recouvrir tout le fauteuil (932)
   const ix=inkClear(chInk);
-  if(f>=918&&f<934){ const soak=clamp((f-926)/6); penDraw(ix,M7(),f,918,{size:30,alpha:1-soak,ground:'dark'}); }
+  // le pinceau teint le velours (fusion « couleur » : la teinte du stylo, le modelé du tissu), bord adouci : pas un autocollant
+  if(f>=918&&f<934){ const soak=clamp((f-924)/3); chInk.style.mixBlendMode='color'; chInk.style.filter='blur(3px)'; penDraw(ix,M7(),f,918,{size:34,alpha:1-soak,ground:'dark'}); }
   const redOn=f>=925; show(chTurnR,redOn);
   if(redOn){ const red=TURN.red[clamp(i,38,71)]; const c=chTurnR.getContext('2d'); c.clearRect(0,0,1100,800); c.drawImage(red,0,0,1100,800);
-    if(f<933){ chSoak(f,V,red); c.globalCompositeOperation='destination-in'; c.imageSmoothingEnabled=true; c.drawImage(CH_MASK,0,0,1100,800); c.globalCompositeOperation='source-over'; } }
+    if(f<931){ chSoak(f,V,red); c.globalCompositeOperation='destination-in'; c.imageSmoothingEnabled=true; c.drawImage(CH_MASK,0,0,1100,800); c.globalCompositeOperation='source-over'; } }
   chFab.textContent=f>=926?'velvet':'polyester'; chKids[7].style.visibility=f>=926?'visible':'hidden';
   // la vignette reste bleue tant que le front ne l'a pas atteinte
   chThumbs.forEach(t=>t.style.filter=f<930?'hue-rotate(-145deg) saturate(1.2)':'');
@@ -220,7 +222,7 @@ const fullT=s=>`translate(${(960-560*s).toFixed(1)}px,${(540-300*s).toFixed(1)}p
 function shotDone(F){ const f=F-2;
   const card=f<989; show(doFrame,card); show(doFull,f>=989&&f<1003);
   // carte : entre à 0,95 en glissant de 50 px (952-966), tient en rampant (+0,12 %/i), puis poussée qui accélère ×1,19 (978-988)
-  if(card){ const en=approach(f,952,14,0.2); const s=lerp(0.95,1,en)*(1+0.0012*Math.max(0,f-966))*(1+0.19*accel(f,978,11,3));
+  if(card){ const en=approach(f,952,14,0.2); const s=lerp(0.95,1,en)*(1+0.003*Math.max(0,f-966))*(1+0.19*accel(f,978,11,3));
     place(doFrame,960+50*(1-en),540,s); const fu=q1(doD,'.full'); fu.style.transformOrigin='55% 60%'; fu.style.transform=`scale(${(1+0.12*accel(f,980,9,3)).toFixed(4)})`;
     seqDraw(doSeq,SEQ.done,f-952);
     doSum.style.clipPath=`inset(0 0 ${((1-approach(f,956,10))*100).toFixed(1)}% 0 round 18px)`; }
@@ -228,6 +230,9 @@ function shotDone(F){ const f=F-2;
   const hp=f>=989; show(doTP,hp); show(doFull,false);
   if(hp){ const z=1+0.0016*(f-989), pan=f<1062?0:f<1075?(f-1062)*15:13*15+(f-1075)*40, zz=f<1075?1:1-0.045*(f-1075);
     doTPi.style.transform=`translate(${pan.toFixed(1)}px,${(pan*0.6).toFixed(1)}px) scale(${(z*zz).toFixed(4)})`;
+    // les étiquettes restent fixes à l'écran pendant la poussée (sinon le cadre coupe « 1,204 sessions » et la légende)
+    if(f<1062){ const Z=z*zz; Object.assign(doHud.style,{right:(1920-(960+(1892-960)/Z)).toFixed(1)+'px',top:(540+(84-540)/Z).toFixed(1)+'px',transform:`scale(${(1/Z).toFixed(4)})`,transformOrigin:'100% 0'});
+      Object.assign(doLeg.style,{left:(960+(28-960)/Z).toFixed(1)+'px',bottom:(1080-(540+(1052-540)/Z)).toFixed(1)+'px',transform:`scale(${(1/Z).toFixed(4)})`,transformOrigin:'0 100%'}); }
     const k=f<1002?0:Math.min(5,1+Math.floor((f-1002)/3.6)); if(k!==doHeatK){ doHeatDraw(k); doHeatK=k; }
     q1(doTPi,'.dghost').style.opacity=(0.22*(1-clamp((f-1005)/6))).toFixed(3);
     const g=doDotsC.getContext('2d'); g.clearRect(0,0,1920,1080);
@@ -300,17 +305,23 @@ const reCard=el(RE.cam,'rcard','', 'width:960px;height:420px'); reCard.innerHTML
     <div class="m" style="font-size:24px;line-height:36px;color:#2D6CDF">#2D6CDF ×11</div>
     <div class="m" style="font-size:24px;line-height:36px;color:#151413">users named “User” ×3</div>
     <div class="m" style="font-size:24px;line-height:36px;color:#8E877F">+14 more</div></div>
+  <div class="rbars" style="position:absolute;left:620px;top:44px;width:300px">${BORING.map(([t,n])=>`<div style="height:34px;position:relative"><span class="m" style="position:absolute;left:0;top:2px;font-size:13px;color:#5C5650;white-space:nowrap">${t.length>18?t.slice(0,17)+'…':t}</span><span class="m" style="position:absolute;right:0;top:2px;font-size:13px;color:#151413">${n}</span><i style="position:absolute;left:0;top:22px;height:3px;width:${(n/19*300).toFixed(0)}px;background:#151413;transform-origin:0 0;display:block"></i></div>`).join('')}</div>
   <div class="rprog" style="position:absolute;left:40px;bottom:0;height:2px;width:0;background:#151413"></div>`;
-const reBtn=el(reCard,'abs','Accept all','left:auto;right:44px;top:300px;height:64px;line-height:64px;padding:0 30px;border-radius:12px;background:#151413;color:#F3EFEA;font-size:26px');
+const reNum=q1(reCard,'.r47'), reRows=[...q1(reCard,'div[style*="top:248px"]').children], reBars=[...q1(reCard,'.rbars').children];
+const reBtn=el(reCard,'abs','Accept all','left:auto;right:44px;top:316px;height:64px;line-height:64px;padding:0 30px;border-radius:12px;background:#151413;color:#F3EFEA;font-size:26px');
 const reProg=q1(reCard,'.rprog');
 cR26(1130,'impact',{v:.5}); cR26(1161,'click',{v:1}); cR26(1162,'pop',{v:.5,n:84});
 function shotReport(F){ const f=F-1;
   RE.cam.style.transform=`scale(${(1+0.08*approach(f,1131,36,0.09)).toFixed(4)})`;
-  const p=approach(f,1130,6); place(reCard,960,545); reCard.style.opacity=lerp(0.3,1,p).toFixed(3);
+  // la carte monte (40 px, 10 images), le 47 se compte, les lignes et les barres par catégorie arrivent une à une
+  const p=approach(f,1130,6); place(reCard,960,545+40*(1-vl(f,1131,10))); reCard.style.opacity=lerp(0.3,1,p).toFixed(3);
+  reNum.textContent=Math.round(47*vladan(clamp((f-1131)/12)));
+  reRows.forEach((r,i)=>{ const a=vl(f,1137+i*3,4); r.style.opacity=a.toFixed(2); r.style.transform=`translateY(${(8*(1-a)).toFixed(1)}px)`; });
+  reBars.forEach((r,i)=>{ const a=vl(f,1139+i*2,5); r.style.opacity=Math.min(1,a*2).toFixed(2); r.lastChild.style.transform=`scaleX(${a.toFixed(3)})`; });
   // le clic du fondateur (1161) : « Applying… 0/47 », une ligne d'encre de 2 px qui atteint 6 % à 1175
   const pr=f==1162?0.955:f>1162?lerp(0.97,1,approach(f,1162,3)):1; reBtn.style.transform=`scale(${pr.toFixed(4)})`; reBtn.textContent=f>=1162?'Applying… 0/47':'Accept all';
   reProg.style.width=(f>=1162?880*0.06*clamp((f-1162)/13):0).toFixed(1)+'px';
-  const cf=twos(f,1145), cp=clamp((cf-1145)/10); cursor(lerp(1320,1238,cp),lerp(820,672,cp),f==1161?1:0,f>=1145,1,cp>=1?'hand':'arrow');
+  const cf=twos(f,1145), cp=clamp((cf-1145)/10); cursor(lerp(1470,1412,cp),lerp(850,708,cp),f==1161?1:0,f>=1145,1,cp>=1?'hand':'arrow');   // au bout du bouton : le libellé reste lisible
 }
 
 /* ---------- 27 · les 47 tuiles ennuyeuses barrées d'un seul trait, puis le trait tiré comme un fil dans la fente de la marque ---------- */
@@ -352,12 +363,14 @@ let AL_CROSS=null; function alCross(){ if(AL_CROSS) return AL_CROSS; const st=M8
 cR27(1175,'hush',{}); cR27(1186,'scribble',{v:.7,end:1208}); cR27(1210,'reel',{v:.6,end:1228}); cR27(1232,'boom',{v:.8});
 function shotAlerts(F){ const f=F-1; push(AL.cam,f,1175,0.0005);
   const ms=(f-1186)*PEN.ms, cross=alCross();
-  alTiles.forEach((t,n)=>{ const a=1176+10*t._d/alMaxD; const on=f>=a&&f<1223&&!(n===46&&f>=1213); show(t,on); if(!on) return;
+  alTiles.forEach((t,n)=>{ const a=1176+10*t._d/alMaxD; const on=f>=a&&f<1228&&!(n===46&&f>=1213); show(t,on); if(!on) return;
     const sIn=clamp((twos(f,Math.floor(a))-a)/3); t.style.left=t._x+'px'; t.style.top=t._y+'px';
-    const cf=1186+cross[n]/PEN.ms, k=clamp((f-cf)/3); const fade=clamp((f-1210)/12);
+    const cf=1186+cross[n]/PEN.ms, k=clamp((f-cf)/3); const fade=clamp((f-1215)/12);   // les tuiles tiennent pendant que le fil passe : il ne pend jamais seul sur le noir
     t.style.transform=`scale(${(sIn*(n===46?1-clamp((f-1210)/3):1)).toFixed(3)})`; t.style.filter=k>0?`grayscale(${k.toFixed(2)})`:''; t.style.opacity=((1-0.68*k)*(1-fade)).toFixed(3); });
   // le compteur part du « 47 » du rapport et descend d'une unité par tuile barrée ; à 0, il passe à l'encre fixée
-  const left=47-cross.filter(c=>c<=ms).length; show(alCount,f>=1176&&f<1232); const mv=vl(f,1176,8); placeTL(alCount,lerp(800,120,mv),lerp(450,860,mv));
+  // pendant le fil (1210-1228), les tuiles qui restent partent avec lui : le compteur finit sur 0 à 1228 et y tient
+  let left=47-cross.filter(c=>c<=ms).length; if(f>=1210){ const l0=47-cross.filter(c=>c<=(1210-1186)*PEN.ms).length, t=clamp((f-1210)/18); left=Math.round(lerp(l0,0,t*t*(3-2*t))); }
+  show(alCount,f>=1176&&f<1232); const mv=vl(f,1176,8); placeTL(alCount,lerp(800,120,mv),lerp(450,860,mv));
   alNum.textContent=Math.max(0,left); if(left<=0&&f>=1210){ alNum.style.color='#F3EFEA'; alNum.style.fontFamily='ID'; } else { alNum.style.color='#2D6CDF'; alNum.style.fontFamily=''; }
   const ix=inkClear(alInk);
   if(f>=1186&&f<1210) penDraw(ix,M8(),f,1186,{size:13.5,ground:'dark'});
@@ -397,14 +410,18 @@ shWin.innerHTML=`<div style="position:absolute;left:0;top:0;right:0;height:26px;
 // le fauteuil détouré (img/ship_chair.png, tiré de red_60), à contre-jour devant le mur ; il monte avec la pièce quand la caméra descend
 const shChair=el(SH.cam,'','', 'position:absolute;left:1520px;top:1168px;width:665px;height:602px');
 shChair.innerHTML='<img src="img/ship_chair.png" style="width:100%;height:100%;filter:brightness(.6) contrast(1.08) saturate(.95)">';
+// le soleil entre en biais par la fenêtre : un rayon chaud très léger sur le mur et le fauteuil
+const shShaft=el(SH.cam,'','', 'position:absolute;inset:-200px;pointer-events:none;mix-blend-mode:screen;background:linear-gradient(118deg,transparent 30%,rgba(255,236,214,1) 42%,rgba(255,236,214,1) 52%,transparent 66%)');
 const shBtn=el(SH.s,'bbtn',''); shBtn.style.zIndex=5; shBtn.style.width='228px'; shBtn.style.padding='0'; shBtn.style.textAlign='center'; shBtn.style.borderRadius='14px';
 const shRing=el(SH.s,'','', 'position:absolute;left:960px;top:540px;width:0;height:0;border-radius:50%;box-shadow:0 0 0 1px #151413;z-index:4');
-cR28(1250,'impact',{v:.5}); cR28(1295,'beep',{v:.6}); cR28(1298,'riser',{v:.55,end:1306});
-function shotShip(F){ const f=F-1;
+cR28(1250,'impact',{v:.5}); cR28(1293,'beep',{v:.6}); cR28(1298,'riser',{v:.55,end:1306});
+function shotShip(F){ const f=F-1; SH.cam.style.transform=`scale(${(1+0.03*clamp((f-1250)/56)).toFixed(4)})`;   // poussée de 3 %
+  shShaft.style.opacity=(0.08+0.03*Math.sin((f-1250)/9)).toFixed(3);
   const y=-900*approach(f,1250,36,0.11); shSky.style.transform=`translateY(${y.toFixed(1)}px)`; shWin.style.transform=`translateY(${(y*0.35+0).toFixed(1)}px)`; shChair.style.transform=`translateY(${(y*0.42).toFixed(1)}px)`;
   const n=clamp(f-1250,0,7); shBtn.innerHTML='Ship it'.slice(0,n)+(f<1262||Math.floor(f/8)%2?'<span style="display:inline-block;width:3px;height:40px;background:#F3EFEA;vertical-align:-6px;margin-left:3px"></span>':'');
-  const pr=f>=1295&&f<1297; place(shBtn,960,540,pr?0.94:1); shBtn.style.background='#151413';
-  const rg=clamp((f-1295)/10); show(shRing,f>=1295&&f<1306); const R=120*rg; Object.assign(shRing.style,{width:2*R+'px',height:2*R+'px',left:(960-R)+'px',top:(540-R)+'px',opacity:(1-rg).toFixed(2)});
+  // le clic tombe à 1293, comme dans la réf
+  const pr=f>=1293&&f<1295; place(shBtn,960,540,pr?0.94:1); shBtn.style.background='#151413';
+  const rg=clamp((f-1293)/10); show(shRing,f>=1293&&f<1304); const R=120*rg; Object.assign(shRing.style,{width:2*R+'px',height:2*R+'px',left:(960-R)+'px',top:(540-R)+'px',opacity:(1-rg).toFixed(2)});
   const cf=twos(f,1270), cp=clamp((cf-1270)/10); cursor(lerp(1185,1030,cp),lerp(705,580,cp),pr?1:0,f>=1270,1,cp>=1?'hand':'arrow');
 }
 
@@ -412,10 +429,19 @@ function shotShip(F){ const f=F-1;
 const MO=scene('sMont',1308,1378,f=>shotMont(f)); sky(MO.cam);
 const cR29=cueAt(1);
 const moP=el(MO.cam); const moPD=framed(moP,tplVInsights(),1368,912,1240,730,VINK);
-const moR=el(MO.cam); const moRD=framed(moR,tplVMembers(),1368,912,1240,730,'#F7F4F0');
-const moDa=el(MO.cam); framed(moDa,tplVHome(),1368,912,1240,730,'#151413');
+// le planning après le stylo : « Ship » a pris la place de « Taste Check » (ven. 23), contour encre
+const moR=el(MO.cam); const moRD=framed(moR,tplPlan(),1368,912,1620,1080,'#F6F2EE');   // recadré en largeur : pas de bande au-dessus de la barre latérale
+(()=>{ const c=qa(moRD,'.pchip'), a=c[0], b=c[4], [al,at]=[a.style.left,a.style.top]; a.style.left=b.style.left; a.style.top=b.style.top; b.style.left=al; b.style.top=at; a.classList.remove('fd'); })();
+// le rapport, une fois appliqué : 0 problème ennuyeux, les barres se vident
+const tplReport0=()=>`<div class="full" style="background:#F7F4F0;color:#151413">
+  <div style="position:absolute;left:72px;top:64px;font-size:44px;letter-spacing:-0.02em">BrandReport <span class="m" style="font-size:18px;color:#F3EFEA;background:#151413;border-radius:8px;padding:5px 12px;margin-left:14px;vertical-align:8px">● velvetly.app</span></div>
+  <div style="position:absolute;left:64px;top:150px;display:flex;align-items:baseline;gap:22px"><span style="font-size:300px;line-height:.9;letter-spacing:-0.05em">0</span><span style="font-size:44px;letter-spacing:-0.02em">boring issues</span></div>
+  <div class="m" style="position:absolute;left:74px;top:470px;font-size:22px;color:#5C5650">✓ 47 / 47 applied · Tue 20 Oct · ships Fri 23</div>
+  <div class="mbars" style="position:absolute;left:760px;top:150px;width:400px">${BORING.map(([t,n])=>`<div style="height:46px;position:relative"><span class="m" style="position:absolute;left:0;top:2px;font-size:16px;color:#8E877F;text-decoration:line-through;text-decoration-color:#151413;white-space:nowrap">${t.length>22?t.slice(0,21)+'…':t}</span><span class="m" style="position:absolute;right:0;top:2px;font-size:16px;color:#151413">0</span><i style="position:absolute;left:0;top:28px;height:3px;width:${(n/19*400).toFixed(0)}px;background:#151413;transform-origin:0 0;display:block"></i></div>`).join('')}</div>
+  <div style="position:absolute;right:80px;bottom:70px;height:64px;line-height:64px;padding:0 30px;border-radius:12px;background:#151413;color:#F3EFEA;font-size:26px">Ship it</div></div>`;
+const moDa=el(MO.cam); const moDaD=framed(moDa,tplReport0(),1368,912,1240,730,'#F7F4F0'); const moBars=[...q1(moDaD,'.mbars').children];
 const moL=el(MO.cam); const moLD=framed(moL,tplVLanding(),1368,912,1240,730,VINK);
-const moLSeq=q1(moLD,'.vseq'), moLh=q1(moLD,'.lnh'), moLT=qa(moLD,'.vtile'), moStat=q1(moPD,'.mst'), moStat2=q1(moPD,'.mst2'), moRows=qa(moRD,'.mrow');
+const moLSeq=q1(moLD,'.vseq'), moLh=q1(moLD,'.lnh'), moLT=qa(moLD,'.vtile'), moStat=q1(moPD,'.mst'), moStat2=q1(moPD,'.mst2');
 const MOS=[[moP,1307],[moR,1325],[moDa,1336],[moL,1349]];
 cR29(1307,'impact',{v:.7}); cR29(1325,'impact',{v:.6}); cR29(1336,'impact',{v:.6}); cR29(1349,'impact',{v:.7}); [1312,1314,1315].forEach(f=>cR29(f,'tick',{v:.2})); cR29(1372,'shimmer',{v:.45,end:1378});
 // les fragments corrigés reviennent à la place exacte de leurs jumeaux ennuyeux (5, lisibles, 30 px), à cheval sur la fin du montage
@@ -427,7 +453,7 @@ function shotMont(F){ const f=F-1; let cur=MOS[0]; for(const m of MOS) if(f>=m[1
   let sc=1; if(cur[0]===moP) sc=1+0.035*approach(f,1307,18,0.12); else if(cur[0]===moR) sc=1+0.0007*a; else if(cur[0]===moDa) sc=1+0.0016*a; else sc=1-0.03*accel(f,1366,10,2);
   place(cur[0],960,540,sc);
   if(cur[0]===moP){ moStat.firstChild.textContent=f>=1314?'+45%':'+14%'; moStat2.textContent=f>=1315?'0:42':'52 s'; }
-  if(cur[0]===moR) moRows.forEach((r,i)=>{ const p=vl(f,1325+i*0.8,5); r.style.translate=`0 ${((1-p)*24).toFixed(1)}px`; r.style.opacity=p.toFixed(2); });
+  if(cur[0]===moDa) moBars.forEach((r,i)=>{ r.lastChild.style.transform=`scaleX(${(1-vl(f,1337+i,5)).toFixed(3)})`; });
   if(cur[0]===moL){ seqDraw(moLSeq,SEQ.land,a*1.0,0.5,0.58); moLh.style.transform=`translateX(${(-2.3*a).toFixed(1)}px)`;
     moLT.forEach((t,i)=>{ const p=approach(f,1350+i,8,0.2); t.style.translate=`0 ${((1-p)*24).toFixed(1)}px`; }); }
   fixFrags(moFix,f,1366);
@@ -453,9 +479,9 @@ const ouTasteB=el(OU.cam,'abs','<em class="big" style="font-weight:400">taste.</
 const OU_CH=470; // hauteur de la carte : l'en-tête TO / RE (226) + le brief + la citation, sans toucher le « + »
 const ouCard=el(OU.cam,'','', `position:absolute;left:144px;top:440px;width:1500px;height:${OU_CH}px;border-radius:28px;background:#F8F6F3;box-shadow:0 30px 60px -30px rgba(60,40,40,.25);display:none;overflow:hidden`);
 ouCard.innerHTML=`<div class="oto" style="position:absolute;left:44px;top:0;right:44px;height:0;overflow:hidden">
-    <div class="m" style="position:absolute;left:0;top:58px;font-size:22px;color:#8E877F">TO</div><div class="otoa" style="position:absolute;left:56px;top:16px;font-size:92px;letter-spacing:-0.012em;line-height:1"></div>
+    <div class="m" style="position:absolute;left:0;top:58px;font-size:20px;letter-spacing:.08em;color:#8E877F">TO</div><div class="otoa" style="position:absolute;left:150px;top:16px;font-size:92px;letter-spacing:-0.012em;line-height:1"></div>
     <div style="position:absolute;left:0;right:0;top:126px;height:1px;background:#E2DBD3"></div>
-    <div class="m" style="position:absolute;left:0;top:156px;font-size:22px;color:#8E877F">RE</div><div style="position:absolute;left:56px;top:148px;font-size:30px;color:#5C5650">Your SaaS is a bit boring.</div>
+    <div class="m" style="position:absolute;left:0;top:157px;font-size:20px;letter-spacing:.08em;color:#8E877F">SUBJECT</div><div style="position:absolute;left:150px;top:148px;font-size:30px;color:#5C5650">Re: Your SaaS is a bit boring.</div>
     <div style="position:absolute;left:0;right:0;top:206px;height:1px;background:#E2DBD3"></div></div>
   <div class="obody" style="position:absolute;left:44px;top:44px;right:200px">
     <div class="ar obrief" style="font-size:28px;line-height:1.45;color:#6E6862"></div>
@@ -471,7 +497,7 @@ let OUL={};
 function outroLayout(){ OUL.ws=ouWords.map(e=>e.offsetWidth); OUL.ww=ouWord.offsetWidth; OUL.lw=ouLine.offsetWidth;
   show(ouTasteB,true); OUL.tb=ouTasteB.offsetWidth; show(ouTasteB,false); }
 cR31(1378,'shimmer',{v:.35,end:1386}); cR31(1385,'reverse',{v:.6,end:1393}); cR31(1393,'boom',{v:1.15}); cR31(1408,'shimmer',{v:.4,end:1416});
-OUW.forEach(([f],i)=>cR31(f,'key',{v:.4})); cR31(1439,'swish',{v:.3,peak:1446,dur:7}); cR31(1492,'final',{}); cR31(1528,'tick',{v:.25}); cR31(1540,'scratch',{v:.8,end:1548});
+OUW.forEach(([f],i)=>cR31(f,'key',{v:.4})); cR31(1439,'swish',{v:.3,peak:1446,dur:7}); cR31(1492,'final',{}); cR31(1524,'tick',{v:.25}); cR31(1508,'scratch',{v:.8,end:1516});
 const DOT_C=['#151413','#151413','#151413','#FF3D5E'];
 // la ligne « Give it taste. » : dans la pill (48 px), puis titre de 200 px aligné à x=144, ligne de base ≈ 300
 function ouLineGeom(f){ const sp=12, pad=30; const TW=OUW.map((_,i)=>OUL.ws.slice(0,i+1).reduce((a,b)=>a+b+sp,0)-sp); let tw=TW[0]; for(let i=1;i<OUW.length;i++) tw=lerp(tw,TW[i],approach(f,OUW[i][0],9,0.5));
@@ -492,28 +518,28 @@ function shotOutro(F){ const f=F-2; push(OU.cam,f,1378,f<1489?0.0008:0);
   const G=ouLineGeom(f); let k2=-1; OUW.forEach(([wf],i)=>{ if(f>=wf) k2=i; });
   const pw=G.tw+2*G.pad; const pOn=f>=1448&&f<1490; show(ouPill,pOn); if(pOn){ Object.assign(ouPill.style,{width:pw+'px',left:(960-pw/2)+'px',top:'497px'});
     ouRect.setAttribute('width',Math.max(0,pw-3.5)); ouRect.setAttribute('height',86-3.5); ouRect.setAttribute('stroke-dasharray','1'); ouRect.setAttribute('stroke-dashoffset',(-clamp((f-1486)/3)).toFixed(3)); }
-  let cx=G.x0; const morph=f>=1550;
+  let cx=G.x0; const morph=f>=1515;
   ouWords.forEach((d,i)=>{ show(d,i<=k2); if(i>k2) return; placeTL(d,cx,G.y0,G.S); cx+=(OUL.ws[i]+G.sp)*G.S;
-    if(i==2){ // « taste. » passe de l'Arial du fondateur au Besley, lettre à lettre (1550-1555)
-      const n=morph?clamp(f-1549,0,6):0; d.innerHTML=[...'taste.'].map((c,j)=>`<span style="opacity:${j<n?0:1}">${c}</span>`).join(''); } });
-  show(ouTasteB,morph); if(morph){ const x=G.x0+(OUL.ws[0]+OUL.ws[1]+2*G.sp)*G.S, n=clamp(f-1549,0,6); ouTasteB.firstChild.style.fontSize=(48*G.S*1.07*0.97)+'px';
+    if(i==2){ // « taste. » passe de l'Arial du fondateur au Besley, lettre à lettre (1515-1520)
+      const n=morph?clamp(f-1514,0,6):0; d.innerHTML=[...'taste.'].map((c,j)=>`<span style="opacity:${j<n?0:1}">${c}</span>`).join(''); } });
+  show(ouTasteB,morph); if(morph){ const x=G.x0+(OUL.ws[0]+OUL.ws[1]+2*G.sp)*G.S, n=clamp(f-1514,0,6); ouTasteB.firstChild.style.fontSize=(48*G.S*1.07*0.97)+'px';
     ouTasteB.firstChild.innerHTML=[...'taste.'].map((c,j)=>`<span style="opacity:${j<n?1:0}">${c}</span>`).join(''); placeTL(ouTasteB,x,G.y0-0.18*48*G.S); }
-  // la carte (1494-1502), l'en-tête TO / RE (1503-1506), « vladan » sort du sélecteur de modèle et vole dans TO (1506-1512), « @kwinndo.fr » se tape
-  const cOn=f>=1494; show(ouCard,cOn);
-  if(cOn){ const r=vl(f,1494,8); ouCard.style.translate=`0 ${(18*(1-r)).toFixed(1)}px`; ouCard.style.opacity=r.toFixed(3);
-    const hh=226*vl(f,1503,4); ouTo.style.height=hh+'px'; ouBody.style.top=(44+hh*(212/226))+'px';
-    const fl=clamp((f-1506)/6), fe=vladan(fl); ouMC.style.opacity=(1-clamp((f-1506)/2)).toFixed(2); ouMW.style.visibility=f>=1506?'hidden':'visible'; ouModel.style.width=f>=1506?lerp(110,0,clamp((f-1506)/3))+'px':'';
+  // la carte (1492-1498), l'en-tête TO / SUBJECT (1496-1500), « vladan » sort du sélecteur de modèle et vole dans TO (1499-1505), « @kwinndo.fr » se tape (1505-1510)
+  // puis le soulignement (1508-1516), l'italique (1515-1520), la main sur Envoyer (1524) et l'affiche tient jusqu'à la fin
+  const cOn=f>=1492; show(ouCard,cOn);
+  if(cOn){ const r=vl(f,1492,6); ouCard.style.translate=`0 ${(18*(1-r)).toFixed(1)}px`; ouCard.style.opacity=r.toFixed(3);
+    const hh=226*vl(f,1496,4); ouTo.style.height=hh+'px'; ouBody.style.top=(44+hh*(212/226))+'px';
+    const fl=clamp((f-1499)/6), fe=vladan(fl); ouMC.style.opacity=(1-clamp((f-1499)/2)).toFixed(2); ouMW.style.visibility=f>=1499?'hidden':'visible'; ouModel.style.width=f>=1499?lerp(110,0,clamp((f-1499)/3))+'px':'';
     const cr=ouCard.getBoundingClientRect(), st=OU.s.getBoundingClientRect(), kk=st.width/W;
-    show(ouFly,f>=1506&&f<1512); if(f>=1506&&f<1512){ const sx=144+1500-130-110, sy=440+OU_CH-38-26, tx=144+44+56, ty=440+16+5; const x=lerp(sx,tx,fe), y=lerp(sy,ty,fe)-60*Math.sin(Math.PI*fl);
+    show(ouFly,f>=1499&&f<1505); if(f>=1499&&f<1505){ const sx=144+1500-130-110, sy=440+OU_CH-38-26, tx=144+44+150, ty=440+16+5; const x=lerp(sx,tx,fe), y=lerp(sy,ty,fe)-60*Math.sin(Math.PI*fl);
       placeTL(ouFly,x,y,lerp(1,92/26,fe)); }
-    ouToA.textContent=f<1512?'':'vladan'+'@kwinndo.fr'.slice(0,Math.floor((f-1512+1)*1.5));
-    ouSend.style.background=f>=1528?'#2E2B28':'#151413';
+    ouToA.textContent=f<1505?'':'vladan'+'@kwinndo.fr'.slice(0,Math.floor((f-1505+1)*2));
     // le trait M3 séché, toujours sur « Arial, »
     const ix=inkClear(ouInk); const sp=q1(ouBrief,'.ari'); if(sp&&r>0.5){ const b=sp.getBoundingClientRect(); const rr=[(b.left-st.left)/kk,(b.top-st.top)/kk,(b.right-st.left)/kk,(b.bottom-st.top)/kk];
       penDraw(ix,penPlace('G03',[rr[0]-6,rr[3]-28*0.52*0.5-9,rr[2]+10,0]),1e6,0,{size:3.4,alpha:r}); }
-    // M9 : le stylo souligne « taste. » (1540-1548) ; le soulignement dépasse quand l'italique, plus étroit, prend sa place
-    if(f>=1540){ const x=G.x0+(OUL.ws[0]+OUL.ws[1]+2*G.sp)*G.S, w=OUL.ws[2]*G.S; penDraw(ix,penPlace('G09',[x-4,G.y0+48*G.S*0.98,x+w+8,0]),f,1540,{size:13}); } }
-  // le fondateur revient (linéaire, sur deux images) ; à 1528 la main survole Envoyer, au même décalage qu'à 206. Il ne clique jamais.
-  const cf=twos(f,1520), cp=clamp((cf-1520)/8); const sx2=144+1500-30-36, sy2=440+OU_CH-24-36;
-  cursor(lerp(1760,sx2-4,cp),lerp(1010,sy2+4,cp),0,f>=1520,1,f>=1528?'hand':'arrow');
+    // M9 : le stylo souligne « taste. » (1508-1516) ; le soulignement dépasse quand l'italique, plus étroit, prend sa place
+    if(f>=1508){ const x=G.x0+(OUL.ws[0]+OUL.ws[1]+2*G.sp)*G.S, w=OUL.ws[2]*G.S; penDraw(ix,penPlace('G09',[x-4,G.y0+48*G.S*0.98,x+w+8,0]),f,1508,{size:13}); } }
+  // le fondateur revient (linéaire, sur deux images) ; à 1524 la main survole Envoyer, au même décalage qu'à 206. Il ne clique jamais : le bouton ne change pas.
+  const cf=twos(f,1516), cp=clamp((cf-1516)/8); const sx2=144+1500-30-36, sy2=440+OU_CH-24-36;
+  cursor(lerp(1760,sx2-4,cp),lerp(1010,sy2+4,cp),0,f>=1516,1,f>=1524?'hand':'arrow');
 }

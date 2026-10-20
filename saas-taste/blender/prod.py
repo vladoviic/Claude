@@ -122,6 +122,7 @@ def j_aerial():
         pose(i); bpy.context.view_layer.update()
         proj.append({k:[[round(v.x,4),round(1-v.y,4)] for v in (world_to_camera_view(sc,o,mathutils.Vector(p)) for p in pts)] for k,pts in shapes.items()})
     json.dump(proj,open(f'{OUT}/aerial/proj.json','w'))
+    # NB : img/aerial/proj.json est ensuite relevé à hauteur d'assise (rug 0,015 · sofa/chair 0,40 · pouf 0,18 · table 0,50 · plant 0,30 m), même caméra
     for i in seq_frames(N,2):
         pose(i); jpg(f'{OUT}/aerial/a_{i:02d}.jpg')
 
