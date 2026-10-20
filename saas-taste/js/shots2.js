@@ -391,14 +391,17 @@ const shWin=el(SH.cam,'','', 'position:absolute;inset:0;pointer-events:none');
 shWin.innerHTML=`<div style="position:absolute;left:0;top:0;right:0;height:26px;background:#151413"></div><div style="position:absolute;left:0;bottom:0;right:0;height:26px;background:#151413"></div>
   <div style="position:absolute;left:0;top:0;bottom:0;width:26px;background:#151413"></div><div style="position:absolute;right:0;top:0;bottom:0;width:26px;background:#151413"></div>
   <div style="position:absolute;left:631px;top:0;bottom:0;width:18px;background:#151413"></div><div style="position:absolute;left:1271px;top:0;bottom:0;width:18px;background:#151413"></div>
-  <div style="position:absolute;left:0;right:0;top:351px;height:18px;background:#151413"></div>`;
-const shChair=el(SH.cam,'','', 'position:absolute;right:-60px;bottom:-40px;width:380px;height:240px;overflow:hidden;border-radius:60px 60px 0 0');
-shChair.innerHTML='<img src="img/turn/red_60.jpg" style="position:absolute;left:-380px;top:-130px;width:1100px;height:800px;filter:brightness(.55) contrast(1.1)">';
+  <div style="position:absolute;left:0;right:0;top:351px;height:18px;background:#151413"></div>
+  <div style="position:absolute;left:-60px;right:-60px;top:1080px;height:900px;background:linear-gradient(180deg,#8E7F73 0,#7B6D63 220px,#665a52 900px)"></div>
+  <div style="position:absolute;left:-60px;right:-60px;top:1080px;height:16px;background:#B7A799;box-shadow:0 1px 0 #CDBFB1 inset,0 10px 24px rgba(40,30,25,.35)"></div>`;
+// le fauteuil détouré (img/ship_chair.png, tiré de red_60), à contre-jour devant le mur ; il monte avec la pièce quand la caméra descend
+const shChair=el(SH.cam,'','', 'position:absolute;left:1520px;top:1168px;width:665px;height:602px');
+shChair.innerHTML='<img src="img/ship_chair.png" style="width:100%;height:100%;filter:brightness(.6) contrast(1.08) saturate(.95)">';
 const shBtn=el(SH.s,'bbtn',''); shBtn.style.zIndex=5; shBtn.style.width='228px'; shBtn.style.padding='0'; shBtn.style.textAlign='center'; shBtn.style.borderRadius='14px';
 const shRing=el(SH.s,'','', 'position:absolute;left:960px;top:540px;width:0;height:0;border-radius:50%;box-shadow:0 0 0 1px #151413;z-index:4');
 cR28(1250,'impact',{v:.5}); cR28(1295,'beep',{v:.6}); cR28(1298,'riser',{v:.55,end:1306});
 function shotShip(F){ const f=F-1;
-  const y=-900*approach(f,1250,36,0.11); shSky.style.transform=`translateY(${y.toFixed(1)}px)`; shWin.style.transform=`translateY(${(y*0.35+0).toFixed(1)}px)`; shChair.style.transform=`translateY(${(-y*0.06).toFixed(1)}px)`;
+  const y=-900*approach(f,1250,36,0.11); shSky.style.transform=`translateY(${y.toFixed(1)}px)`; shWin.style.transform=`translateY(${(y*0.35+0).toFixed(1)}px)`; shChair.style.transform=`translateY(${(y*0.42).toFixed(1)}px)`;
   const n=clamp(f-1250,0,7); shBtn.innerHTML='Ship it'.slice(0,n)+(f<1262||Math.floor(f/8)%2?'<span style="display:inline-block;width:3px;height:40px;background:#F3EFEA;vertical-align:-6px;margin-left:3px"></span>':'');
   const pr=f>=1295&&f<1297; place(shBtn,960,540,pr?0.94:1); shBtn.style.background='#151413';
   const rg=clamp((f-1295)/10); show(shRing,f>=1295&&f<1306); const R=120*rg; Object.assign(shRing.style,{width:2*R+'px',height:2*R+'px',left:(960-R)+'px',top:(540-R)+'px',opacity:(1-rg).toFixed(2)});
@@ -450,7 +453,7 @@ const ouTasteB=el(OU.cam,'abs','<em class="big" style="font-weight:400">taste.</
 const OU_CH=470; // hauteur de la carte : l'en-tête TO / RE (226) + le brief + la citation, sans toucher le « + »
 const ouCard=el(OU.cam,'','', `position:absolute;left:144px;top:440px;width:1500px;height:${OU_CH}px;border-radius:28px;background:#F8F6F3;box-shadow:0 30px 60px -30px rgba(60,40,40,.25);display:none;overflow:hidden`);
 ouCard.innerHTML=`<div class="oto" style="position:absolute;left:44px;top:0;right:44px;height:0;overflow:hidden">
-    <div class="m" style="position:absolute;left:0;top:58px;font-size:22px;color:#8E877F">TO</div><div class="otoa" style="position:absolute;left:56px;top:22px;font-size:76px;letter-spacing:-0.035em;line-height:1"></div>
+    <div class="m" style="position:absolute;left:0;top:58px;font-size:22px;color:#8E877F">TO</div><div class="otoa" style="position:absolute;left:56px;top:16px;font-size:92px;letter-spacing:-0.012em;line-height:1"></div>
     <div style="position:absolute;left:0;right:0;top:126px;height:1px;background:#E2DBD3"></div>
     <div class="m" style="position:absolute;left:0;top:156px;font-size:22px;color:#8E877F">RE</div><div style="position:absolute;left:56px;top:148px;font-size:30px;color:#5C5650">Your SaaS is a bit boring.</div>
     <div style="position:absolute;left:0;right:0;top:206px;height:1px;background:#E2DBD3"></div></div>
@@ -501,8 +504,8 @@ function shotOutro(F){ const f=F-2; push(OU.cam,f,1378,f<1489?0.0008:0);
     const hh=226*vl(f,1503,4); ouTo.style.height=hh+'px'; ouBody.style.top=(44+hh*(212/226))+'px';
     const fl=clamp((f-1506)/6), fe=vladan(fl); ouMC.style.opacity=(1-clamp((f-1506)/2)).toFixed(2); ouMW.style.visibility=f>=1506?'hidden':'visible'; ouModel.style.width=f>=1506?lerp(110,0,clamp((f-1506)/3))+'px':'';
     const cr=ouCard.getBoundingClientRect(), st=OU.s.getBoundingClientRect(), kk=st.width/W;
-    show(ouFly,f>=1506&&f<1512); if(f>=1506&&f<1512){ const sx=144+1500-130-110, sy=440+OU_CH-38-26, tx=144+44+56, ty=440+22+4; const x=lerp(sx,tx,fe), y=lerp(sy,ty,fe)-60*Math.sin(Math.PI*fl);
-      placeTL(ouFly,x,y,lerp(1,76/26,fe)); }
+    show(ouFly,f>=1506&&f<1512); if(f>=1506&&f<1512){ const sx=144+1500-130-110, sy=440+OU_CH-38-26, tx=144+44+56, ty=440+16+5; const x=lerp(sx,tx,fe), y=lerp(sy,ty,fe)-60*Math.sin(Math.PI*fl);
+      placeTL(ouFly,x,y,lerp(1,92/26,fe)); }
     ouToA.textContent=f<1512?'':'vladan'+'@kwinndo.fr'.slice(0,Math.floor((f-1512+1)*1.5));
     ouSend.style.background=f>=1528?'#2E2B28':'#151413';
     // le trait M3 séché, toujours sur « Arial, »

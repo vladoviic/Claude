@@ -63,6 +63,25 @@ if (process.argv.includes('--cues')) {
   mkdirSync(out, { recursive: true });
   writeFileSync(join(out, 'cues.json'), JSON.stringify({ fps: 30, total, cues }, null, 1));
   console.log(`out/cues.json : ${cues.length} cues`);
+} else if (process.argv.includes('--qa')) {
+  // relevés DOM pour qa/check.py : texte visible, curseur et bouton Envoyer, une image sur 5 (+ les posters)
+  const page = await openPage();
+  const total = await page.evaluate(() => window.TOTAL);
+  const frames = [...new Set([...Array.from({ length: Math.ceil(total / 5) }, (_, i) => i * 5), 126, 206, 233, 1232, 1295, 1528, 1559])].sort((a, b) => a - b);
+  const rows = [];
+  for (const f of frames) {
+    rows.push(await page.evaluate(n => {
+      window.renderFrame(n);
+      const vis = [...document.querySelectorAll('.scene')].filter(s => s.style.display !== 'none' && getComputedStyle(s).display !== 'none');
+      const cur = document.getElementById('cursor'), on = getComputedStyle(cur).display !== 'none';
+      const r = e => { if (!e) return null; const b = e.getBoundingClientRect(); return [b.left, b.top, b.width, b.height]; };
+      const send = vis.map(s => s.querySelector('.psend,.osend')).find(Boolean);
+      return { f: n, scenes: vis.map(s => s.id), text: vis.map(s => s.innerText).join('\n'), cursor: on ? { r: r(cur.querySelector(cur.dataset.shape === 'hand' ? '.hand' : '.arrow')), shape: cur.dataset.shape } : null, send: r(send) };
+    }, f));
+  }
+  mkdirSync(join(out, 'qa'), { recursive: true });
+  writeFileSync(join(out, 'qa', 'dom.json'), JSON.stringify(rows));
+  console.log(`out/qa/dom.json : ${rows.length} images`);
 } else if (stills) {
   mkdirSync(join(out, 'stills'), { recursive: true });
   const page = await openPage();

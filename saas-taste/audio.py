@@ -75,7 +75,7 @@ class Bus:
         self.x[i:i + len(sig), 1] += sig * gain * r * 1.414
 
 
-dry, verb, drums = Bus(), Bus(), Bus()
+dry, verb, drums, pen = Bus(), Bus(), Bus(), Bus()  # pen : le stylo, au-dessus du ducking
 
 # ---------------------------------------------------------------- instruments
 def kick(v=1.0):
@@ -249,6 +249,121 @@ def sfx_impact(v, size=1.0):
 
 def sfx_reverse(dur, v):
     return sfx_noise_swell(dur, dur * 0.98, v, lo=200, hi=9000) * np.linspace(0.2, 1, int(dur * SR))
+
+
+# ---------------------------------------------------------------- le stylo rouge
+# Un feutre sur papier : le frottement suit la vitesse de la pointe, plus brillant quand elle va vite,
+# avec le grain du papier (petits chocs dont la densité suit la vitesse). La vitesse d'un trait suit
+# la courbe « vladan » du film (lognormale, pic vers 17 % du geste), donc le son a le même phrasé que l'image.
+def speed_vladan(n, mu=np.log(0.22), s=0.5):
+    t = (np.arange(n) + 0.5) / n
+    pdf = np.exp(-(np.log(t) - mu) ** 2 / (2 * s * s)) / t
+    return pdf / pdf.max()
+
+
+def marker(sp, v, seed, lo=900, mid=2600, hi=8000, grain=1.0):
+    r = np.random.default_rng(seed)
+    n = len(sp)
+    t = np.arange(n) / SR
+    nz = r.standard_normal(n)
+    fric = bp(nz, lo, mid) * (1 - 0.55 * sp) + bp(nz, mid, hi) * sp * 1.25
+    g = (r.random(n) < 0.0015 + 0.02 * sp) * r.standard_normal(n)
+    g = bp(g, 2500, 9500) * grain
+    contact = np.minimum(1, t / 0.004) * np.minimum(1, (t[-1] - t + 1e-4) / 0.012)
+    land = np.zeros(n)
+    k = min(n, int(0.03 * SR))
+    land[:k] = np.sin(2 * np.pi * 820 * t[:k]) * np.exp(-t[:k] * 260) * 0.25
+    return (fric * (0.15 + 0.85 * sp) + g * 0.9 + land) * contact * v * 0.58
+
+
+def sfx_scratch(dur, v, seed):
+    n = int(dur * SR)
+    return marker(speed_vladan(n), v, seed)
+
+
+def sfx_scribble(dur, v, seed):
+    """M8 : des allers-retours (6 → 8 par seconde) ; la pointe s'arrête et accroche à chaque demi-tour."""
+    t = tt(dur)
+    ph = np.cumsum(6 + 2 * t / dur) / SR
+    sp = np.abs(np.sin(np.pi * 2 * ph)) ** 0.8
+    shape = np.minimum(1, t / 0.12) * np.minimum(1, (dur - t) / 0.25)
+    x = marker(sp * (0.4 + 0.6 * shape), v, seed)
+    turns = np.where(np.diff(np.floor(ph * 2)) > 0)[0]
+    for i in turns:
+        k = min(len(x) - i, int(0.02 * SR))
+        x[i:i + k] += bp(np.random.default_rng(int(i)).standard_normal(k), 1500, 5000) * np.exp(-np.arange(k) / SR * 300) * v * 0.25
+    return x
+
+
+def sfx_brush(dur, v, seed):
+    """M7 : un pinceau large sur fond sombre, plus mou et plus mouillé que le feutre."""
+    n = int(dur * SR)
+    sp = speed_vladan(n, mu=np.log(0.3), s=0.6)
+    x = marker(sp, v, seed, lo=350, mid=1500, hi=5200, grain=1.8)
+    wet = lp(np.random.default_rng(seed + 1).standard_normal(n), 700) * sp
+    return x + wet * v * 0.18
+
+
+def sfx_tear(dur, v, seed):
+    """Papier qui se déchire le long du trait : craquements serrés, rugosité aléatoire."""
+    r = np.random.default_rng(seed)
+    t = tt(dur)
+    n = len(t)
+    rough = np.abs(lp(r.standard_normal(n), 40))
+    rough /= rough.max() + 1e-9
+    cr = (r.random(n) < 0.03) * r.standard_normal(n)
+    body = bp(cr, 600, 6000) * 2.2 + bp(r.standard_normal(n), 160, 520) * 0.25
+    env = np.minimum(1, t / 0.02) * np.exp(-np.maximum(0, t - dur * 0.6) * 9)
+    return body * (0.3 + 0.7 * rough) * env * v * 0.5
+
+
+def sfx_reel(dur, v, seed):
+    """Le fil rembobiné : cliquetis d'un moulinet qui accélère, et le sifflement fin du fil."""
+    r = np.random.default_rng(seed)
+    t = tt(dur)
+    p = t / dur
+    rate = 12 + 30 * p * p * (3 - 2 * p)
+    ph = np.cumsum(rate) / SR
+    x = np.zeros(len(t))
+    k = int(0.012 * SR)
+    kt = np.arange(k) / SR
+    click = (bp(r.standard_normal(k), 2400, 5200) + np.sin(2 * np.pi * 1250 * kt) * 0.6) * np.exp(-kt * 420)
+    for i in np.where(np.diff(np.floor(ph)) > 0)[0]:
+        m = min(k, len(x) - i)
+        x[i:i + m] += click[:m] * (0.6 + 0.4 * r.random())
+    whistle = np.sin(2 * np.pi * np.cumsum(2200 + 1200 * p) / SR) * 0.05 + hp(r.standard_normal(len(t)), 5000) * 0.08
+    return (x * 0.5 + whistle * p) * np.minimum(1, (dur - t) / 0.03) * v * 1.5
+
+
+def sfx_rub(dur, peak_at, v):
+    """La plongée dans le trait : l'air se ferme, une basse descend, les fibres crépitent de plus en plus près."""
+    t = tt(dur)
+    sw = sfx_noise_swell(dur, peak_at, v, lo=90, hi=2400)
+    f = 70 * 2 ** (-t / dur)
+    sub = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-((t - peak_at) / (dur * 0.35)) ** 2) * 0.5
+    g = (rng.random(len(t)) < 0.0008 + 0.012 * (t / dur) ** 2) * rng.standard_normal(len(t))
+    return sw + (sub + bp(g, 1200, 6000) * 0.7) * v
+
+
+def sfx_glide(dur, v):
+    """Un glissé doux : une quinte qui monte sous un souffle filtré (la boucle du S, le front de vague)."""
+    t = tt(dur)
+    p = t / dur
+    f = hz(76) * 2 ** (7 / 12 * p * p * (3 - 2 * p))
+    tone = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.sin(np.pi * p) ** 1.5
+    air = sfx_noise_swell(dur, dur * 0.55, 1.0, lo=500, hi=7000)
+    return (tone * 0.18 + air * 0.6) * v
+
+
+def sfx_beep(v):
+    """Validé : deux notes courtes (do, sol), propres, sans rebond."""
+    out = np.zeros(int(0.32 * SR))
+    for j, n in enumerate((84, 91)):
+        t = tt(0.16)
+        s = np.sin(2 * np.pi * hz(n) * t) * np.minimum(1, t / 0.004) * np.exp(-t * 22)
+        i = int(j * 0.075 * SR)
+        out[i:i + len(s)] += s * (0.8 if j else 0.6)
+    return out * v * 0.45
 
 
 # ---------------------------------------------------------------- musique
@@ -450,6 +565,36 @@ for c in CUES:
     elif k == 'boom':
         dry.add(sfx_impact(min(1.0, v), 1.6), f, gain=1.0)
         verb.add(sfx_impact(min(1.0, v), 1.6), f, gain=0.45)
+    elif k == 'scratch':
+        x = sfx_scratch(sec(c['end'] - f), v, f)
+        pen.add(x, f, pan=0.12)
+        verb.add(x, f, gain=0.12)
+    elif k == 'scribble':
+        x = sfx_scribble(sec(c['end'] - f), v, f)
+        pen.add(x, f, pan=-0.08)
+        verb.add(x, f, gain=0.15)
+    elif k == 'brush':
+        x = sfx_brush(sec(c['end'] - f), v, f)
+        pen.add(x, f)
+        verb.add(x, f, gain=0.2)
+    elif k == 'tear':
+        pen.add(sfx_tear(sec(c['end'] - f), v, f), f, pan=-0.15)
+    elif k == 'reel':
+        x = sfx_reel(sec(c['end'] - f), v, f)
+        pen.add(x, f, pan=0.2)
+        verb.add(x, f, gain=0.1)
+    elif k == 'rub':
+        x = sfx_rub(sec(c.get('dur', 16)), sec(c['peak'] - f), v)
+        pen.add(x, f)
+        verb.add(x, f, gain=0.3)
+    elif k == 'glide':
+        x = sfx_glide(sec(c['end'] - f), v)
+        dry.add(x, f, gain=0.8)
+        verb.add(x, f, gain=0.3)
+    elif k == 'beep':
+        x = sfx_beep(v)
+        dry.add(x, f, pan=0.1)
+        verb.add(x, f, gain=0.35)
 
 music = drums.x * 0.5
 
@@ -481,6 +626,28 @@ duck(mix, 588, 597, -16, ramp=2)
 duck(mix, 616, 646, -22)
 duck(mix, 1265, 1276, -30)
 duck(mix, 1505, TOTAL, -16, ramp=40)
+# le stylo passe devant : le reste du mix recule de 5 dB pendant chaque geste ; « hush » (1175) fait
+# taire la salle pour le gribouillis M8, qui revient avec le fil jusqu'au coup du logo
+for c in CUES:
+    if c['k'] in ('scratch', 'scribble', 'brush', 'tear'):
+        duck(mix, c['f'], c['end'], -5, ramp=2)
+HUSH = first('hush', None)
+if HUSH is not None:
+    BOOM2 = min([c['f'] for c in CUES if c['k'] == 'boom' and c['f'] > HUSH] or [HUSH + 57])
+    REEL = max([c['f'] for c in CUES if c['k'] == 'reel' and c['f'] > HUSH] or [HUSH + 35])
+    g = 10 ** (-9 / 20)
+    a, b, e = at(HUSH), at(REEL), at(BOOM2)
+    env = np.ones(len(mix))
+    r = at(4)
+    env[a - r:a] = np.linspace(1, g, r)
+    env[a:b] = g
+    m = b + int(0.6 * (e - b))  # la salle se tait encore pendant que le fil remonte, puis revient dans le coup
+    env[b:m] = g
+    env[m:e] = np.linspace(g, 1, e - m)
+    mix *= env[:, None]
+if os.environ.get('STEMS'):
+    np.save(os.path.join(HERE, 'out', 'stem_pen.npy'), pen.x[:N]); np.save(os.path.join(HERE, 'out', 'stem_rest.npy'), mix[:N])
+mix += pen.x
 if os.environ.get('STEMS'):
     def lvl(x):
         m = x.mean(1)

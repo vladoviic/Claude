@@ -3,7 +3,7 @@
    ============================================================ */
 function renderFrame(f){
   f=Math.round(f);
-  show($('iriFull'),false); show(CUR,false); CUR.style.opacity='';
+  show(CUR,false); CUR.style.opacity='';
   for(const sc of SCENES){ const on=f>=sc.f0&&f<=sc.f1; show(sc.el,on); if(on) sc.render(f); }
   return f;
 }
@@ -18,8 +18,16 @@ function applyRemap(){
     sc.f0=n0; sc.f1=n1; const r=sc.render; sc.render=f=>r(f+d); }
   CUES.forEach(c=>delete c._moved);
 }
+// V23 : la dent du papier (img/tooth.png, fibres courtes, tuile de 1024) sous le contenu des fonds papier, en lumière douce (≈ 1,6/255).
+// Elle est dans la caméra : elle appartient à la feuille et bouge avec elle. Les cartes et les boutons, opaques, restent lisses.
+// La caméra a un transform, donc son propre contexte de fusion : un fond papier sous la dent lui donne quelque chose à éclairer.
+const TOOTH_SCENES=['sW','sLogo','sPrompt','sTree','sPills','sPlan','sPhone','sGrid','sReport','sOutro'];
+preload('img/tooth.png');
+function addTooth(){ for(const id of TOOTH_SCENES){ const cam=$(id).querySelector(':scope>.cam'); if(!cam) continue;
+  const g=document.createElement('div'); g.className='sheet'; g.style.background=getComputedStyle($(id)).backgroundColor;
+  const t=document.createElement('div'); t.className='tooth'; cam.prepend(g,t); } }
 async function init(){
-  applyRemap();
+  applyRemap(); addTooth();
   // toutes les photos (rendus Cycles) décodées avant la première image
   // toutes les images chargées (le décodage se fait à la demande, au dessin : decode() rejette quand il y en a des centaines)
   await Promise.all([...document.images,...PRELOAD].map(im=>im.complete&&im.naturalWidth?0:new Promise(r=>{ im.addEventListener('load',r,{once:true}); im.addEventListener('error',()=>{ console.error('image manquante : '+im.src); r(); },{once:true}); })));

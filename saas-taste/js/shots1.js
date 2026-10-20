@@ -4,16 +4,19 @@
 function el(parent,cls='',html='',css=''){ const d=document.createElement('div'); if(cls) d.className=cls; if(html) d.innerHTML=html; if(css) d.style.cssText=css; parent.appendChild(d); return d; }
 function canvas(parent,w,h,css=''){ const c=document.createElement('canvas'); c.width=w; c.height=h; c.style.cssText='position:absolute;'+css; parent.appendChild(c); return c; }
 const SCENES=[];
-function scene(id,f0,f1,render,cls=''){ const s=document.createElement('div'); s.className='scene '+cls; s.id=id; $('stage').insertBefore(s,$('iriFull')); const cam=el(s,'cam'); SCENES.push({id,f0,f1,render,el:s}); return {s,cam}; }
-function sky(parent){ el(parent,'sky'); el(parent,'haze','','top:520px;height:120px;background:rgba(255,236,226,.55)'); el(parent,'haze','','top:690px;height:160px;background:rgba(200,226,236,.5)'); }
+function scene(id,f0,f1,render,cls=''){ const s=document.createElement('div'); s.className='scene '+cls; s.id=id; $('stage').insertBefore(s,$('cursor')); const cam=el(s,'cam'); SCENES.push({id,f0,f1,render,el:s}); return {s,cam}; }
+// dégradé vertical mélangé en lumière linéaire et tramé à ±1 (triangulaire) : pas de bandes sous x264
+function ditherV(stops,h,seed){ const c=document.createElement('canvas'); c.width=8; c.height=h; const x=c.getContext('2d'), im=x.createImageData(8,h), R=rng(seed);
+  const st=stops.map(([t,hx])=>[t,hex(hx).map(v=>Math.pow(v/255,2.2))]);
+  for(let y=0;y<h;y++){ const t=y/(h-1); let k=0; while(k<st.length-2&&st[k+1][0]<t) k++; const [t0,a]=st[k], [t1,b]=st[k+1], u=clamp((t-t0)/(t1-t0));
+    const lin=a.map((v,i)=>lerp(v,b[i],u)); for(let xx=0;xx<8;xx++){ const o=(y*8+xx)*4; lin.forEach((v,i)=>{ im.data[o+i]=clamp(Math.round(Math.pow(v,1/2.2)*255+(R()-R())),0,255); }); im.data[o+3]=255; } }
+  x.putImageData(im,0,0); return c.toDataURL(); }
+// derrière les écrans cadrés : le ciel de la fenêtre de Ship it (1251), chroma ramené à 12 au plus. Un ciel, un soleil.
+const SKY_STOPS=[[0,'#ECE4DC'],[.25,'#F2E3D5'],[.45,'#F6E2D0'],[.6,'#F6E3D0'],[.75,'#E7DACC'],[.98,'#B3CAC9'],[1,'#B3CAC9']];
+let SKY_URL=null;
+function sky(parent){ SKY_URL=SKY_URL||ditherV(SKY_STOPS,1200,11); el(parent,'sky','',`background:url(${SKY_URL}) 0 0/100% 100%`); }
 const push=(cam,f,f0,k=0.001)=>{ cam.style.transform=`scale(${(1+k*(f-f0)).toFixed(4)})`; };
 const T=f=>f/FPS;
-// tables de couleurs : la teinte suit les clairs et les ombres de l'image (réf 62-69, 114-116, 232)
-(()=>{ const tab=cs=>{ const c=cs.map(h=>[1,3,5].map(k=>parseInt(h.slice(k,k+2),16)/255)); return [0,1,2].map(j=>c.map(x=>x[j].toFixed(3)).join(' ')); };
-  const gm=(id,cs)=>{ const [r,g,b]=tab(cs); return `<filter id="${id}" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues="${r}"/><feFuncG type="table" tableValues="${g}"/><feFuncB type="table" tableValues="${b}"/></feComponentTransfer></filter>`; };
-  $('fx').innerHTML+=gm('gmTherm',['#20205E','#3070D0','#5CC8E8','#FFE59A','#FF8A4D','#FF6B6B','#FFC9A3'])+gm('gmHeat',['#2A0718','#8E1B3C','#FF5A5A','#FFB070','#BFE6F2','#E6F7FF','#FFFFFF'])+gm('gmPastel',['#7E6BE0','#B9A8FF','#FFA6C9','#FFC7A1','#FFF1E6','#FFFAF6']); })();
-const GM=k=>k===1?'url(#gmTherm)':k===2?'url(#gmPastel)':'';
-function setTint(c,o,a){ if(a<=0.003){ c.style.display='none'; return; } c.style.display='block'; c.style.opacity=a.toFixed(3); iriTo(c,o); }
 
 /* ---------- 1-3 · « Your SaaS is boring. » → caret rouge → « a bit » inséré ; puis l'éclatement de sites ---------- */
 const W1=scene('sW',0,119,f=>shotW(f));
@@ -59,8 +62,8 @@ const wCol=el(W1.cam,'abs','', 'inset:0;width:1920px;height:1080px'); let wColB=
 const wB=BR.map(([x,y,w,h,si])=>{ const d=el(wCol,'bshot',SITES[si].html, `left:0;top:0;width:${w}px;height:${h}px;transform-origin:0 0;background:${SITES[si].color}`); d._r=[x,y,w,h]; d._si=si; return d; });
 const wX=BXT.map(([si,w,h])=>{ const d=el(wCol,'bshot',SITES[si].html, `left:0;top:0;width:${w}px;height:${h}px;transform-origin:0 0;background:${SITES[si].color}`); d._w=w; d._h=h; d._si=si; return d; });
 const ease3=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
-[10,17,23,30].forEach((f,i)=>cue(f,'pluck',{n:[64,67,69,71][i],v:.3})); cue(8,'tick',{v:.4}); cue(37,'tick',{v:.3}); [43,44,45,46,47].forEach(f=>cue(f,'tick',{v:.16}));
-[27,33,36,42,49].forEach(f=>cue(f,'tick',{v:.2})); cue(53,'shimmer',{v:.3,end:61}); cue(104,'riser',{v:.4,end:119}); cue(62,'swish',{v:.45,peak:64,dur:6}); cue(89,'whoosh',{v:.4,peak:99,dur:14}); [64,66,67,70].forEach(f=>cue(f,'tick',{v:.2})); cue(96,'swish',{v:.45,peak:97,dur:4}); [104,108,113].forEach(f=>cue(f,'tick',{v:.22}));
+[10,17,23,30].forEach((f,i)=>cue(f,'pluck',{n:[64,67,69,71][i],v:.3})); cue(8,'tick',{v:.4}); cue(37,'scratch',{v:.45,end:41}); [43,44,45,46,47].forEach(f=>cue(f,'tick',{v:.16}));
+[27,33,36,42,49].forEach(f=>cue(f,'tick',{v:.2})); cue(53,'shimmer',{v:.3,end:61}); cue(104,'riser',{v:.4,end:119}); cue(62,'swish',{v:.45,peak:64,dur:6}); cue(89,'whoosh',{v:.4,peak:99,dur:14}); [64,66,67,70].forEach(f=>cue(f,'tick',{v:.2})); cue(96,'swish',{v:.45,peak:97,dur:4}); cue(104,'scratch',{v:.9,end:111}); cue(113,'tear',{v:.6,end:121}); cue(114,'reel',{v:.35,end:127});
 function wState(f){ let st=['','']; for(const [wf,a,b] of WST) if(f>=wf) st=[a,b]; return st; }
 function shotW(f){ push(W1.cam,f,0,0.0009);
   // la phrase
@@ -231,8 +234,9 @@ function shotLand(f){
     const d=0.5-0.5*Math.cos(Math.PI*clamp((f-227.6)/5.8)); INK.draw({O:[960,540],Z:1,mode:1,dry:d,sig:70*Math.pow(2.5/70,d),rect:[cx,cy,hw,hh],rr:hw*0.52}); }
   else if(INK&&INK.canvas.parentNode===LA.s) show(INK.canvas,false);
   // boutons d'abord en blocs de couleur qui changent toutes les 4 images, puis le logo (244) et les boutons (256)
-  laPills.forEach((pl,i)=>{ const ready=f>=(i==0?244:256); pl.style.color=ready?'':'transparent'; pl.style.background=ready?'':PH_COL[(Math.floor((fl-234)/4)+i)%3];
-    if(i==0) pl.style.background=ready?'rgba(18,17,16,.55)':pl.style.background; if(i==1&&ready) pl.style.background='#151413'; if(i==2&&ready) pl.style.background='rgba(18,17,16,.55)';
+  // (les couleurs d'origine sont gardées : remettre style.color à '' effaçait le texte clair de « Book a demo »)
+  laPills.forEach((pl,i)=>{ const ready=f>=(i==0?244:256); if(pl._c===undefined){ pl._c=pl.style.color; pl._b=pl.style.background; }
+    pl.style.color=ready?pl._c:'transparent'; pl.style.background=ready?pl._b:PH_COL[(Math.floor((fl-234)/4)+i)%3];
     pl.querySelectorAll('span').forEach(sp=>sp.style.visibility=ready?'visible':'hidden'); });
   q1(laD,'.full>.m').style.visibility=f>=242?'visible':'hidden';
   laLayout(f);
@@ -374,7 +378,7 @@ const plInk=inkLayer(plRoot);
 // M4 : le S d'inversion relie « Ship » (lundi) et « Taste Check » (vendredi) ; chacun part sur un lobe du S (523-529)
 const PL_SHIP=plChips[0], PL_TC=plChips[4];
 const M4=()=>penPlace('G04',[PL_SHIP._x0+150,PL_SHIP._y0+20,PL_TC._x0+40,PL_TC._y0+52],{mode:'stretch'});
-cR12(514,'scratch',{v:.6,end:521}); cR12(523,'glide',{v:.4,end:529});
+cR12(514,'scratch',{v:.8,end:521}); cR12(523,'glide',{v:.4,end:529});
 for(let k=0;k<7;k++) cR12(494+k*2.4,'tick',{v:.2}); PL_BARS.forEach(b=>cR12(b._st,'swish',{v:.18,peak:b._st+3,dur:6}));
 cR12(532,'impact',{v:.45}); cR12(541,'swish',{v:.35,peak:542,dur:5}); cR12(550,'swish',{v:.35,peak:551,dur:5}); cR12(555,'whoosh',{v:.4,peak:559,dur:5});
 function shotPlan(F){ const f=F-2;   // numéros de la réf (REMAP +2)
