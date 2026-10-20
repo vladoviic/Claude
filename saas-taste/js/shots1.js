@@ -63,6 +63,20 @@ const wCol=el(W1.cam,'abs','', 'inset:0;width:1920px;height:1080px'); let wColB=
 const wB=BR.map(([x,y,w,h,si])=>{ const d=el(wCol,'bshot',SITES[si].html, `left:0;top:0;width:${w}px;height:${h}px;transform-origin:0 0;background:${SITES[si].color}`); d._r=[x,y,w,h]; d._si=si; return d; });
 const wX=BXT.map(([si,w,h])=>{ const d=el(wCol,'bshot',SITES[si].html, `left:0;top:0;width:${w}px;height:${h}px;transform-origin:0 0;background:${SITES[si].color}`); d._w=w; d._h=h; d._si=si; return d; });
 const ease3=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+// la carte du fondateur parmi les beaux sites (juge, ronde 3) : SON dashboard v1, bleu #2D6CDF + Arial, pas de teinte ;
+// elle arrive en dernier (92, quand « boring. » s'en va), au centre, le curseur « You » posé dessus ; la barre M2 la traverse et la déchirure l'emporte
+const wFo=el(wCol,'bshot','', 'left:0;top:0;width:560px;height:350px;transform-origin:0 0;background:#F4F6F9;display:none;overflow:hidden;border-radius:10px');
+wFo.innerHTML=`<div class="ar" style="position:absolute;inset:0;font-family:'AR'">
+  <div style="position:absolute;left:0;top:0;bottom:0;width:118px;background:#2D6CDF;color:#fff"><div style="position:absolute;left:16px;top:18px;font-weight:700;font-size:17px">velvetly</div>
+    ${['Dashboard','Rooms','Embeds','Settings'].map((t,i)=>`<div style="position:absolute;left:10px;right:10px;top:${58+i*30}px;height:24px;border-radius:5px;${i?'':'background:rgba(255,255,255,.18);'}font-size:11px;line-height:24px;padding-left:10px">${t}</div>`).join('')}</div>
+  <div style="position:absolute;left:138px;top:20px;font-weight:700;font-size:21px;color:#333">Welcome back, User! <span style="font-family:'Noto Color Emoji'">👋</span></div>
+  <div style="position:absolute;left:138px;top:48px;font-size:11px;color:#777">Here is your dashboard overview.</div>
+  <div style="position:absolute;right:16px;top:18px;height:28px;line-height:28px;padding:0 14px;border-radius:5px;background:#2D6CDF;color:#fff;font-size:12px;font-weight:700;box-shadow:0 4px 8px rgba(0,0,0,.35)">Get Started</div>
+  ${[['Rooms published','1,234'],['Embeds','312'],['3D views','48.2k']].map(([t,v],i)=>`<div style="position:absolute;left:${138+i*136}px;top:76px;width:124px;height:66px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.18)"><div style="position:absolute;left:10px;top:9px;font-size:10px;color:#777">${t}</div><div style="position:absolute;left:10px;top:30px;font-size:21px;font-weight:700;color:#333">${v}</div></div>`).join('')}
+  <div style="position:absolute;left:138px;top:156px;width:250px;height:176px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.18)"><div style="position:absolute;left:12px;top:10px;font-size:11px;font-weight:700;color:#333">Monthly 3D Views</div>
+    ${[40,52,34,60,48,70,44,74,62,84,66,90].map((h,i)=>`<i style="position:absolute;left:${16+i*19}px;bottom:16px;width:12px;height:${h*1.25}px;background:#2D6CDF;display:block"></i>`).join('')}</div>
+  <div style="position:absolute;left:402px;top:156px;width:142px;height:176px;background:#D9DCE1"><svg width="56" height="45" viewBox="0 0 120 96" style="position:absolute;left:43px;top:52px"><rect x="3" y="3" width="114" height="90" rx="6" fill="none" stroke="#A9AEB6" stroke-width="6"/><circle cx="84" cy="30" r="10" fill="#A9AEB6"/><path d="M8 84 L42 44 L66 70 L80 56 L112 84 Z" fill="#A9AEB6"/></svg>
+    <div style="position:absolute;left:0;right:0;top:112px;text-align:center;font-size:8.5px;color:#8A8F97">stock_handshake_final_v3.jpg</div></div></div>`;
 [10,17,23,30].forEach((f,i)=>cue(f,'pluck',{n:[64,67,69,71][i],v:.3})); cue(8,'tick',{v:.4}); cue(37,'scratch',{v:.45,end:41}); [43,44,45,46,47].forEach(f=>cue(f,'tick',{v:.16}));
 [27,33,36,42,49].forEach(f=>cue(f,'tick',{v:.2})); cue(53,'shimmer',{v:.3,end:61}); cue(104,'riser',{v:.4,end:119}); cue(62,'swish',{v:.45,peak:64,dur:6}); cue(89,'whoosh',{v:.4,peak:99,dur:14}); [64,66,67,70].forEach(f=>cue(f,'tick',{v:.2})); cue(96,'swish',{v:.45,peak:97,dur:4}); cue(104,'scratch',{v:.9,end:111}); cue(113,'tear',{v:.6,end:121}); cue(114,'reel',{v:.35,end:127});
 function wState(f){ let st=['','']; for(const [wf,a,b] of WST) if(f>=wf) st=[a,b]; return st; }
@@ -102,6 +116,13 @@ function shotW(f){ push(W1.cam,f,0,0.0009);
     d.style.transform=`translate(${(Xg-d._w*Sg/2).toFixed(1)}px,${(Yg-d._h*Sg/2).toFixed(1)}px) rotate(${rot}deg) scale(${Sg.toFixed(4)})`; d.style.borderRadius='10px'; d.style.boxShadow='0 20px 50px -20px rgba(40,30,30,.35)';
     mblur(d,vel(t=>lerp(960+ox*1400+cx,960+cx,approach(t,st,12)),f)*BLUR,vel(t=>lerp(540+oy*900+cy,540+cy,approach(t,st,12)),f)*BLUR);
     d.style.filter=(f>=114&&f<117?DUO(d._si):''); });
+  // la carte du fondateur : monte du bas à 88, se pose au centre, sur le dessus ; le curseur « You » se pose sur « Get Started » (il ne clique pas)
+  const foOn=f>=92; show(wFo,foOn);
+  if(foOn){ const p=approach(f,92,7,0.22), S=1.0+0.02*clamp((f-98)/14), X=960, Y=lerp(1000,548,p);
+    wFo.style.zIndex=40; wFo.style.transform=`translate(${(X-280*S).toFixed(1)}px,${(Y-175*S).toFixed(1)}px) scale(${S.toFixed(4)})`;
+    wFo.style.boxShadow='0 30px 60px -24px rgba(40,30,30,.45)'; mblur(wFo,0,vel(t=>lerp(1000,548,approach(t,92,7,0.22)),f)*BLUR*0.5);
+    wFo.style.filter=f>=116?`blur(${(accel(f,116,5,1.6)*18).toFixed(1)}px)`:'';
+    const cp=clamp((twos(f,97)-97)/7); if(f>=97&&f<113) cursor(lerp(1330,X+238*S,cp),lerp(820,Y-175*S+40*S,cp),0,true,1,cp>=1?'hand':'arrow'); }
   // M2 : la barre oblique traverse toute la pile (104-111), la pile se déchire le long du trait (113-119)
   if(f>=104&&f<120){ const st=M2(); if(f<114) penDraw(cx,st,f,104,{size:13}); else slashThread(cx,f); }
   tear(f);
@@ -231,6 +252,7 @@ function shotLand(f){
   place(laFrame,x,y,sc); laFrame.style.filter=gone>0?`blur(${(10*gone).toFixed(1)}px) brightness(${(1+0.35*gone).toFixed(2)})`:''; laFrame.style.opacity=(1-0.85*clamp((f-297)/3)).toFixed(3);
   mblur(LA.cam,f>=276&&f<281?vel(t=>40*accel(t,274,6.5,2.6),f):0,0);
   seqDraw(laSeq,SEQ.land,fl-234);
+  { const t=0.5-0.5*Math.cos(Math.PI*clamp((f-238)/52)); laSeq.style.transformOrigin='50% 55%'; laSeq.style.transform=`translateX(${(-40*t).toFixed(1)}px) scale(${(1+0.06*t).toFixed(4)})`; }   // Ken Burns dans la carte
   q1(laD,'.lnh').style.transform=`translateX(${(-290*approach(f,235,36,0.10)).toFixed(1)}px)`;
   qa(laMark,'svg path').forEach(p=>p.style.strokeDashoffset=(1-vl(f,234,4)).toFixed(3));
   if(INK&&f<234){ show(INK.canvas,true); LA.s.appendChild(INK.canvas); const r=laMark.getBoundingClientRect(), st=LA.s.getBoundingClientRect(), k=st.width/W;
@@ -256,11 +278,12 @@ const TREE=[[300,'▾ Taste Files',150,0,'title'],[305,'Brand.ts',380,1,'file'],
 const glyphs=t=>[...t].map(c=>`<span class="g">${c}</span>`).join('');
 const trEls=TREE.map(([f0,t,x,row,kind])=>{ const d=el(TR.cam,'titem'); d._k=kind; d._x=x; d._row=row; d._f=f0; d._t=t;
   d.innerHTML=kind==='title'?`<span style="font-family:JB;margin-right:16px">▾</span>Taste Files`:kind==='dir'?`<span class="chev" style="font-family:JB;display:inline-block;margin-right:16px">›</span>${t}`
-    :kind==='last'?`<span class="fi"></span><em style="font-size:82px">Taste</em>.tsx`:`<span class="fi"></span>${/NoMoreArial|EaseOut/.test(t)?glyphs(t):t}`;
-  Object.assign(d.style,{fontSize:kind==='title'?'84px':kind==='last'?'84px':'72px',color:'#151413'}); if(kind==='title') d.style.color='#3A3633'; return d; });
+    :kind==='last'?`<span class="fi"></span><em style="font-size:72px">Taste</em>.tsx`:`<span class="fi"></span>${/NoMoreArial|EaseOut/.test(t)?glyphs(t):t}`;
+  Object.assign(d.style,{fontSize:kind==='title'?'84px':'72px',color:'#151413'}); if(kind==='title') d.style.color='#3A3633'; return d; });
 const trEase=el(TR.cam,'abs','', 'display:flex;align-items:center;gap:18px'); 
 trEase.innerHTML=`<svg width="120" height="44" viewBox="0 0 120 44"><path d="M2 42 ${Array.from({length:41},(_,i)=>`L${(2+i*2.9).toFixed(1)} ${(42-40*vladan(i/40)).toFixed(1)}`).join(' ')}" fill="none" stroke="#151413" stroke-width="1.75" stroke-linecap="round"/></svg><span class="m" style="font-size:22px;color:#151413">ease: vladan</span>`;
-const trLines=[[360,1,3],[590,4,6]].map(([x,a,b])=>{ const l=el(TR.cam,'tline'); l._x=x; l._a=a; l._b=b; return l; });
+const trLines=[[360,1,3],[590,4,7]]   // le guide descend jusqu'à Taste.tsx, frère d'EaseOut au même pas de 100 px
+.map(([x,a,b])=>{ const l=el(TR.cam,'tline'); l._x=x; l._a=a; l._b=b; return l; });
 TREE.forEach(([f0],i)=>cue(f0,i==TREE.length-1?'pluck':'tick',{v:i==TREE.length-1?.5:.3,n:79}));
 const TR_STEPS=[[305,232],[312,219],[317,175],[322,149],[329,107]];
 function trY(f){ let y=313; for(const [s,t] of TR_STEPS) y=lerp(y,t,approach(f,s,s==329?9:4,0.3)); return y; }
@@ -441,7 +464,7 @@ phDone.innerHTML=`<div style="position:absolute;left:24px;top:96px;width:44px;he
 cR14(559,'impact',{v:.55}); cR14(566,'shimmer',{v:.35,end:578}); [588,603].forEach(f=>cR14(f,'tick',{v:.3})); cR14(606,'swish',{v:.45,peak:609,dur:8}); cR14(608,'pop',{v:.5,n:84});
 function shotPhone(F){ const f=F-2;   // numéros de la réf (REMAP +2)
   // dépli en hauteur (478 → 861 px), puis la caméra s'approche (×0,9 → ×1,28, décélération) en tournant de 4° : le téléphone vit
-  const pt=clamp((f-559)/82), ps=lerp(0.9,1.28,1-Math.pow(1-pt,2.2)), ry=lerp(-2.5,1.5,pt);
+  const pt=clamp((f-559)/82), ps=lerp(0.9,1.18,1-Math.pow(1-pt,2.2)), ry=lerp(-2.5,1.5,pt);   // 1,18 : ~60 px de marge, le téléphone ne touche jamais le cadre
   phone.style.transform=`translate(960px,540px) translate(-50%,-50%) perspective(2400px) rotateY(${ry.toFixed(2)}deg) scale(${ps.toFixed(4)}) scaleY(${lerp(0.555,1,approach(f,559,13,0.25)).toFixed(4)})`;
   phShadow.style.transform=`translateY(${(430*(ps-1)).toFixed(1)}px) scale(${ps.toFixed(3)},1)`;
   seqDraw(phSeq,SEQ.phone,f-559); phSeq.style.transform=`scale(1.14) translateX(${lerp(-24,24,pt).toFixed(1)}px)`;

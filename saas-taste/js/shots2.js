@@ -55,7 +55,9 @@ function shotTerm(F){ const f=F-1;
     Object.assign(tePanel.style,{left:(960-pw/2)+'px',top:(540-ph/2)+'px',width:pw+'px',height:ph+'px'});
     show(teSide,f>=790); const lx=f>=790?96:40, fs=lerp(34,26,st), lh=lerp(51,40,st);
     let w=''; for(const [wf,t] of TEW) if(f>=wf) w=t;
-    tePanelLine.innerHTML=`<span style="color:#F2EEE8">→</span> <span style="color:#F2EEE8">add</span>&nbsp;&nbsp;${w}`;
+    // une seule espace après « add » (plus de trou laissé par l'italique effacé) ; le caret clignote toutes les 8 images
+    tePanelLine.innerHTML=`<span style="color:#F2EEE8">→</span> <span style="color:#F2EEE8">add</span> ${w.replace(/^(&nbsp;|\s)+/,'')}<span style="display:inline-block;width:3px;height:1em;background:#F2EEE8;vertical-align:-0.15em;margin-left:4px;visibility:${Math.floor(f/8)%2?'hidden':'visible'}"></span>`;
+    TE.cam.style.transform=f<767?`scale(${(1+0.03*(0.5-0.5*Math.cos(Math.PI*clamp((f-750)/17)))).toFixed(4)})`:'';
     placeTL(tePanelLine,970-tePanelLine.offsetWidth/2,540-44,f>=766?1+0.1*(1-approach(f,766,4)):1);
     // le code arrive par paquets : insertion avec sélection (773, frappe 2 car./image jusqu'à 784), sauts d'indentation (784), paquets (788, 792, 796, 799)
     let row=0; teCode.forEach((d,i)=>{ const t0=CODE_T[i], on=f>=t0&&f>=767; show(d,on); if(!on) return;
@@ -115,12 +117,21 @@ const CH_HOVER=[[895,898,'bolt','Steel bolts · ×8'],[901,907,'seat','Velvet ·
 function chView3(f){ // caméra de la vue produit (réf) : recul + travelling flou à l'entrée, roulis, secousse au coup de pinceau, anticipation, poussée finale
   const a=approach(f,880,10,0.25); let s=lerp(1.25,1,a), x=120*(1-a), y=0, r=3*(approach(f,892,4)-approach(f,898,6));
   y+=22*(approach(f,924,2,0.5)-approach(f,927,8)); const an=approach(f,936,3); s*=1-0.04*an; r-=2.4*an*(1-approach(f,940,4));
+  s*=1+0.06*(0.5-0.5*Math.cos(Math.PI*clamp((f-890)/46)));   // lente poussée dans la vue 3D seulement : les panneaux et le texte ne bougent pas
   const pu=accel(f,940,10,3); s*=1+0.8*pu; y-=150*pu; return {s,x,y,r,bx:vel(t=>120*(1-approach(t,880,10,0.25)),f), by:vel(t=>-150*accel(t,940,10,3),f)}; }
 // le plateau tourne à vitesse constante (1,9°/image) jusqu'à 930, puis ralentit sur vladan et se pose de trois quarts
 function chIdx(f){ if(f<=930) return f-880; const t=clamp((f-930)/15); return 50+10*(1-(1-t)*(1-t)); }
 // M7 : le grand coup de feutre traverse l'assise ; l'encre boit dans le velours (926-932) en suivant le poil (luminance du rendu)
 const M7=()=>penPlace('G07',[862,492,1290,540]);
 const CH_MASK=document.createElement('canvas'); CH_MASK.width=275; CH_MASK.height=200;
+// le velours bleu (teinte 200-225°, saturation > 0,35), à basse résolution, adouci par l'agrandissement
+const CH_BLUE=document.createElement('canvas'); CH_BLUE.width=275; CH_BLUE.height=200; let CH_BLUE_SRC=null;
+function chBlueKey(src){ if(src===CH_BLUE_SRC) return; CH_BLUE_SRC=src; const x=CH_BLUE.getContext('2d'); x.clearRect(0,0,275,200); x.drawImage(src,0,0,275,200);
+  const im=x.getImageData(0,0,275,200), d=im.data;
+  for(let o=0;o<d.length;o+=4){ const r=d[o]/255, g=d[o+1]/255, b=d[o+2]/255, mx=Math.max(r,g,b), mn=Math.min(r,g,b), sat=mx>0?(mx-mn)/mx:0;
+    let h=0; if(mx===b&&mx>mn) h=240+60*(r-g)/(mx-mn); else if(mx===g&&mx>mn) h=120+60*(b-r)/(mx-mn);
+    const k=clamp((sat-0.3)/0.12)*clamp(1-Math.abs(h-212)/30); d[o]=d[o+1]=d[o+2]=255; d[o+3]=Math.round(255*k); }
+  x.putImageData(im,0,0); }
 function chToView(p,V){ // écran → pixels du canvas de la vue (inverse de la transformation CSS)
   const cx=630+459, cy=196+334; let x=p[0]-cx-V.x, y=p[1]-cy-V.y; const c=Math.cos(-V.r*Math.PI/180), s=Math.sin(-V.r*Math.PI/180);
   const xr=(x*c-y*s)/V.s, yr=(x*s+y*c)/V.s; return [(xr+459)*1100/918,(yr+334)*800/668]; }
@@ -144,7 +155,11 @@ function shotChat(f){
   // le coup de pinceau (918-924), puis le velours apparaît là où l'encre a bu, jusqu'à recouvrir tout le fauteuil (932)
   const ix=inkClear(chInk);
   // le pinceau teint le velours (fusion « couleur » : la teinte du stylo, le modelé du tissu), bord adouci : pas un autocollant
-  if(f>=918&&f<934){ const soak=clamp((f-924)/3); chInk.style.mixBlendMode='color'; chInk.style.filter='blur(3px)'; penDraw(ix,M7(),f,918,{size:34,alpha:1-soak,ground:'dark'}); }
+  if(f>=918&&f<934){ const soak=clamp((f-924)/3); chInk.style.mixBlendMode='color'; chInk.style.filter='blur(5px)'; penDraw(ix,M7(),f,918,{size:56,alpha:1-soak,ground:'dark'});
+    // la teinte ne touche que le velours bleu : masque tiré de l'image du fauteuil, posé avec la transformation de la vue
+    chBlueKey(TURN.blue[Math.min(47,i)]); ix.save(); ix.globalCompositeOperation='destination-in';
+    ix.setTransform(1,0,0,1,0,0); ix.translate(630+459+V.x,196+334+V.y); ix.rotate(V.r*Math.PI/180); ix.scale(V.s,V.s); ix.translate(-459,-334); ix.scale(918/1100,668/800);
+    ix.imageSmoothingEnabled=true; ix.drawImage(CH_BLUE,0,0,1100,800); ix.restore(); }
   const redOn=f>=925; show(chTurnR,redOn);
   if(redOn){ const red=TURN.red[clamp(i,38,71)]; const c=chTurnR.getContext('2d'); c.clearRect(0,0,1100,800); c.drawImage(red,0,0,1100,800);
     if(f<931){ chSoak(f,V,red); c.globalCompositeOperation='destination-in'; c.imageSmoothingEnabled=true; c.drawImage(CH_MASK,0,0,1100,800); c.globalCompositeOperation='source-over'; } }
@@ -182,8 +197,8 @@ const doFSeq=q1(doFullIn,'.vseq'), doFTitle=qa(doFullIn,'.vhead');
 const doTP=el(DO.cam,'','', 'position:absolute;inset:0;overflow:hidden;display:none;background:#EEE9E4');
 const doTPi=el(doTP,'','', 'position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:960px 540px');
 doTPi.innerHTML=`<img src="img/turn/red_60.jpg" style="position:absolute;left:0;top:59px;width:1920px;height:1021px;object-fit:cover;object-position:50% 58%">
-  <div style="position:absolute;left:0;right:0;top:0;height:58px;background:#E4DFDA;box-shadow:0 1px 0 rgba(21,20,19,.12)">${[0,1,2].map(i=>`<span style="position:absolute;left:${24+i*23}px;top:22px;width:13px;height:13px;border-radius:50%;background:rgba(21,20,19,.15)"></span>`).join('')}
-  <div class="m" style="position:absolute;left:120px;top:12px;width:560px;height:34px;border-radius:9px;background:#F3EFEA;font-size:16px;line-height:34px;padding-left:16px;color:rgba(21,20,19,.7)">velvetly.app / <b style="font-weight:500;color:#151413">home</b></div></div>
+  <div class="dchr" style="position:absolute;left:0;right:0;top:0;height:58px;background:#E4DFDA;box-shadow:0 1px 0 rgba(21,20,19,.12)">${[0,1,2].map(i=>`<span style="position:absolute;left:${24+i*23}px;top:22px;width:13px;height:13px;border-radius:50%;background:rgba(21,20,19,.15)"></span>`).join('')}
+  <div class="m dchr" style="position:absolute;left:120px;top:12px;width:560px;height:34px;border-radius:9px;background:#F3EFEA;font-size:16px;line-height:34px;padding-left:16px;color:rgba(21,20,19,.7)">velvetly.app / <b style="font-weight:500;color:#151413">home</b></div></div>
   <div class="dghost" style="position:absolute;left:150px;top:150px;width:420px;height:280px;background:#D9DCE1"><svg width="120" height="96" viewBox="0 0 120 96" style="position:absolute;left:150px;top:80px"><rect x="3" y="3" width="114" height="90" rx="6" fill="none" stroke="#A9AEB6" stroke-width="4"/><circle cx="84" cy="30" r="10" fill="#A9AEB6"/><path d="M8 84 L42 44 L66 70 L80 56 L112 84 Z" fill="#A9AEB6"/></svg><div class="ar" style="position:absolute;left:0;right:0;top:204px;text-align:center;font-size:16px;color:#8A8F97">stock_handshake_final_v3.jpg</div></div>`;
 const doHeatC=canvas(doTPi,1920,1021,'left:0;top:59px;width:1920px;height:1021px');
 const doDotsC=canvas(doTPi,1920,1080,'left:0;top:0;width:1920px;height:1080px');
@@ -233,6 +248,7 @@ function shotDone(F){ const f=F-2;
     // les étiquettes restent fixes à l'écran pendant la poussée (sinon le cadre coupe « 1,204 sessions » et la légende)
     if(f<1062){ const Z=z*zz; Object.assign(doHud.style,{right:(1920-(960+(1892-960)/Z)).toFixed(1)+'px',top:(540+(84-540)/Z).toFixed(1)+'px',transform:`scale(${(1/Z).toFixed(4)})`,transformOrigin:'100% 0'});
       Object.assign(doLeg.style,{left:(960+(28-960)/Z).toFixed(1)+'px',bottom:(1080-(540+(1052-540)/Z)).toFixed(1)+'px',transform:`scale(${(1/Z).toFixed(4)})`,transformOrigin:'0 100%'}); }
+    qa(doTPi,'.dchr').forEach(e=>e.style.translate=`0 ${(-30*clamp((f-1018)/12)).toFixed(1)}px`);   // la barre d'adresse sort du cadre en entier, pas de liseré
     const k=f<1002?0:Math.min(5,1+Math.floor((f-1002)/3.6)); if(k!==doHeatK){ doHeatDraw(k); doHeatK=k; }
     q1(doTPi,'.dghost').style.opacity=(0.22*(1-clamp((f-1005)/6))).toFixed(3);
     const g=doDotsC.getContext('2d'); g.clearRect(0,0,1920,1080);
@@ -271,7 +287,7 @@ const grThumb2=crop(el(grIn,'gcard','', 'left:1680px;top:600px;width:240px;heigh
 const grStat=crop(el(grIn,'gcard','', 'left:240px;top:120px;width:480px;height:240px;display:none'));
 el(grStat,'abs m','BORING ISSUES FOUND','left:24px;top:22px;font-size:15px;letter-spacing:.1em;color:#8E877F'); const grNum=el(grStat,'abs ar','0','left:20px;top:58px;font-size:120px;color:#2D6CDF;line-height:1');
 const grChips=BORING.map(([t,n],i)=>{ const d=el(grIn,'m','',`position:absolute;height:52px;border-radius:12px;background:#151413;color:#F3EFEA;font-size:24px;line-height:52px;padding:0 20px;display:none;white-space:nowrap`); d._t=`${t} ×${n}`; d._st=1084+i*3; return d; });
-const GR_CHP=[[0,126],[600,486],[1700,126],[240,996],[1940,250],[740,250],[360,866]];
+const GR_CHP=[[0,58],[600,486],[1700,126],[240,996],[1940,250],[740,250],[360,866]];
 const grBars=crop(el(grIn,'gcard','', 'left:600px;top:600px;width:240px;height:240px;display:none')); const grBarE=BORING.map((b,i)=>el(grBars,'','', `position:absolute;left:${22+i*30}px;bottom:30px;width:22px;height:0;border-radius:2px;background:#2D6CDF`));
 const grCode=crop(el(grIn,'gcard','', 'left:1680px;top:360px;width:240px;height:240px;background:#151413;display:none'));
 const GR_CODE=['check("velvetly.app")','  .screens(5)','  .found(47)']; const grCodeL=GR_CODE.map((t,i)=>el(grCode,'abs m','',`left:16px;top:${30+i*34}px;font-size:16px;color:#F3EFEA`));
@@ -315,7 +331,7 @@ function shotReport(F){ const f=F-1;
   RE.cam.style.transform=`scale(${(1+0.08*approach(f,1131,36,0.09)).toFixed(4)})`;
   // la carte monte (40 px, 10 images), le 47 se compte, les lignes et les barres par catégorie arrivent une à une
   const p=approach(f,1130,6); place(reCard,960,545+40*(1-vl(f,1131,10))); reCard.style.opacity=lerp(0.3,1,p).toFixed(3);
-  reNum.textContent=Math.round(47*vladan(clamp((f-1131)/12)));
+  reNum.textContent='47';   // pas de compte à partir de 0 : dans ce film, 0 veut dire « réglé »
   reRows.forEach((r,i)=>{ const a=vl(f,1137+i*3,4); r.style.opacity=a.toFixed(2); r.style.transform=`translateY(${(8*(1-a)).toFixed(1)}px)`; });
   reBars.forEach((r,i)=>{ const a=vl(f,1139+i*2,5); r.style.opacity=Math.min(1,a*2).toFixed(2); r.lastChild.style.transform=`scaleX(${a.toFixed(3)})`; });
   // le clic du fondateur (1161) : « Applying… 0/47 », une ligne d'encre de 2 px qui atteint 6 % à 1175
@@ -403,21 +419,23 @@ const shSkyI=document.createElement('img'); shSkyI.src=shSkyC.toDataURL(); shSky
 const shWin=el(SH.cam,'','', 'position:absolute;inset:0;pointer-events:none');
 shWin.innerHTML=`<div style="position:absolute;left:0;top:0;right:0;height:26px;background:#151413"></div><div style="position:absolute;left:0;bottom:0;right:0;height:26px;background:#151413"></div>
   <div style="position:absolute;left:0;top:0;bottom:0;width:26px;background:#151413"></div><div style="position:absolute;right:0;top:0;bottom:0;width:26px;background:#151413"></div>
-  <div style="position:absolute;left:631px;top:0;bottom:0;width:18px;background:#151413"></div><div style="position:absolute;left:1271px;top:0;bottom:0;width:18px;background:#151413"></div>
-  <div style="position:absolute;left:0;right:0;top:351px;height:18px;background:#151413"></div>
+  <div style="position:absolute;left:631px;top:0;bottom:0;width:18px;background:#151413;box-shadow:inset 2px 0 0 rgba(255,228,206,.28),inset -2px 0 0 rgba(255,228,206,.16)"></div><div style="position:absolute;left:1271px;top:0;bottom:0;width:18px;background:#151413;box-shadow:inset 2px 0 0 rgba(255,228,206,.28),inset -2px 0 0 rgba(255,228,206,.16)"></div>
+  <div style="position:absolute;left:0;right:0;top:351px;height:18px;background:#151413;box-shadow:inset 0 2px 0 rgba(255,228,206,.28)"></div>
   <div style="position:absolute;left:-60px;right:-60px;top:1080px;height:900px;background:linear-gradient(180deg,#8E7F73 0,#7B6D63 220px,#665a52 900px)"></div>
   <div style="position:absolute;left:-60px;right:-60px;top:1080px;height:16px;background:#B7A799;box-shadow:0 1px 0 #CDBFB1 inset,0 10px 24px rgba(40,30,25,.35)"></div>`;
 // le fauteuil détouré (img/ship_chair.png, tiré de red_60), à contre-jour devant le mur ; il monte avec la pièce quand la caméra descend
 const shChair=el(SH.cam,'','', 'position:absolute;left:1520px;top:1168px;width:665px;height:602px');
-shChair.innerHTML='<img src="img/ship_chair.png" style="width:100%;height:100%;filter:brightness(.6) contrast(1.08) saturate(.95)">';
+shChair.innerHTML='<img src="img/ship_chair.png" style="width:100%;height:100%;filter:brightness(.6) contrast(1.08) saturate(.95) drop-shadow(0 -2px 0 rgba(255,205,180,.55))">';   // contre-jour : un liseré chaud sur le haut du dossier
 // le soleil entre en biais par la fenêtre : un rayon chaud très léger sur le mur et le fauteuil
-const shShaft=el(SH.cam,'','', 'position:absolute;inset:-200px;pointer-events:none;mix-blend-mode:screen;background:linear-gradient(118deg,transparent 30%,rgba(255,236,214,1) 42%,rgba(255,236,214,1) 52%,transparent 66%)');
+const shShaft=el(SH.cam,'','', 'position:absolute;left:-200px;top:-200px;width:2320px;height:1280px;pointer-events:none;mix-blend-mode:screen;background:linear-gradient(118deg,transparent 34%,rgba(255,240,224,1) 43%,rgba(255,240,224,1) 50%,transparent 59%)');
 const shBtn=el(SH.s,'bbtn',''); shBtn.style.zIndex=5; shBtn.style.width='228px'; shBtn.style.padding='0'; shBtn.style.textAlign='center'; shBtn.style.borderRadius='14px';
 const shRing=el(SH.s,'','', 'position:absolute;left:960px;top:540px;width:0;height:0;border-radius:50%;box-shadow:0 0 0 1px #151413;z-index:4');
 cR28(1250,'impact',{v:.5}); cR28(1293,'beep',{v:.6}); cR28(1298,'riser',{v:.55,end:1306});
 function shotShip(F){ const f=F-1; SH.cam.style.transform=`scale(${(1+0.03*clamp((f-1250)/56)).toFixed(4)})`;   // poussée de 3 %
-  shShaft.style.opacity=(0.08+0.03*Math.sin((f-1250)/9)).toFixed(3);
-  const y=-900*approach(f,1250,36,0.11); shSky.style.transform=`translateY(${y.toFixed(1)}px)`; shWin.style.transform=`translateY(${(y*0.35+0).toFixed(1)}px)`; shChair.style.transform=`translateY(${(y*0.42).toFixed(1)}px)`;
+  const y=-900*approach(f,1250,36,0.11);
+  // le rayon (≈ +14 niveaux sur les vitres) glisse de 60 px pendant le plan ; il ne descend pas sur le mur
+  shShaft.style.opacity='0.5'; shShaft.style.transform=`translateX(${(60*clamp((f-1250)/56)).toFixed(1)}px)`; shShaft.style.clipPath=`inset(0 0 ${Math.max(0,1280-(200+1080+y*0.35)).toFixed(0)}px 0)`;
+   shSky.style.transform=`translateY(${y.toFixed(1)}px)`; shWin.style.transform=`translateY(${(y*0.35+0).toFixed(1)}px)`; shChair.style.transform=`translateY(${(y*0.42).toFixed(1)}px)`;
   const n=clamp(f-1250,0,7); shBtn.innerHTML='Ship it'.slice(0,n)+(f<1262||Math.floor(f/8)%2?'<span style="display:inline-block;width:3px;height:40px;background:#F3EFEA;vertical-align:-6px;margin-left:3px"></span>':'');
   // le clic tombe à 1293, comme dans la réf
   const pr=f>=1293&&f<1295; place(shBtn,960,540,pr?0.94:1); shBtn.style.background='#151413';
@@ -446,14 +464,14 @@ const MOS=[[moP,1307],[moR,1325],[moDa,1336],[moL,1349]];
 cR29(1307,'impact',{v:.7}); cR29(1325,'impact',{v:.6}); cR29(1336,'impact',{v:.6}); cR29(1349,'impact',{v:.7}); [1312,1314,1315].forEach(f=>cR29(f,'tick',{v:.2})); cR29(1372,'shimmer',{v:.45,end:1378});
 // les fragments corrigés reviennent à la place exacte de leurs jumeaux ennuyeux (5, lisibles, 30 px), à cheval sur la fin du montage
 const OU_FIX=[[4,'/* done. it sits. */'],[10,'/* nothing is !important */'],[13,'cursor: you;'],[5,'<h1>Morning, Léa.</h1>'],[12,'ease: vladan;']];
-const moFix=OU_FIX.map(([i,t])=>{ const d=el(MO.s,'abs frag',t,'font-size:30px;z-index:20;display:none'); d._i=i; return d; });
+const moFix=OU_FIX.map(([i,t])=>{ const d=el(MO.s,'abs frag','','font-size:30px;z-index:20;display:none'); d.textContent=t; d._i=i; return d; });
 function fixFrags(list,f,f0){ list.forEach(d=>{ const on=f>=f0&&f<1386; show(d,on); if(!on) return; const src=wFr[d._i]; placeTL(d,src._x,src._y); d.style.color=mixc('#FFC2CD','#151413',clamp((f-f0)/6)); }); }
 function shotMont(F){ const f=F-1; let cur=MOS[0]; for(const m of MOS) if(f>=m[1]) cur=m;
   MOS.forEach(m=>show(m[0],m===cur)); const a=f-cur[1];
   let sc=1; if(cur[0]===moP) sc=1+0.035*approach(f,1307,18,0.12); else if(cur[0]===moR) sc=1+0.0007*a; else if(cur[0]===moDa) sc=1+0.0016*a; else sc=1-0.03*accel(f,1366,10,2);
   place(cur[0],960,540,sc);
   if(cur[0]===moP){ moStat.firstChild.textContent=f>=1314?'+45%':'+14%'; moStat2.textContent=f>=1315?'0:42':'52 s'; }
-  if(cur[0]===moDa) moBars.forEach((r,i)=>{ r.lastChild.style.transform=`scaleX(${(1-vl(f,1337+i,5)).toFixed(3)})`; });
+  if(cur[0]===moDa) moBars.forEach((r,i)=>{ r.lastChild.style.transform=`scaleX(${(1-vl(f,1336+i*0.4,3)).toFixed(3)})`; });   // toutes à 0 dès 1342
   if(cur[0]===moL){ seqDraw(moLSeq,SEQ.land,a*1.0,0.5,0.58); moLh.style.transform=`translateX(${(-2.3*a).toFixed(1)}px)`;
     moLT.forEach((t,i)=>{ const p=approach(f,1350+i,8,0.2); t.style.translate=`0 ${((1-p)*24).toFixed(1)}px`; }); }
   fixFrags(moFix,f,1366);
@@ -462,7 +480,7 @@ function shotMont(F){ const f=F-1; let cur=MOS[0]; for(const m of MOS) if(f>=m[1
 /* ---------- 31-32 · fragments corrigés → anneau → marque → « vladan » + « Made in code. Marked up by hand. » → la carte de fin : le brief était un e-mail à Vladan ---------- */
 const OU=scene('sOutro',1380,1559,f=>shotOutro(f));
 const cR31=cueAt(2);
-const ouFix=OU_FIX.map(([i,t])=>{ const d=el(OU.s,'abs frag',t,'font-size:30px;z-index:20;display:none'); d._i=i; return d; });
+const ouFix=OU_FIX.map(([i,t])=>{ const d=el(OU.s,'abs frag','','font-size:30px;z-index:20;display:none'); d.textContent=t; d._i=i; return d; });   // textContent : « <h1> » reste du code
 const ouGl=gset(16,77,420,190).map(g=>{ const d=el(OU.cam,'abs c glyph'); d._g=g; d.textContent=g[0]; d.style.color=GINK; return d; });
 const ouDot=el(OU.cam,'abs','', 'border-radius:50%');
 const ouMark=el(OU.cam,'abs','', 'width:81px;height:81px'); ouMark.innerHTML=MARK_SVG;
@@ -503,6 +521,7 @@ const DOT_C=['#151413','#151413','#151413','#FF3D5E'];
 function ouLineGeom(f){ const sp=12, pad=30; const TW=OUW.map((_,i)=>OUL.ws.slice(0,i+1).reduce((a,b)=>a+b+sp,0)-sp); let tw=TW[0]; for(let i=1;i<OUW.length;i++) tw=lerp(tw,TW[i],approach(f,OUW[i][0],9,0.5));
   const h=vl(f,1489,6); const S=lerp(1,200/48,h); const x0=lerp(960-tw/2,144,h), y0=lerp(540-26,120,h); return {tw,S,x0,y0,sp,pad,h}; }
 function shotOutro(F){ const f=F-2; push(OU.cam,f,1378,f<1489?0.0008:0);
+  const OS=f>=1520?1+0.015*(1-Math.pow(1-clamp((f-1520)/39),2)):1; if(f>=1520) OU.cam.style.transform=`scale(${OS.toFixed(4)})`;   // l'affiche respire : 1,5 % de poussée, pas un arrêt sur image
   fixFrags(ouFix,f,1366);
   // anneau de glyphes à l'encre (1385-1391), le point à l'encre puis rouge à l'arrivée de la marque (1398)
   const k=lerp(1,0.7,approach(f,1387,6)); ouGl.forEach((d,i)=>{ const on=f>=1385&&f<1392; show(d,on); if(!on) return; const g=d._g; place(d,960+g[1]*k,540+g[2]*k); });
@@ -531,15 +550,19 @@ function shotOutro(F){ const f=F-2; push(OU.cam,f,1378,f<1489?0.0008:0);
     const hh=226*vl(f,1496,4); ouTo.style.height=hh+'px'; ouBody.style.top=(44+hh*(212/226))+'px';
     const fl=clamp((f-1499)/6), fe=vladan(fl); ouMC.style.opacity=(1-clamp((f-1499)/2)).toFixed(2); ouMW.style.visibility=f>=1499?'hidden':'visible'; ouModel.style.width=f>=1499?lerp(110,0,clamp((f-1499)/3))+'px':'';
     const cr=ouCard.getBoundingClientRect(), st=OU.s.getBoundingClientRect(), kk=st.width/W;
-    show(ouFly,f>=1499&&f<1505); if(f>=1499&&f<1505){ const sx=144+1500-130-110, sy=440+OU_CH-38-26, tx=144+44+150, ty=440+16+5; const x=lerp(sx,tx,fe), y=lerp(sy,ty,fe)-60*Math.sin(Math.PI*fl);
+    show(ouFly,f>=1499&&f<1505); if(f>=1499&&f<1505){ const sx=144+1500-130-110, sy=440+OU_CH-38-26, tx=144+44+150, ty=440+16+5; const cx=1480, cy=470, m=1-fe; const x=m*m*sx+2*m*fe*cx+fe*fe*tx, y=m*m*sy+2*m*fe*cy+fe*fe*ty;   // remonte le bord droit puis file dans TO : jamais au-dessus du texte
       placeTL(ouFly,x,y,lerp(1,92/26,fe)); }
     ouToA.textContent=f<1505?'':'vladan'+'@kwinndo.fr'.slice(0,Math.floor((f-1505+1)*2));
     // le trait M3 séché, toujours sur « Arial, »
-    const ix=inkClear(ouInk); const sp=q1(ouBrief,'.ari'); if(sp&&r>0.5){ const b=sp.getBoundingClientRect(); const rr=[(b.left-st.left)/kk,(b.top-st.top)/kk,(b.right-st.left)/kk,(b.bottom-st.top)/kk];
+    const ix=inkClear(ouInk); const sp=q1(ouBrief,'.ari'); if(sp&&r>0.5){ const b=sp.getBoundingClientRect(); const cx_=v=>960+(v-960)/OS, cy_=v=>540+(v-540)/OS; const rr=[cx_((b.left-st.left)/kk),cy_((b.top-st.top)/kk),cx_((b.right-st.left)/kk),cy_((b.bottom-st.top)/kk)];   // écran → caméra (la poussée finale)
       penDraw(ix,penPlace('G03',[rr[0]-6,rr[3]-28*0.52*0.5-9,rr[2]+10,0]),1e6,0,{size:3.4,alpha:r}); }
     // M9 : le stylo souligne « taste. » (1508-1516) ; le soulignement dépasse quand l'italique, plus étroit, prend sa place
     if(f>=1508){ const x=G.x0+(OUL.ws[0]+OUL.ws[1]+2*G.sp)*G.S, w=OUL.ws[2]*G.S; penDraw(ix,penPlace('G09',[x-4,G.y0+48*G.S*0.98,x+w+8,0]),f,1508,{size:13}); } }
   // le fondateur revient (linéaire, sur deux images) ; à 1524 la main survole Envoyer, au même décalage qu'à 206. Il ne clique jamais : le bouton ne change pas.
-  const cf=twos(f,1516), cp=clamp((cf-1516)/8); const sx2=144+1500-30-36, sy2=440+OU_CH-24-36;
-  cursor(lerp(1760,sx2-4,cp),lerp(1010,sy2+4,cp),0,f>=1516,1,f>=1524?'hand':'arrow');
+  // la cible est lue sur le bouton lui-même (il suit la poussée) ; à 1542 la main hésite (6 px vers Envoyer, puis revient) ; anneau de survol, jamais pressé
+  const cf=twos(f,1516), cp=clamp((cf-1516)/8); let sx2=144+1500-30-36, sy2=440+OU_CH-24-36;
+  if(f>=1492){ const b=ouSend.getBoundingClientRect(), st=OU.s.getBoundingClientRect(), kk=st.width/W; sx2=((b.left+b.right)/2-st.left)/kk; sy2=((b.top+b.bottom)/2-st.top)/kk; }
+  const hz=f>=1542&&f<1550?Math.sin(Math.PI*(f-1542)/8)*6:0;
+  cursor(lerp(1760,sx2-4,cp)-hz*0.7,lerp(1010,sy2+4,cp)-hz*0.7,0,f>=1516,1,f>=1524?'hand':'arrow');
+  ouSend.style.boxShadow=f>=1524?`0 0 0 ${(4*vl(f,1524,4)).toFixed(1)}px rgba(21,20,19,.3)`:'';
 }
