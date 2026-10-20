@@ -169,6 +169,9 @@ function shotChat(f){
   const redOn=f>=918; show(chTurnR,redOn);
   if(redOn){ const red=TURN.red[clamp(i,38,71)]; const c=chTurnR.getContext('2d'); c.clearRect(0,0,1100,800); c.drawImage(red,0,0,1100,800);
     if(f<931){ chSoak(f,V,red); c.globalCompositeOperation='destination-in'; c.imageSmoothingEnabled=true; c.drawImage(CH_MASK,0,0,1100,800); c.globalCompositeOperation='source-over'; } }
+  // le fil défile de 13 px (881-890) : appliqué avant toute lecture de position (sinon les traits rouges se calent sur l'état d'avant)
+  const scr=-13*approach(f,881,9);
+  chKids.forEach((k,j)=>{ if(j==0||j>=7) return; const t0=j==1?880:j<=3?881:883; k.style.visibility=f>=t0?'visible':'hidden'; k.style.translate=`0 ${scr.toFixed(1)}px`; });
   chFab.textContent=f>=926?'velvet':'polyester';
   // le journal de l'agent se tape une ligne toutes les 12 images (892, 904, 916) ; la troisième se résout en « ✓ … velvet » à 926
   qa(chRoot,'.clog').forEach(l=>{ const t0=+l.dataset.t; l.textContent=f<t0?'':l.dataset.s.slice(0,Math.ceil((f-t0+1)*2.5)); });
@@ -177,7 +180,7 @@ function shotChat(f){
   const done=f>=926; qa(chRoot,'.crm').forEach((e,k)=>{ e.style.textDecoration=''; e.style.color=f>=926+k*2?'#8E877F':'#151413';
     // le stylo barre chaque ligne en rouge (924-926, 926-928) : c'est lui qui applique le changement, pas le fondateur
     if(f>=924+k*2){ const b=e.getBoundingClientRect(), st=CH.s.getBoundingClientRect(), kk=st.width/W; const L=(b.left-st.left)/kk, R=(b.right-st.left)/kk, Y=((b.top+b.bottom)/2-st.top)/kk;
-      penDraw(ix,penPlace('G03',[L-6,Y-13,R+8,0]),f,924+k*2,{size:3.2,ground:'dark'}); } });
+      penDraw(ix,penPlace('G03',[L-6,Y-2,R+10,Y+2],{mode:'stretch'}),f,924+k*2,{size:3.2,ground:'dark'}); } });
   const ca=q1(chRoot,'.chapp'); ca.innerHTML=done?'✓ applied by <span style="display:inline-block;width:20px;height:20px;border-radius:10px;background:#FF3D5E;color:#fff;font-size:12px;line-height:20px;text-align:center;margin:0 4px">v</span>vladan':'Approve';
   if(ca._b===undefined){ ca._b=ca.style.background; ca._c=ca.style.color; ca._p=ca.style.paddingLeft; }   // garder les couleurs d'origine (les remettre à '' les effacerait)
   ca.style.background=done?'transparent':ca._b; ca.style.color=done?'#151413':ca._c; ca.style.paddingLeft=done?'0':ca._p; show(q1(chRoot,'.crej'),!done);
@@ -198,8 +201,6 @@ function shotChat(f){
   chApprove.style.background=f>=946&&f<948?'#DDD6CE':'#F3EFEA';
   cursor(cxy?cxy[0]:0,cxy?cxy[1]:0,f>=946&&f<948?1:0,!!cxy,1,f>=942?'hand':'arrow');
   // le fil : la bulle seule (880), réflexion + réponse (881), paquets + approbation (883), défile de 13 px
-  const scr=-13*approach(f,881,9);
-  chKids.forEach((k,j)=>{ if(j==0||j>=7) return; const t0=j==1?880:j<=3?881:883; k.style.visibility=f>=t0?'visible':'hidden'; k.style.translate=`0 ${scr.toFixed(1)}px`; });
 }
 
 /* ---------- 22-24 · Order Complete (vidéo Cycles) → plein cadre → le thermique naît du fauteuil → Taste Check → grille qui casse (réf, +2) ---------- */
@@ -453,7 +454,7 @@ const shShaft=el(SH.cam,'','', 'position:absolute;left:-200px;top:-200px;width:2
 // la tache de soleil au sol, dans le prolongement du rayon : parallélogramme à −28°, + ~18 niveaux (screen), bord flou
 SH.cam.insertBefore(shShaft,shWin);   // le rayon passe sous le cadre : les montants restent mats
 // les montants (x 632 et 1287) projettent leur ombre dans la tache : c'est le soleil à travers CETTE fenêtre
-const shPatch=el(SH.cam,'','', `position:absolute;left:480px;top:1100px;width:960px;height:420px;pointer-events:none;mix-blend-mode:screen;filter:blur(10px);transform-origin:50% 0;background:rgba(255,236,214,.24);${['-webkit-mask','mask'].map(k=>`${k}-image:linear-gradient(90deg,#000 0 139px,transparent 139px 165px,#000 165px 794px,transparent 794px 820px,#000 820px),linear-gradient(180deg,#000 0 330px,transparent 330px 352px,#000 352px);`).join('')}-webkit-mask-composite:source-in;mask-composite:intersect`);   // ombres des montants (x 632, 1287) et de la traverse haute
+const shPatch=el(SH.cam,'','', `position:absolute;left:480px;top:1100px;width:960px;height:720px;pointer-events:none;mix-blend-mode:screen;filter:blur(10px);transform-origin:50% 0;background:rgba(255,236,214,.24);${['-webkit-mask','mask'].map(k=>`${k}-image:linear-gradient(90deg,#000 0 139px,transparent 139px 165px,#000 165px 794px,transparent 794px 820px,#000 820px),linear-gradient(180deg,#000 0 330px,transparent 330px 352px,#000 352px 620px,transparent 720px);`).join('')}-webkit-mask-composite:source-in;mask-composite:intersect`);   // ombres des montants (x 632, 1287) et de la traverse haute
 // dehors : une silhouette d'arbre très floue (4 % d'encre) qui glisse contre la poussée (parallaxe)
 const shTree=el(SH.cam,'','', 'position:absolute;left:1180px;top:240px;width:760px;height:900px;pointer-events:none;filter:blur(30px);background:radial-gradient(38% 30% at 45% 40%,rgba(21,20,19,.05),transparent),radial-gradient(30% 26% at 70% 55%,rgba(21,20,19,.045),transparent),radial-gradient(8% 40% at 52% 90%,rgba(21,20,19,.04),transparent)');
 SH.cam.insertBefore(shTree,shWin);
