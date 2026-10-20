@@ -25,7 +25,7 @@ const wWord=el(W1.s,'abs c word','', 'font-size:60px;z-index:30;text-shadow:0 0 
 wWord.innerHTML='<span class="wa"></span><span class="wi" style="display:inline-block;overflow:hidden;vertical-align:bottom;white-space:pre"></span><span class="wb ar" style="color:var(--blue);font-weight:400"></span>';
 const [wA,wI,wB2]=['.wa','.wi','.wb'].map(q=>wWord.querySelector(q));
 // états de la phrase (réf : un mot par temps) ; « boring. » est le bleu Arial du fondateur
-const WST=[[10,'Your',''],[17,'Your SaaS',''],[23,'Your SaaS is',''],[30,'Your SaaS is ','boring.'],[80,'is ','boring.'],[85,'','boring.'],[94,'','']];
+const WST=[[10,'Your',''],[17,'Your SaaS',''],[23,'Your SaaS is',''],[30,'Your SaaS is ','boring.'],[80,'is ','boring.'],[85,'','boring.'],[99,'','']];
 const W_INS='a bit '; let W_INSW=128, W_GAP=[0,0];
 function wLayout(){ show(W1.s,true); wA.textContent='Your SaaS is '; wB2.textContent='boring.'; wI.textContent=W_INS; wI.style.width='auto'; W_INSW=wI.offsetWidth;
   wI.textContent=''; wI.style.width='0px'; place(wWord,960,540); const ra=wA.getBoundingClientRect(), rb=wB2.getBoundingClientRect(), st=W1.s.getBoundingClientRect(), k=st.width/W;
@@ -104,10 +104,10 @@ function shotW(f){ push(W1.cam,f,0,0.0009);
   const tinted=(f>=62&&f<70)||(f>=114&&f<117);   // les teintes de la réf, en camaïeu de la couleur de chaque site
   const sway=f<98?0:Math.sin(2*Math.PI*(f-98)/13.33);
   wB.forEach((d,i)=>{ if(f<62){ show(d,false); return; } show(d,true); const [x,y,w,h]=d._r, [cx,cy,cw]=BCL[i];
-    const pc=ease3(clamp((f-BST[i])/18)), dr=approach(f,62,27,0.08);
+    const pc=ease3(clamp((f-BST[i])/14)), dr=approach(f,62,27,0.08);   // convergence 1,3× plus vive (le collage garde son énergie autour de la carte)
     const s0=1+0.0012*(f-62), X=lerp(x+w/2+BDR[i][0]*dr,960+cx+BSW[i][0]*Math.sin(2*Math.PI*(f-98)/13.33+BSW[i][1])*(f>=98?1:0),pc), Y=lerp(y+h/2+BDR[i][1]*dr,540+cy,pc), S=lerp(s0,cw/w,pc);
     const Xg=960+(X-960)*g, Yg=540+(Y-540)*g, Sg=S*g; d.style.zIndex=f<104?i:f<108?(5-i):f<113?((i*3)%5):i;
-    mblur(d,f>=84&&f<100?vel(t=>lerp(x+w/2,960+cx,ease3(clamp((t-BST[i])/18))),f)*BLUR*0.6:0,0);
+    mblur(d,f>=84&&f<100?vel(t=>lerp(x+w/2,960+cx,ease3(clamp((t-BST[i])/14))),f)*BLUR*0.6:0,0);
     d.style.transform=`translate(${(Xg-w*Sg/2).toFixed(1)}px,${(Yg-h*Sg/2).toFixed(1)}px) scale(${Sg.toFixed(4)})`;
     d.style.boxShadow=pc>0?`0 ${(20*pc).toFixed(0)}px ${(50*pc).toFixed(0)}px -20px rgba(40,30,30,${(.35*pc).toFixed(2)})`:''; d.style.borderRadius=(10*pc)+'px';
     const bl=f>=116?` blur(${(accel(f,116,5,1.6)*18).toFixed(1)}px)`:''; d.style.filter=((tinted?DUO(d._si):'')+bl).trim(); });
@@ -118,9 +118,10 @@ function shotW(f){ push(W1.cam,f,0,0.0009);
     d.style.filter=(f>=114&&f<117?DUO(d._si):''); });
   // la carte du fondateur : monte du bas à 88, se pose au centre, sur le dessus ; le curseur « You » se pose sur « Get Started » (il ne clique pas)
   const foOn=f>=92; show(wFo,foOn);
-  if(foOn){ const p=approach(f,92,7,0.22), S=1.0+0.02*clamp((f-98)/14), X=960, Y=lerp(1000,548,p);
+  if(foOn){ // le mot bleu « boring. » tient jusqu'à 99, la carte se range juste dessous (haut à y≈600 à 96), puis prend le centre
+    const S=1.0+0.02*clamp((f-100)/12), X=960, Y=f<99?lerp(1000,775,approach(f,92,5,0.25)):lerp(775,548,approach(f,99,5,0.25));
     wFo.style.zIndex=40; wFo.style.transform=`translate(${(X-280*S).toFixed(1)}px,${(Y-175*S).toFixed(1)}px) scale(${S.toFixed(4)})`;
-    wFo.style.boxShadow='0 30px 60px -24px rgba(40,30,30,.45)'; mblur(wFo,0,vel(t=>lerp(1000,548,approach(t,92,7,0.22)),f)*BLUR*0.5);
+    wFo.style.boxShadow='0 30px 60px -24px rgba(40,30,30,.45)'; mblur(wFo,0,vel(t=>t<99?lerp(1000,775,approach(t,92,5,0.25)):lerp(775,548,approach(t,99,5,0.25)),f)*BLUR*0.5);
     wFo.style.filter=f>=116?`blur(${(accel(f,116,5,1.6)*18).toFixed(1)}px)`:'';
     const cp=clamp((twos(f,97)-97)/7); if(f>=97&&f<113) cursor(lerp(1330,X+238*S,cp),lerp(820,Y-175*S+40*S,cp),0,true,1,cp>=1?'hand':'arrow'); }
   // M2 : la barre oblique traverse toute la pile (104-111), la pile se déchire le long du trait (113-119)
@@ -253,7 +254,8 @@ function shotLand(f){
   mblur(LA.cam,f>=276&&f<281?vel(t=>40*accel(t,274,6.5,2.6),f):0,0);
   seqDraw(laSeq,SEQ.land,fl-234);
   { const t=0.5-0.5*Math.cos(Math.PI*clamp((f-238)/52)); laSeq.style.transformOrigin='50% 55%'; laSeq.style.transform=`translateX(${(-40*t).toFixed(1)}px) scale(${(1+0.06*t).toFixed(4)})`; }   // Ken Burns dans la carte
-  q1(laD,'.lnh').style.transform=`translateX(${(-290*approach(f,235,36,0.10)).toFixed(1)}px)`;
+  // le titre glisse de 140 px mais reste entier : « Plan with ▢ taste. » (seul le fût du P et le point frôlent les bords)
+  q1(laD,'.lnh').style.transform=`translateX(${(70-110*approach(f,235,36,0.10)).toFixed(1)}px)`;
   qa(laMark,'svg path').forEach(p=>p.style.strokeDashoffset=(1-vl(f,234,4)).toFixed(3));
   if(INK&&f<234){ show(INK.canvas,true); LA.s.appendChild(INK.canvas); const r=laMark.getBoundingClientRect(), st=LA.s.getBoundingClientRect(), k=st.width/W;
     const cx=((r.left+r.right)/2-st.left)/k, cy=((r.top+r.bottom)/2-st.top)/k, hw=(r.right-r.left)/2/k, hh=(r.bottom-r.top)/2/k;

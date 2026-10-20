@@ -28,7 +28,7 @@ function buildDash(root){
   h+=`<div class="d-box" id="CH" style="left:300px;top:350px;width:650px;height:410px">`;
   h+=sw(5,0,28,20,36,`<span class="ar" style="font-weight:700;font-size:18px;color:#333">Monthly 3D Views</span>`,`<span style="font-size:25px;letter-spacing:-0.02em">3D views <span class="m" style="font-size:15px;color:#8E877F;letter-spacing:0">· 12 mo</span></span>`);
   // la ligne « 0 » est la base des barres (372) : même ennuyeux, le graphique est juste
-  [0,1,2,3].forEach(i=>{ h+=`<div class="grid" style="left:62px;top:${186+i*62}px;width:560px"></div><div class="glab gl" style="left:24px;top:${179+i*62}px">${['15k','10k','5k','0'][i]}</div>`; });
+  [0,1,2,3,4].forEach(i=>{ h+=`<div class="grid" style="left:62px;top:${124+i*62}px;width:560px"></div><div class="glab gl" style="left:24px;top:${117+i*62}px">${['20k','15k','10k','5k','0'][i]}</div>`; });   // une ligne 20k : la barre de décembre (≈19k) reste sous l'échelle
   h+=`<div id="BARS" style="position:absolute;left:0;top:0;width:650px;height:372px">`;
   for(let i=0;i<12;i++) h+=`<div class="d-bar"></div>`;
   h+=`</div><div class="chip" id="TIP" style="background:var(--ink);color:#F3EFEA">48.2k</div>`;

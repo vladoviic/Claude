@@ -136,15 +136,20 @@ function chToView(p,V){ // écran → pixels du canvas de la vue (inverse de la 
   const cx=630+459, cy=196+334; let x=p[0]-cx-V.x, y=p[1]-cy-V.y; const c=Math.cos(-V.r*Math.PI/180), s=Math.sin(-V.r*Math.PI/180);
   const xr=(x*c-y*s)/V.s, yr=(x*s+y*c)/V.s; return [(xr+459)*1100/918,(yr+334)*800/668]; }
 // le front couvre le dossier dès 930
-function chSoak(f,V,red){ const tt=clamp((f-924)/6), R=330*1100/918*(0.5-0.5*Math.cos(Math.PI*tt)); const k=CH_MASK.width/1100;
-  const pts=penResample(M7().flat(),40).map(p=>chToView(p,V));
+// le pinceau révèle le velours rouge le long de son passage (918-924, ~26 px de demi-largeur), puis l'encre boit le tissu (924-930) ;
+// le front est déplacé par un bruit à deux octaves (±14 px) et son bord est serré (~6 px) : pas de ligne droite, pas de halo violet
+function chNoise(x,y){ const h=(a,b)=>{ const s=Math.sin(a*127.1+b*311.7)*43758.5453; return s-Math.floor(s); };
+  const vn=(x,y)=>{ const i=Math.floor(x), j=Math.floor(y), u=x-i, v=y-j, uu=u*u*(3-2*u), vv=v*v*(3-2*v); return lerp(lerp(h(i,j),h(i+1,j),uu),lerp(h(i,j+1),h(i+1,j+1),uu),vv); };
+  return 0.65*vn(x/22,y/22)+0.35*vn(x/9+7.3,y/9+1.9)-0.5; }
+function chSoak(f,V,red){ const tt=clamp((f-924)/6), R=lerp(26,330,0.5-0.5*Math.cos(Math.PI*tt))*1100/918; const k=CH_MASK.width/1100;
+  const all=penResample(M7().flat(),40), prog=clamp((f-917)/6); const pts=all.slice(0,Math.max(2,Math.ceil(all.length*prog))).map(p=>chToView(p,V));
   const x=CH_MASK.getContext('2d'); const im=x.createImageData(CH_MASK.width,CH_MASK.height);
   // luminance du velours rouge, lue une fois à basse résolution pour moduler le front
   const L=document.createElement('canvas'); L.width=CH_MASK.width; L.height=CH_MASK.height; const lx=L.getContext('2d'); lx.drawImage(red,0,0,L.width,L.height); const ld=lx.getImageData(0,0,L.width,L.height).data;
   for(let j=0;j<CH_MASK.height;j++) for(let i=0;i<CH_MASK.width;i++){ const px=i/k, py=j/k; let d=1e9;
     for(let n=0;n<pts.length-1;n++){ const a=pts[n], b=pts[n+1]; const bx=b[0]-a[0], by=b[1]-a[1]; const t=clamp(((px-a[0])*bx+(py-a[1])*by)/Math.max(1e-6,bx*bx+by*by)); d=Math.min(d,Math.hypot(px-a[0]-bx*t,py-a[1]-by*t)); }
     const o=(j*CH_MASK.width+i)*4, lum=(ld[o]*.3+ld[o+1]*.59+ld[o+2]*.11)/255; const r=R*(1+0.35*(lum-0.35));
-    const a=clamp((r-d)/(14/k*k+10)); im.data[o]=im.data[o+1]=im.data[o+2]=255; im.data[o+3]=Math.round(255*a); }
+    const dn=d+14*1100/918*2*chNoise(px,py), e=clamp((r-dn)/(6*1100/918)), a=e*e*(3-2*e); im.data[o]=im.data[o+1]=im.data[o+2]=255; im.data[o+3]=Math.round(255*a); }
   x.putImageData(im,0,0); }
 function shotChat(f){
   const ii=chIdx(f), i=Math.round(ii), V=chView3(f);
@@ -155,15 +160,15 @@ function shotChat(f){
   // le coup de pinceau (918-924), puis le velours apparaît là où l'encre a bu, jusqu'à recouvrir tout le fauteuil (932)
   const ix=inkClear(chInk);
   // le pinceau teint le velours (fusion « couleur » : la teinte du stylo, le modelé du tissu), bord adouci : pas un autocollant
-  if(f>=918&&f<934){ const soak=clamp((f-924)/3); chInk.style.mixBlendMode='color'; chInk.style.filter='blur(5px)'; penDraw(ix,M7(),f,918,{size:56,alpha:1-soak,ground:'dark'});
-    // la teinte ne touche que le velours bleu : masque tiré de l'image du fauteuil, posé avec la transformation de la vue
-    chBlueKey(TURN.blue[Math.min(47,i)]); ix.save(); ix.globalCompositeOperation='destination-in';
-    ix.setTransform(1,0,0,1,0,0); ix.translate(630+459+V.x,196+334+V.y); ix.rotate(V.r*Math.PI/180); ix.scale(V.s,V.s); ix.translate(-459,-334); ix.scale(918/1100,668/800);
-    ix.imageSmoothingEnabled=true; ix.drawImage(CH_BLUE,0,0,1100,800); ix.restore(); }
-  const redOn=f>=925; show(chTurnR,redOn);
+  // (le trait n'est plus une teinte posée : il révèle le rendu du velours rouge, voir chSoak)
+  const redOn=f>=918; show(chTurnR,redOn);
   if(redOn){ const red=TURN.red[clamp(i,38,71)]; const c=chTurnR.getContext('2d'); c.clearRect(0,0,1100,800); c.drawImage(red,0,0,1100,800);
     if(f<931){ chSoak(f,V,red); c.globalCompositeOperation='destination-in'; c.imageSmoothingEnabled=true; c.drawImage(CH_MASK,0,0,1100,800); c.globalCompositeOperation='source-over'; } }
-  chFab.textContent=f>=926?'velvet':'polyester'; chKids[7].style.visibility=f>=926?'visible':'hidden';
+  chFab.textContent=f>=926?'velvet':'polyester';
+  // le journal de l'agent se tape une ligne toutes les 12 images (892, 904, 916) ; la troisième se résout en « ✓ … velvet » à 926
+  qa(chRoot,'.clog').forEach(l=>{ const t0=+l.dataset.t; l.textContent=f<t0?'':l.dataset.s.slice(0,Math.ceil((f-t0+1)*2.5)); });
+  chKids[7].style.visibility=f>=916?'visible':'hidden'; chKids[7].style.color=f>=926?'#151413':'#5C5650';
+  chKids[7].textContent=f>=926?'✓ fabric · polyester → velvet':'↻ fabric · polyester → …'.slice(0,Math.ceil((f-915)*2.5));
   // la vignette reste bleue tant que le front ne l'a pas atteinte
   chThumbs.forEach(t=>t.style.filter=f<930?'hue-rotate(-145deg) saturate(1.2)':'');
   chThink.textContent=VL_YEARS?`Thought for ${VL_YEARS} years ›`:'Thought for a while ›';
@@ -243,7 +248,7 @@ function shotDone(F){ const f=F-2;
     doSum.style.clipPath=`inset(0 0 ${((1-approach(f,956,10))*100).toFixed(1)}% 0 round 18px)`; }
   // 989-1079 : la page claire et sa chaleur à l'encre
   const hp=f>=989; show(doTP,hp); show(doFull,false);
-  if(hp){ const z=1+0.0016*(f-989), pan=f<1062?0:f<1075?(f-1062)*15:13*15+(f-1075)*40, zz=f<1075?1:1-0.045*(f-1075);
+  if(hp){ const z=1+0.0026*(f-989), pan=f<1062?0:f<1075?(f-1062)*15:13*15+(f-1075)*40, zz=f<1075?1:1-0.045*(f-1075);
     doTPi.style.transform=`translate(${pan.toFixed(1)}px,${(pan*0.6).toFixed(1)}px) scale(${(z*zz).toFixed(4)})`;
     // les étiquettes restent fixes à l'écran pendant la poussée (sinon le cadre coupe « 1,204 sessions » et la légende)
     if(f<1062){ const Z=z*zz; Object.assign(doHud.style,{right:(1920-(960+(1892-960)/Z)).toFixed(1)+'px',top:(540+(84-540)/Z).toFixed(1)+'px',transform:`scale(${(1/Z).toFixed(4)})`,transformOrigin:'100% 0'});
@@ -328,7 +333,7 @@ const reBtn=el(reCard,'abs','Accept all','left:auto;right:44px;top:316px;height:
 const reProg=q1(reCard,'.rprog');
 cR26(1130,'impact',{v:.5}); cR26(1161,'click',{v:1}); cR26(1162,'pop',{v:.5,n:84});
 function shotReport(F){ const f=F-1;
-  RE.cam.style.transform=`scale(${(1+0.08*approach(f,1131,36,0.09)).toFixed(4)})`;
+  RE.cam.style.transform=`scale(${(1+0.11*(1-Math.pow(1-clamp((f-1131)/44),2))).toFixed(4)})`;   // poussée continue jusqu'à la coupe
   // la carte monte (40 px, 10 images), le 47 se compte, les lignes et les barres par catégorie arrivent une à une
   const p=approach(f,1130,6); place(reCard,960,545+40*(1-vl(f,1131,10))); reCard.style.opacity=lerp(0.3,1,p).toFixed(3);
   reNum.textContent='47';   // pas de compte à partir de 0 : dans ce film, 0 veut dire « réglé »
@@ -337,7 +342,9 @@ function shotReport(F){ const f=F-1;
   // le clic du fondateur (1161) : « Applying… 0/47 », une ligne d'encre de 2 px qui atteint 6 % à 1175
   const pr=f==1162?0.955:f>1162?lerp(0.97,1,approach(f,1162,3)):1; reBtn.style.transform=`scale(${pr.toFixed(4)})`; reBtn.textContent=f>=1162?'Applying… 0/47':'Accept all';
   reProg.style.width=(f>=1162?880*0.06*clamp((f-1162)/13):0).toFixed(1)+'px';
-  const cf=twos(f,1145), cp=clamp((cf-1145)/10); cursor(lerp(1470,1412,cp),lerp(850,708,cp),f==1161?1:0,f>=1145,1,cp>=1?'hand':'arrow');   // au bout du bouton : le libellé reste lisible
+  // la cible est lue sur le bouton lui-même (il suit la poussée) : au bout du bouton, le libellé reste lisible
+  const bb=reBtn.getBoundingClientRect(), sb=RE.s.getBoundingClientRect(), kb=sb.width/W, tx=(bb.right-sb.left)/kb-18, ty=(bb.bottom-sb.top)/kb-14;
+  const cf=twos(f,1145), cp=clamp((cf-1145)/10); cursor(lerp(tx+58,tx,cp),lerp(ty+142,ty,cp),f==1161?1:0,f>=1145,1,cp>=1?'hand':'arrow');
 }
 
 /* ---------- 27 · les 47 tuiles ennuyeuses barrées d'un seul trait, puis le trait tiré comme un fil dans la fente de la marque ---------- */
@@ -419,15 +426,20 @@ const shSkyI=document.createElement('img'); shSkyI.src=shSkyC.toDataURL(); shSky
 const shWin=el(SH.cam,'','', 'position:absolute;inset:0;pointer-events:none');
 shWin.innerHTML=`<div style="position:absolute;left:0;top:0;right:0;height:26px;background:#151413"></div><div style="position:absolute;left:0;bottom:0;right:0;height:26px;background:#151413"></div>
   <div style="position:absolute;left:0;top:0;bottom:0;width:26px;background:#151413"></div><div style="position:absolute;right:0;top:0;bottom:0;width:26px;background:#151413"></div>
-  <div style="position:absolute;left:631px;top:0;bottom:0;width:18px;background:#151413;box-shadow:inset 2px 0 0 rgba(255,228,206,.28),inset -2px 0 0 rgba(255,228,206,.16)"></div><div style="position:absolute;left:1271px;top:0;bottom:0;width:18px;background:#151413;box-shadow:inset 2px 0 0 rgba(255,228,206,.28),inset -2px 0 0 rgba(255,228,206,.16)"></div>
-  <div style="position:absolute;left:0;right:0;top:351px;height:18px;background:#151413;box-shadow:inset 0 2px 0 rgba(255,228,206,.28)"></div>
+  <div style="position:absolute;left:631px;top:0;bottom:0;width:18px;background:#151413;box-shadow:inset 1px 0 0 #1E1C1B"></div><div style="position:absolute;left:1271px;top:0;bottom:0;width:18px;background:#151413;box-shadow:inset 1px 0 0 #1E1C1B"></div>
+  <div style="position:absolute;left:0;right:0;top:351px;height:18px;background:#151413;box-shadow:inset 0 1px 0 #1E1C1B"></div>
   <div style="position:absolute;left:-60px;right:-60px;top:1080px;height:900px;background:linear-gradient(180deg,#8E7F73 0,#7B6D63 220px,#665a52 900px)"></div>
   <div style="position:absolute;left:-60px;right:-60px;top:1080px;height:16px;background:#B7A799;box-shadow:0 1px 0 #CDBFB1 inset,0 10px 24px rgba(40,30,25,.35)"></div>`;
 // le fauteuil détouré (img/ship_chair.png, tiré de red_60), à contre-jour devant le mur ; il monte avec la pièce quand la caméra descend
 const shChair=el(SH.cam,'','', 'position:absolute;left:1520px;top:1168px;width:665px;height:602px');
-shChair.innerHTML='<img src="img/ship_chair.png" style="width:100%;height:100%;filter:brightness(.6) contrast(1.08) saturate(.95) drop-shadow(0 -2px 0 rgba(255,205,180,.55))">';   // contre-jour : un liseré chaud sur le haut du dossier
+shChair.innerHTML='<img src="img/ship_chair.png" style="width:100%;height:100%;filter:brightness(.6) contrast(1.08) saturate(.95) ">';
+// l'ombre du fauteuil sur le sol (sous le cadre, à contre-jour, elle vient vers nous)
+const shChairSh=el(SH.cam,'','', 'position:absolute;left:1500px;top:1500px;width:720px;height:140px;border-radius:50%;background:radial-gradient(closest-side,rgba(21,20,19,.35),rgba(21,20,19,0));filter:blur(14px)');
 // le soleil entre en biais par la fenêtre : un rayon chaud très léger sur le mur et le fauteuil
 const shShaft=el(SH.cam,'','', 'position:absolute;left:-200px;top:-200px;width:2320px;height:1280px;pointer-events:none;mix-blend-mode:screen;background:linear-gradient(118deg,transparent 34%,rgba(255,240,224,1) 43%,rgba(255,240,224,1) 50%,transparent 59%)');
+// la tache de soleil au sol, dans le prolongement du rayon : parallélogramme à −28°, + ~18 niveaux (screen), bord flou
+SH.cam.insertBefore(shShaft,shWin);   // le rayon passe sous le cadre : les montants restent mats
+const shPatch=el(SH.cam,'','', 'position:absolute;left:600px;top:1100px;width:700px;height:420px;pointer-events:none;mix-blend-mode:screen;background:rgba(255,236,214,.22);filter:blur(12px);transform-origin:50% 0');
 const shBtn=el(SH.s,'bbtn',''); shBtn.style.zIndex=5; shBtn.style.width='228px'; shBtn.style.padding='0'; shBtn.style.textAlign='center'; shBtn.style.borderRadius='14px';
 const shRing=el(SH.s,'','', 'position:absolute;left:960px;top:540px;width:0;height:0;border-radius:50%;box-shadow:0 0 0 1px #151413;z-index:4');
 cR28(1250,'impact',{v:.5}); cR28(1293,'beep',{v:.6}); cR28(1298,'riser',{v:.55,end:1306});
@@ -435,7 +447,8 @@ function shotShip(F){ const f=F-1; SH.cam.style.transform=`scale(${(1+0.03*clamp
   const y=-900*approach(f,1250,36,0.11);
   // le rayon (≈ +14 niveaux sur les vitres) glisse de 60 px pendant le plan ; il ne descend pas sur le mur
   shShaft.style.opacity='0.5'; shShaft.style.transform=`translateX(${(60*clamp((f-1250)/56)).toFixed(1)}px)`; shShaft.style.clipPath=`inset(0 0 ${Math.max(0,1280-(200+1080+y*0.35)).toFixed(0)}px 0)`;
-   shSky.style.transform=`translateY(${y.toFixed(1)}px)`; shWin.style.transform=`translateY(${(y*0.35+0).toFixed(1)}px)`; shChair.style.transform=`translateY(${(y*0.42).toFixed(1)}px)`;
+   shSky.style.transform=`translateY(${y.toFixed(1)}px)`; shWin.style.transform=`translateY(${(y*0.35+0).toFixed(1)}px)`; shChair.style.transform=`translateY(${(y*0.42).toFixed(1)}px)`; shChairSh.style.transform=`translateY(${(y*0.42).toFixed(1)}px)`;
+  shPatch.style.transform=`translate(${(60*clamp((f-1250)/56)).toFixed(1)}px,${(y*0.42).toFixed(1)}px) skewX(-28deg)`;
   const n=clamp(f-1250,0,7); shBtn.innerHTML='Ship it'.slice(0,n)+(f<1262||Math.floor(f/8)%2?'<span style="display:inline-block;width:3px;height:40px;background:#F3EFEA;vertical-align:-6px;margin-left:3px"></span>':'');
   // le clic tombe à 1293, comme dans la réf
   const pr=f>=1293&&f<1295; place(shBtn,960,540,pr?0.94:1); shBtn.style.background='#151413';
@@ -470,7 +483,7 @@ function shotMont(F){ const f=F-1; let cur=MOS[0]; for(const m of MOS) if(f>=m[1
   MOS.forEach(m=>show(m[0],m===cur)); const a=f-cur[1];
   let sc=1; if(cur[0]===moP) sc=1+0.035*approach(f,1307,18,0.12); else if(cur[0]===moR) sc=1+0.0007*a; else if(cur[0]===moDa) sc=1+0.0016*a; else sc=1-0.03*accel(f,1366,10,2);
   place(cur[0],960,540,sc);
-  if(cur[0]===moP){ moStat.firstChild.textContent=f>=1314?'+45%':'+14%'; moStat2.textContent=f>=1315?'0:42':'52 s'; }
+  if(cur[0]===moP){ moStat.firstChild.textContent=f>=1314?'+45%':'+14%'; moStat2.textContent=f>=1315?'0:42':'0:52'; }   // même format que le téléphone
   if(cur[0]===moDa) moBars.forEach((r,i)=>{ r.lastChild.style.transform=`scaleX(${(1-vl(f,1336+i*0.4,3)).toFixed(3)})`; });   // toutes à 0 dès 1342
   if(cur[0]===moL){ seqDraw(moLSeq,SEQ.land,a*1.0,0.5,0.58); moLh.style.transform=`translateX(${(-2.3*a).toFixed(1)}px)`;
     moLT.forEach((t,i)=>{ const p=approach(f,1350+i,8,0.2); t.style.translate=`0 ${((1-p)*24).toFixed(1)}px`; }); }
@@ -503,7 +516,7 @@ ouCard.innerHTML=`<div class="oto" style="position:absolute;left:44px;top:0;righ
     <div style="position:absolute;left:0;right:0;top:206px;height:1px;background:#E2DBD3"></div></div>
   <div class="obody" style="position:absolute;left:44px;top:44px;right:200px">
     <div class="ar obrief" style="font-size:28px;line-height:1.45;color:#6E6862"></div>
-    <div style="margin-top:14px;padding-left:16px;box-shadow:inset 2px 0 0 #D6CFC7;font-size:24px;color:#8E877F">Brand, UI and motion for SaaS.</div></div>
+    <div style="margin-top:14px;padding-left:14px;border-left:2px solid #D6CFC7;font-size:24px;color:#8E877F">Brand, UI and motion for SaaS.</div></div>
   <div style="position:absolute;left:40px;bottom:30px;width:48px;height:48px;border-radius:24px;box-shadow:inset 0 0 0 1.5px #CFC8C0;color:#8E877F;font-size:30px;line-height:46px;text-align:center">+</div>
   <div class="omodel" style="position:absolute;right:130px;bottom:38px;font:500 26px 'ID';color:#5C5650;display:flex;gap:8px;align-items:center"><span class="omw">vladan</span><svg class="omc" viewBox="0 0 18 18" width="18" height="18"><path d="M4 7 L9 12 L14 7" stroke="#5C5650" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div class="osend" style="position:absolute;right:30px;bottom:24px;width:72px;height:72px;border-radius:36px;background:#151413"><svg viewBox="0 0 72 72" width="72" height="72"><path d="M36 50 V22 M24 33 L36 21 L48 33" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
@@ -550,7 +563,7 @@ function shotOutro(F){ const f=F-2; push(OU.cam,f,1378,f<1489?0.0008:0);
     const hh=226*vl(f,1496,4); ouTo.style.height=hh+'px'; ouBody.style.top=(44+hh*(212/226))+'px';
     const fl=clamp((f-1499)/6), fe=vladan(fl); ouMC.style.opacity=(1-clamp((f-1499)/2)).toFixed(2); ouMW.style.visibility=f>=1499?'hidden':'visible'; ouModel.style.width=f>=1499?lerp(110,0,clamp((f-1499)/3))+'px':'';
     const cr=ouCard.getBoundingClientRect(), st=OU.s.getBoundingClientRect(), kk=st.width/W;
-    show(ouFly,f>=1499&&f<1505); if(f>=1499&&f<1505){ const sx=144+1500-130-110, sy=440+OU_CH-38-26, tx=144+44+150, ty=440+16+5; const cx=1480, cy=470, m=1-fe; const x=m*m*sx+2*m*fe*cx+fe*fe*tx, y=m*m*sy+2*m*fe*cy+fe*fe*ty;   // remonte le bord droit puis file dans TO : jamais au-dessus du texte
+    show(ouFly,f>=1499&&f<1505); if(f>=1499&&f<1505){ const sx=144+1500-130-110, sy=440+OU_CH-38-26, tx=144+44+150, ty=440+16+5; const cx=1480, cy=430, m=1-fe; const x=m*m*sx+2*m*fe*cx+fe*fe*tx, y=m*m*sy+2*m*fe*cy+fe*fe*ty;   // remonte le bord droit puis file dans TO : jamais au-dessus du texte
       placeTL(ouFly,x,y,lerp(1,92/26,fe)); }
     ouToA.textContent=f<1505?'':'vladan'+'@kwinndo.fr'.slice(0,Math.floor((f-1505+1)*2));
     // le trait M3 séché, toujours sur « Arial, »

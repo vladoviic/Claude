@@ -28,7 +28,7 @@ function tplVLanding(){ return `<div class="full" style="background:${VINK};over
   <div style="position:absolute;left:470px;top:20px;height:34px;line-height:34px;font-size:14px;color:#F3EFEA;display:flex;gap:26px"><span>Product</span><span>Customers</span><span>Pricing</span></div>
   <div class="vpill" style="right:150px;top:20px;background:#151413;color:#F3EFEA;box-shadow:inset 0 0 0 1px rgba(243,239,234,.25)">Book a demo</div>
   <div class="vpill" style="right:22px;top:20px;background:rgba(18,17,16,.55);color:#F3EFEA">Sign in</div>
-  <div class="vhead lnh big" style="left:-18px;top:338px;font-size:204px">Plan with ${VMARK(150)} <em style="font-size:198px">taste.</em></div>
+  <div class="vhead lnh big" style="left:-18px;top:352px;font-size:185px">Plan with ${VMARK(136)} <em style="font-size:180px">taste.</em></div>
   <div class="m" style="position:absolute;left:24px;top:548px;font-size:12px;color:#F3EFEA">▪ Used by 140 furniture brands¹</div>
   <div class="m" style="position:absolute;left:330px;top:548px;font-size:11px;color:${VG}">Room planner · 3D hero · AR · one line of JS</div>
   ${FEATS.map(([k,t,n],i)=>`<div class="vtile" style="left:${12+i*244}px;top:572px;width:${i==3?250:236}px">${vimg('tile_'+k,'inset:0;width:100%;height:100%','50% 62%')}<div class="vtl">${t}</div><div class="m vtn">${n}</div></div>`).join('')}
@@ -128,7 +128,8 @@ function tplVChat(){ return `<div class="full" style="background:#F3EFEA">
       <div class="m" style="position:absolute;left:20px;top:70px;font-size:22px;color:#151413">– font-family: Arial;</div><div class="m" style="position:absolute;left:20px;top:102px;font-size:22px;color:#151413">– #2D6CDF</div>
       <div class="m chapp" style="position:absolute;left:20px;bottom:-56px;height:38px;line-height:38px;padding:0 18px;border-radius:19px;background:var(--ink);color:#fff;font-size:14px">Approve</div>
       <div class="m" style="position:absolute;left:130px;bottom:-56px;height:38px;line-height:36px;padding:0 18px;border-radius:19px;border:1px solid #D9D2CA;color:#6d6760;font-size:14px">Reject</div></div>
-    <div class="m cfix" style="position:absolute;left:32px;top:640px;font-size:22px;color:#151413;visibility:hidden">✓ fabric · polyester → velvet</div>
+    <div class="m cfix" style="position:absolute;left:32px;top:704px;font-size:22px;color:#151413;visibility:hidden">✓ fabric · polyester → velvet</div>
+    <div class="m clog" data-t="892" data-s="✓ three · velvet-shader" style="position:absolute;left:32px;top:640px;font-size:22px;color:#5C5650"></div><div class="m clog" data-t="904" data-s="✓ hero viewport 918×666" style="position:absolute;left:32px;top:672px;font-size:22px;color:#5C5650"></div>
     <div class="m" style="position:absolute;left:32px;top:860px;font-size:13px;color:${VG}">▪ SUGGESTIONS</div>
     ${['Add a sofa','Warmer light','Show in room'].map((t,i)=>`<div class="m" style="position:absolute;left:${32+i*180}px;top:890px;height:38px;line-height:36px;padding:0 14px;border-radius:19px;border:1px solid #D9D2CA;font-size:14px;color:#5f5952">${t}</div>`).join('')}
     <div style="position:absolute;left:24px;right:24px;bottom:28px;height:84px;border-radius:20px;background:#fff;box-shadow:0 0 0 1px #E6E1DB"><span style="position:absolute;left:22px;top:28px;font-size:19px;color:#A39C94;font-weight:400">What would you like to change?</span><span style="position:absolute;right:16px;top:16px;width:52px;height:52px;border-radius:14px;background:var(--ink)"></span></div></div>
@@ -163,6 +164,6 @@ function tplVInsights(){ const sp=[8,10,9,13,12,16,18,17,22,26,31,36,45]; const 
   <div class="mst" style="position:absolute;left:24px;top:176px;font-size:200px;letter-spacing:-0.05em;line-height:1;font-variant-numeric:tabular-nums">+14%<sup style="font-size:60px;vertical-align:110px">¹</sup></div>
   <svg width="1000" height="270" viewBox="0 0 1000 270" style="position:absolute;left:200px;top:420px"><polyline points="${pts.join(' ')}" fill="none" stroke="#F3EFEA" stroke-width="3" stroke-linejoin="round"/><circle cx="${40+12*74}" cy="${250-45*4.4}" r="9" fill="#FF3D5E"/></svg>
   <div style="position:absolute;right:40px;top:150px;width:330px;display:grid;gap:26px">
-    <div><div class="m" style="font-size:15px;color:${VG}">TIME TO FIRST ROOM</div><div class="mst2" style="font-size:64px;letter-spacing:-0.04em">52 s</div></div>
+    <div><div class="m" style="font-size:15px;color:${VG}">TIME TO FIRST ROOM</div><div class="mst2" style="font-size:64px;letter-spacing:-0.04em">0:52</div></div>
     <div><div class="m" style="font-size:15px;color:${VG}">ARIAL</div><div style="font-size:64px;letter-spacing:-0.04em">0</div></div></div>
   <div class="m" style="position:absolute;left:34px;bottom:26px;font-size:22px;color:#8E877F">¹ velvetly is fictional. The taste isn't.</div></div>`; }
