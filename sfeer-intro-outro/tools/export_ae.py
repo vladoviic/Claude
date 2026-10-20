@@ -161,7 +161,26 @@ def svg_path_to_shapes(d, tf=None):
         close()
     if tf:
         shapes = [transform_shape(s, tf) for s in shapes]
-    return shapes
+    return [orient(s) for s in shapes]
+
+
+def orient(s):
+    """Tous les tracés dans le même sens (horaire à l'écran) : dans un même calque de forme, After
+    Effects remplit en « enroulement non nul » ; deux tracés de sens opposés qui se chevauchent
+    s'annuleraient (trous entre une bulle et son cou)."""
+    v, ii, oo = s["v"], s["i"], s["o"]
+    n = len(v)
+    area = 0.0
+    for k in range(n):                                   # aire signée sur le polygone de contrôle
+        a, b = v[k], v[(k + 1) % n]
+        c1 = (a[0] + oo[k][0], a[1] + oo[k][1])
+        c2 = (b[0] + ii[(k + 1) % n][0], b[1] + ii[(k + 1) % n][1])
+        for p, q in ((a, c1), (c1, c2), (c2, b)):
+            area += p[0] * q[1] - q[0] * p[1]
+    if area >= 0:
+        return s
+    rv = list(reversed(range(n)))
+    return {"v": [v[k] for k in rv], "i": [oo[k] for k in rv], "o": [ii[k] for k in rv]}
 
 
 def transform_shape(s, tf):
@@ -194,7 +213,7 @@ def hexrgb(h):
 SCALE_RE = re.compile(r"scale\(([-\d.]+)\)")
 
 
-def frame_state(layers):
+def frame_state(layers, mapper=lambda k: k):
     """Pistes : fills par id, fenêtre (cache + zoom), textes (cache rect), échelle du carton."""
     st = {"fills": {}, "win": None, "zoom": None, "texts": {}, "card": 1.0}
 
@@ -203,7 +222,7 @@ def frame_state(layers):
         if not d or L.get("fill") in (None, "none"):
             return
         tf = (sc, CX - sc * CX, CY - sc * CY, 0) if sc != 1.0 else None
-        key = L.get("id") or "forme"
+        key = mapper(L.get("id") or "forme")
         prev = st["fills"].get(key)
         shapes = svg_path_to_shapes(d, tf)
         if prev:
@@ -230,11 +249,12 @@ def frame_state(layers):
             tx, ty, rot, d, col = pm.groups()
             tf = (1.0, float(tx), float(ty), float(rot)) if tx else None
             shapes = svg_path_to_shapes(d, tf)
-            prev = st["fills"].get("forme")
+            key = mapper("forme")
+            prev = st["fills"].get(key)
             if prev:
                 prev["shapes"] += shapes
             else:
-                st["fills"]["forme"] = {"shapes": shapes, "color": col}
+                st["fills"][key] = {"shapes": shapes, "color": col}
 
     for L in layers:
         k = L["k"]
@@ -276,9 +296,9 @@ def pack_shape(s):
     return [[[r1(x), r1(y)] for x, y in s["v"]], [[r1(x), r1(y)] for x, y in s["i"]], [[r1(x), r1(y)] for x, y in s["o"]]]
 
 
-def anim_data(anim, fps):
+def anim_data(anim, fps, mapper=lambda k: k, comp_name=None):
     n = int(round(anim.duration * fps))
-    states = [frame_state(anim.frame(i / fps)) for i in range(n)]
+    states = [frame_state(anim.frame(i / fps), mapper) for i in range(n)]
     ids = []
     for s in states:
         for k in s["fills"]:
@@ -305,7 +325,7 @@ def anim_data(anim, fps):
             texts[key] = [[r1(v) for v in s["texts"][key]] if key in s["texts"] else None for s in states]
     card = [round(s["card"] * 100, 3) for s in states]
     beats = [{"t": round(b.t, 3), "c": b.cap} for b in anim.beats]
-    return {"name": anim.name, "dur": anim.duration, "n": n, "fills": fills, "winSlots": win_slots,
+    return {"name": anim.name, "comp": comp_name, "dur": anim.duration, "n": n, "fills": fills, "winSlots": win_slots,
             "win": win, "texts": texts, "card": card, "beats": beats}
 
 
@@ -316,6 +336,8 @@ JSX = r"""// SFEER · %(title)s — construit les compositions dans le projet Af
 var DATA = %(data)s;
 var FPS = %(fps)s;
 var PREFIX = "%(prefix)s";
+var FOLDER = "%(folder)s";
+var MONTAGE = "%(montage)s";
 var IND = [36/255, 8/255, 82/255], LAV = [129/255, 126/255, 255/255], GREEN = [0, 177/255, 64/255], WHITE = [1, 1, 1];
 
 function mkShape(p) {
@@ -427,21 +449,26 @@ function videoPlaceholder(folder) {
     return c;
 }
 
-function windowLayers(comp, d, placeholder) {
+// Vidéo en aveugle : calque guide (visible dans AE, jamais rendu) sous le graphisme.
+function videoGuide(comp, d, placeholder) {
     var vid = comp.layers.add(placeholder);
-    vid.name = "VIDÉO · film dans la fenêtre";
+    vid.name = "VIDÉO · aperçu en aveugle (guide, non rendu)";
     vid.label = 9;
-    var zs = [], ops = [], lastZ = 100;
+    vid.guideLayer = true;
+    var zs = [], lastZ = 100;
     for (var i = 0; i < d.n; i++) {
         if (d.win[i]) { lastZ = d.win[i].z; }
         zs.push([lastZ, lastZ]);
-        ops.push(d.win[i] ? 100 : 0);
     }
     smoothKeys(vid.property("ADBE Transform Group").property("ADBE Scale"), zs);
-    stepKeys(vid.property("ADBE Transform Group").property("ADBE Opacity"), ops);
+    return vid;
+}
 
+// Cache de la fenêtre : la forme de la fenêtre (∩ iris). Utilisé en alpha INVERSÉ sur le graphisme :
+// la fenêtre devient un trou transparent dans l'export.
+function windowMatte(comp, d) {
     var m = comp.layers.addShape();
-    m.name = "Cache · fenêtre (goutte ∩ iris)";
+    m.name = "Cache · fenêtre (trou alpha)";
     m.label = 2;
     zeroTransform(m);
     var root = m.property("ADBE Root Vectors Group");
@@ -467,11 +494,7 @@ function windowLayers(comp, d, placeholder) {
     }
     pathKeys(root.property("Iris d'ouverture").property("ADBE Vectors Group").property(1).property("ADBE Vector Shape"),
         d.win, function (f) { return f ? f.iris : null; }, [960, 540]);
-    m.moveBefore(vid);
-    if (typeof vid.setTrackMatte === "function") { vid.setTrackMatte(m, TrackMatteType.ALPHA); }
-    else { vid.trackMatteType = TrackMatteType.ALPHA; }
-    m.enabled = false;
-    return vid;
+    return m;
 }
 
 // Textes du logo (gabarit Inter : remplacer par le vectoriel officiel), révélés par un masque.
@@ -507,26 +530,21 @@ function textLayer(comp, parent, txt, size, track, x, y, rects, name) {
     return t;
 }
 
-function buildComp(d, folder, placeholder) {
-    var comp = app.project.items.addComp(PREFIX + "_" + d.name, 1920, 1080, 1, d.dur, FPS);
-    comp.parentFolder = folder;
+function buildComp(d, folder, sub, placeholder) {
+    var name = d.comp || (PREFIX + "_" + d.name);
+    // 1) précompo « graphisme » : fond, bulles, logo (tout ce qui est opaque)
+    var comp = app.project.items.addComp(name + " · graphisme", 1920, 1080, 1, d.dur, FPS);
+    comp.parentFolder = sub;
     comp.bgColor = IND;
     background(comp);
-    // formes (dessous -> dessus dans l'ordre du moteur)
-    var made = [];
     for (var f = 0; f < d.fills.length; f++) {
         if (d.fills[f].name.indexOf("Logo") === 0) { continue; }
-        made.push(shapeLayer(comp, d.fills[f].name, d.fills[f].slots, d.fills[f].frames, 11));
+        shapeLayer(comp, d.fills[f].name, d.fills[f].slots, d.fills[f].frames, 11);
     }
-    var hasWin = false;
-    for (var w = 0; w < d.win.length; w++) { if (d.win[w]) { hasWin = true; break; } }
-    if (hasWin) { windowLayers(comp, d, placeholder); }
-    // carton logo
     var hasText = false;
     for (var k in d.texts) { if (d.texts.hasOwnProperty(k)) { hasText = true; } }
-    var nul = null;
     if (hasText) {
-        nul = comp.layers.addNull();
+        var nul = comp.layers.addNull();
         nul.name = "Carton · poussée lente (échelle)";
         nul.property("ADBE Transform Group").property("ADBE Anchor Point").setValue([0, 0]);
         nul.property("ADBE Transform Group").property("ADBE Position").setValue([960, 540]);
@@ -539,32 +557,50 @@ function buildComp(d, folder, placeholder) {
     }
     for (var p = 0; p < d.fills.length; p++) {
         if (d.fills[p].name.indexOf("Logo") === 0) {
-            var pl = shapeLayer(comp, d.fills[p].name, d.fills[p].slots, d.fills[p].frames, 1);
-            pl.moveToBeginning();
+            shapeLayer(comp, d.fills[p].name, d.fills[p].slots, d.fills[p].frames, 1).moveToBeginning();
         }
     }
-    for (var b = 0; b < d.beats.length; b++) {
-        comp.markerProperty.setValueAtTime(d.beats[b].t, new MarkerValue(d.beats[b].c));
+    // 2) compo principale : vidéo en aveugle (guide) + graphisme troué par la fenêtre
+    var main = app.project.items.addComp(name, 1920, 1080, 1, d.dur, FPS);
+    main.parentFolder = folder;
+    main.bgColor = [0, 0, 0];
+    var hasWin = false;
+    for (var w = 0; w < d.win.length; w++) { if (d.win[w]) { hasWin = true; break; } }
+    if (hasWin) { videoGuide(main, d, placeholder); }
+    var g = main.layers.add(comp);
+    g.name = "GRAPHISME · fond + bulles + logo";
+    g.label = 11;
+    if (hasWin) {
+        var m = windowMatte(main, d);
+        m.moveBefore(g);
+        if (typeof g.setTrackMatte === "function") { g.setTrackMatte(m, TrackMatteType.ALPHA_INVERTED); }
+        else { g.trackMatteType = TrackMatteType.ALPHA_INVERTED; }
+        m.enabled = false;
     }
-    return comp;
+    for (var b = 0; b < d.beats.length; b++) {
+        main.markerProperty.setValueAtTime(d.beats[b].t, new MarkerValue(d.beats[b].c));
+    }
+    return main;
 }
 
 app.beginUndoGroup("SFEER · " + PREFIX);
 if (!app.project) { app.newProject(); }
-var folder = app.project.items.addFolder("SFEER · %(title)s");
+var folder = app.project.items.addFolder(FOLDER);
 var sub = app.project.items.addFolder("Précompos"); sub.parentFolder = folder;
 var placeholder = videoPlaceholder(sub);
-var intro = buildComp(DATA[0], folder, placeholder);
-var outro = buildComp(DATA[1], folder, placeholder);
+var intro = buildComp(DATA[0], folder, sub, placeholder);
+var outro = buildComp(DATA[1], folder, sub, placeholder);
 var gap = 2;
-var montage = app.project.items.addComp(PREFIX + "_MONTAGE (intro + film + outro)", 1920, 1080, 1, intro.duration + gap + outro.duration, FPS);
+var montage = app.project.items.addComp(MONTAGE, 1920, 1080, 1, intro.duration + gap + outro.duration, FPS);
 montage.parentFolder = folder;
+var lv = montage.layers.add(placeholder); lv.name = "FILM · placeholder (sous l'intro et l'outro)";
+lv.outPoint = montage.duration;
 var lo = montage.layers.add(outro); lo.startTime = intro.duration + gap; lo.name = "OUTRO";
-var lv = montage.layers.add(placeholder); lv.startTime = intro.duration; lv.outPoint = intro.duration + gap; lv.name = "FILM · placeholder";
 var li = montage.layers.add(intro); li.startTime = 0; li.name = "INTRO";
 intro.openInViewer();
 app.endUndoGroup();
-alert("SFEER · %(title)s\n\nCréé dans le dossier « SFEER · %(title)s » :\n• " + intro.name + "\n• " + outro.name + "\n• " + montage.name + "\n\nRemplace la précompo « VIDÉO · placeholder » par le film (Alt-glisser).");
+alert("SFEER · %(title)s\n\nCréé dans le dossier « " + FOLDER + " » :\n• " + intro.name + "\n• " + outro.name + "\n• " + montage.name +
+      "\n\nExport avec alpha : Composition > Ajouter à la file de rendu, module de sortie QuickTime, Apple ProRes 4444, couches RVB + Alpha. La fenêtre sort transparente.");
 })();
 """
 
@@ -575,9 +611,13 @@ def main(argv):
     mod = load(path)
     m = mod.META
     prefix = "SFEER_" + re.sub(r"[^A-Za-z0-9]+", "_", m["title"].replace("é", "e").replace("è", "e")).strip("_")
-    data = [anim_data(mod.INTRO, fps), anim_data(mod.OUTRO, fps)]
+    mapper = getattr(mod, "AE_TRACK", lambda k: k)
+    ci, co = m.get("ae_intro"), m.get("ae_outro")
+    data = [anim_data(mod.INTRO, fps, mapper, ci), anim_data(mod.OUTRO, fps, mapper, co)]
+    folder = m.get("ae_folder", "SFEER · " + m["title"])
+    montage = (ci.replace("_INTRO_", "_MONTAGE_") if ci and "_INTRO_" in ci else prefix + "_MONTAGE") + " (intro + film + outro)"
     js = JSX % {"data": json.dumps(data, ensure_ascii=False, separators=(",", ":")), "fps": fps,
-                "prefix": prefix, "title": m["title"]}
+                "prefix": prefix, "title": m["title"], "folder": folder, "montage": montage}
     out_dir = os.path.join(os.path.dirname(HERE), "after-effects")
     os.makedirs(out_dir, exist_ok=True)
     out = os.path.join(out_dir, f"{m['id']}.jsx")

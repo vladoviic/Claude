@@ -16,12 +16,15 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "tools"))
 from motion import F, Anim, Beat, Track, breathe, prog  # noqa: E402
 from blocks import LG, drift, endcard, squash, video  # noqa: E402
 from sfeer_svg import (AXIS, ORANGE, WHITE, W, arrow, bridge_d, circle_d, ellipse_d, f,  # noqa: E402
-                       mix_hex, waist_h)
+                       mix_hex)
 
 CX = W / 2
 
 META = {
     "id": "p08_division_cellulaire",
+    "ae_intro": "SFEER_INTRO_01_DIVISION_16x9",
+    "ae_outro": "SFEER_OUTRO_01_DIVISION_16x9",
+    "ae_folder": "SFEER · 01 DIVISION",
     "num": "P8",
     "title": "Division cellulaire",
     "principe": "Une cellule se divise sur un rythme (1, 3, 11, 26) puis tout se regroupe en une bulle qui ouvre la fenêtre.",
@@ -99,12 +102,35 @@ def rotate_path(d, cx, cy, ang):
     return "".join(o if o in "MLAZ" else o + " " for o in out).replace(" Z", "Z")
 
 
-def neck(c1, c2, h):
-    """Deux cellules reliées par un cou, dans n'importe quelle direction."""
+FILLET = 0.93          # rayon du congé du cou / rayon moyen des bulles (mesuré sur la charte, héros 3.1)
+
+
+def charte_h(c1, c2):
+    """Demi-épaisseur du cou pour un congé de rayon constant R = 0,93 r (construction de la charte).
+    None si les bulles sont trop loin : le cou a cassé (≈ 3,36 r pour deux bulles égales)."""
+    (x1, y1, r1), (x2, y2, r2) = c1, c2
+    d = math.dist((x1, y1), (x2, y2))
+    if d < 1e-6:
+        return None
+    R = FILLET * (r1 + r2) / 2
+    a = (d * d + (r1 + R) ** 2 - (r2 + R) ** 2) / (2 * d)
+    y2_ = (r1 + R) ** 2 - a * a
+    if y2_ <= 0:
+        return None
+    h = math.sqrt(y2_) - R
+    return h if h > 0.5 else None
+
+
+def neck(c1, c2, h=None):
+    """Deux cellules reliées par le cou de la charte, dans n'importe quelle direction.
+    Renvoie None si le cou a cassé."""
     (x1, y1, r1), (x2, y2, r2) = c1, c2
     dist = math.dist((x1, y1), (x2, y2))
     if dist < 1:
         return circle_d(x1, y1, max(r1, r2))
+    h = charte_h(c1, c2) if h is None else h
+    if h is None:
+        return None
     ang = math.atan2(y2 - y1, x2 - x1)
     d = bridge_d((x1, y1, r1), (x1 + dist, y1, r2), h)
     if "a" in d or "L" in d:                    # cas dégénérés : simple union de cercles
@@ -114,7 +140,7 @@ def neck(c1, c2, h):
 
 def division(g, u, wob=1.0):
     """Génération g-1 -> g à l'avancement u (0..1, peut dépasser 1 avec out_back).
-    Les enfants bourgeonnent de l'enfant « maison » ; le cou s'affine puis casse à u ≈ 0,8."""
+    Les enfants bourgeonnent de l'enfant « maison » : cou de la charte qui s'affine, puis casse net."""
     L = []
     homes = HOME[g]
     pos = []
@@ -126,18 +152,10 @@ def division(g, u, wob=1.0):
         pos.append((x, y, r * wob))
     for ci, c in enumerate(pos):
         h = homes[PARENT[g][ci]]
-        if ci != h and u < 0.95:
-            hc = pos[h]
-            rr = min(c[2], hc[2])
-            dd = math.dist(c[:2], hc[:2]) / rr
-            if dd < 0.05:
-                thick = None
-            elif dd < 1.95:                                  # encore collées : taille de cacahuète
-                thick = waist_h((0, 0, hc[2]), (dd * rr, 0, c[2]), 0.25)
-            else:                                          # le cou s'affine jusqu'à la rupture (≈ 3,3 r)
-                thick = max(2.0, rr * (0.42 - 0.40 * (dd - 1.95) / 1.35))
-            if thick is not None and dd < 3.3:
-                L.append({"k": "fill", "fill": ORANGE, "d": neck(hc, c, thick), "ghost": False})
+        if ci != h:
+            d = neck(pos[h], c)
+            if d:
+                L.append({"k": "fill", "fill": ORANGE, "d": d, "ghost": False})
         L.append({"k": "fill", "id": f"c{g}-{ci}", "fill": ORANGE, "d": circle_d(*c), "pts": [c[:2]], "ghost": ci < 12})
     return L
 
@@ -168,14 +186,66 @@ def gather(u, gen=3, r_end=150):
     return L
 
 
-# ----------------------------------------------------------------- INTRO (4,4 s)
+# --- Composition finale : la fenêtre au centre, des chaînes de cellules remplissent le cadre ---
+WIN_R = 330
+STEP = 183            # 3,27 r pour r = 56 : la pose étirée de la charte
+FINAL = [
+    # axe : demi-bulles coupées au milieu par les bords, bulles moyennes reliées à la fenêtre
+    [(0, AXIS, 150), (395, AXIS, 100)],
+    [(1525, AXIS, 100), (1920, AXIS, 150)],
+    # rangées haute et basse en damier (motif 3.6), chaînes de 2 et 3
+    [(120, 106, 56), (120 + STEP, 106, 56)],
+    [(640, 106, 56), (640 + STEP, 106, 56), (640 + 2 * STEP, 106, 56)],
+    [(1530, 106, 56), (1530 + STEP, 106, 56)],
+    [(214, 974, 56), (214 + STEP, 974, 56)],
+    [(914, 974, 56), (914 + STEP, 974, 56), (914 + 2 * STEP, 974, 56)],
+    [(1617, 974, 56), (1617 + STEP, 974, 56)],
+]
+LINK_TO_WIN = []                         # la fenêtre reste libre : pas de cou épais vers elle
+TARGETS = [b for ch in FINAL for b in ch]
+
+
+def final_layer(u, t, k=1.0, uid="fin", wob_t=None):
+    """Les chaînes jaillissent de la bulle centrale vers leur place (u 0..1, dépassement possible),
+    décalées par distance au centre. k : poussée caméra (zoom centré). Cous de la charte."""
+    L = []
+    pos_ch = []
+    for ci, ch in enumerate(FINAL):
+        row = []
+        for bi, (x, y, r) in enumerate(ch):
+            dist = math.dist((x, y), (CX, AXIS))
+            lag = 0.22 * dist / 1100                       # les plus loin partent un peu après
+            uu = max(0.0, (u - lag) / (1 - lag)) if u < 1 else u
+            e = uu
+            xx, yy = CX + (x - CX) * e, AXIS + (y - AXIS) * e
+            rr = r * min(1.0, 0.35 + 0.65 * uu)
+            if wob_t is not None:                          # onde qui court de gauche à droite (3.6)
+                rr *= 1 + 0.07 * math.sin(2 * math.pi * (wob_t * 1.4 - x / 1200))
+            xx, yy, rr = CX + (xx - CX) * k, AXIS + (yy - AXIS) * k, rr * k
+            row.append((xx, yy, rr))
+        pos_ch.append(row)
+    for row in pos_ch:
+        for a, b in zip(row, row[1:]):
+            d = neck(a, b)
+            if d:
+                L.append({"k": "fill", "fill": ORANGE, "d": d, "ghost": False})
+        for c in row:
+            L.append({"k": "fill", "id": uid, "fill": ORANGE, "d": circle_d(*c), "ghost": False})
+    return L, pos_ch
+
+
 pop = Track((0, 46), (F(7), 112, "out_back_fort"))
 d1 = Track((F(12), 0.0), (F(24), 1.0, "out_back"))     # 1 -> 3   ♪ do
 d2 = Track((F(28), 0.0), (F(40), 1.0, "out_back"))     # 3 -> 11  ♪ mi
 d3 = Track((F(44), 0.0), (F(54), 1.0, "out_back"))     # 11 -> 26 ♪ sol (plus rapide)
-g_in = Track((F(66), 0.0), (F(78), 1.0, "in_expo"))     # aspiration
-win = Track((F(84), 0.0), (F(94), 1.0, "out_expo"))     # la fenêtre s'ouvre ♪ clic
-plunge = Track((F(94), 1.0), (F(110), 3.6, "plongee"))
+g_in = Track((F(64), 0.0), (F(76), 1.0, "in_expo"))     # tout se regroupe en une seule bulle
+expel = Track((F(79), 0.0), (F(93), 1.0, "out_back"))   # la bulle ré-éjecte les chaînes vers les bords
+grow = Track((F(76), 150), (F(79), 136, "in_cubic"), (F(93), WIN_R, "out_back"))
+win = Track((F(82), 0.0), (F(94), 1.0, "emphase"))      # la fenêtre s'ouvre dans la bulle ♪ clic
+
+
+def push(t):
+    return 1 + 0.004 * max(0.0, t * 25 - 90) + 0.0 * t   # poussée lente continue sur la tenue
 
 
 def intro(t):
@@ -188,20 +258,30 @@ def intro(t):
         L += division(1, d1(t), breathe(t, 0.04, 0.5) if t > F(24) else 1)
     elif t < F(44):
         L += division(2, d2(t), breathe(t, 0.05, 0.4) if t > F(40) else 1)
-    elif t < F(66):
+    elif t < F(64):
         if t < F(54):
             L += division(3, d3(t))
         else:
             L += cells(3, wave_t=t - F(54))                       # le motif ondule : tension
-    elif t < F(80):
+    elif t < F(78):
         L += gather(g_in(t))
     else:
-        k = plunge(t) + drift(t, F(94), 0.4)
-        sq = squash(t, F(78), F(10), 0.28)
-        r = 150 * (1 + 1.4 * win(t)) * (k if t >= F(94) else 1)
-        L.append({"k": "fill", "id": "cellule-unique", "fill": ORANGE, "d": ellipse_d(CX, AXIS, r * sq, r / sq)})
-        if win(t) > 0:
-            L.append(video(0.7 * k ** 0.6, ellipse_d(CX, AXIS, r * sq * win(t) * 0.97, r / sq * win(t) * 0.97), ghost=win(t) < 1))
+        k = push(t)
+        sq = squash(t, F(76), F(10), 0.28)
+        rw = grow(t) * k
+        u = expel(t)
+        if u > 0:
+            fl, pos_ch = final_layer(u, t, k, wob_t=t - F(93) if t > F(93) else None)
+            # cous qui relient la fenêtre aux bulles moyennes de l'axe
+            for ci, bi in LINK_TO_WIN:
+                d = neck((CX, AXIS, rw), pos_ch[ci][bi])
+                if d:
+                    L.append({"k": "fill", "fill": ORANGE, "d": d, "ghost": False})
+            L += fl
+        L.append({"k": "fill", "id": "cellule-unique", "fill": ORANGE, "d": ellipse_d(CX, AXIS, rw * sq, rw / sq)})
+        if win(t) > 0.03:
+            rv = rw * win(t) * 0.94
+            L.append(video(0.9 + 0.1 * k, ellipse_d(CX, AXIS, rv * sq, rv / sq), ghost=win(t) < 1))
     return L
 
 
@@ -213,8 +293,9 @@ def a_gather(t):
     return "".join(arrow(CX + dx * 720, AXIS + dy * 330, CX + dx * 300, AXIS + dy * 140) for dx in (-1, 1) for dy in (-1, 1))
 
 
-def a_plunge(t):
-    return "".join(arrow(CX + dx * 520, AXIS + dy * 290, CX + dx * 880, AXIS + dy * 490) for dx in (-1, 1) for dy in (-1, 1))
+def a_expel(t):
+    return (arrow(CX - 360, AXIS - 60, CX - 560, AXIS - 60) + arrow(CX + 360, AXIS - 60, CX + 560, AXIS - 60) +
+            arrow(CX - 200, AXIS - 300, CX - 420, AXIS - 400) + arrow(CX + 200, AXIS + 300, CX + 420, AXIS + 400))
 
 
 INTRO = Anim("INTRO", 4.4, intro, [
@@ -223,15 +304,16 @@ INTRO = Anim("INTRO", 4.4, intro, [
     Beat(F(14), "♪ do. 1 → 3 : deux cellules bourgeonnent de part et d'autre, le cou s'affine et casse net.", "out_back", ann=a_div),
     Beat(F(30), "♪ mi. 3 → 11 : chaque cellule se divise en rangées autour de l'axe (3 / 5 / 3).", "out_back"),
     Beat(F(45), "♪ sol, plus rapide. 11 → 26 : le motif 8 / 10 / 8 se forme en 10 images.", "out_back"),
-    Beat(F(60), "Le motif ondule de gauche à droite (±16 %, motif 3.6) : la tension monte.", "linear", onion=0),
-    Beat(F(74), "Regroupement : tout est aspiré vers le centre en accélérant, étiré vers le cœur, et fusionne en une bulle.", "in_expo", ann=a_gather),
-    Beat(F(100), "♪ clic. Impact écrasé puis la bulle s'ouvre sur la vidéo et l'on plonge en zoom diagonal.", "plongee", ann=a_plunge),
+    Beat(F(72), "Regroupement : tout est aspiré vers le centre en accélérant, étiré vers le cœur, et fusionne en une bulle.", "in_expo", ann=a_gather),
+    Beat(F(86), "Impact, puis la bulle ré-éjecte des chaînes vers les bords (dépassement 10 %) et s'ouvre sur la vidéo. ♪ clic", "out_back", ann=a_expel),
+    Beat(F(109), "Dernière image : fenêtre au centre, chaînes reliées par les cous de la charte jusqu'aux bords ; onde et poussée lente.", "emphase", onion=0),
 ])
 
 
 # ----------------------------------------------------------------- OUTRO (4,0 s)
-o_close = Track((F(2), 3.4), (F(16), 1.0, "emphase"))
-o_pull = Track((0, 1.25), (F(16), 1.0, "out_cubic"))
+o_close = Track((0, 3.4), (F(14), 1.0, "emphase"))             # le plein cadre se referme sur la composition
+o_in = Track((0, 0.0), (F(14), 1.0, "out_expo"))                 # les chaînes reviennent depuis le hors-champ
+o_suck = Track((F(14), 0.0), (F(24), 1.0, "anticipe"))          # tout est aspiré dans la fenêtre
 o_orange = Track((F(16), 0.0), (F(24), 1.0, "out_expo"))
 o_burst = Track((F(24), 0.0), (F(34), 1.0, "out_back"))        # 1 -> 26 d'un coup  ♪ sol
 o_m1 = Track((F(38), 1.0), (F(46), 0.0, "in_cubic"))           # 26 -> 11 ♪ mi
@@ -242,15 +324,21 @@ LOGO_T0 = F(72)
 
 
 def outro(t):
-    if t < F(16):
-        r = 560 * o_close(t)
-        return [{"k": "bg", "v": "gradient"}, video(o_pull(t), circle_d(CX, AXIS, r), ghost=r < 1400)]
     L = [{"k": "bg", "v": "gradient"}]
     if t < F(24):
-        r = 560 + (112 - 560) * prog(t, F(16), F(24), "in_expo")
-        L.append({"k": "fill", "id": "cellule", "fill": ORANGE, "d": circle_d(CX, AXIS, r)})
-        if o_orange(t) < 1:
-            L.append(video(1.0, circle_d(CX, AXIS, r * (1 - o_orange(t))), ghost=False))
+        su = o_suck(t)
+        k = 1 + 1.6 * (1 - o_in(t))                               # zoom arrière : les chaînes rentrent par les bords
+        rw = (WIN_R * o_close(t) if t < F(14) else WIN_R + (112 - WIN_R) * su)
+        fl, pos_ch = final_layer(1 - su, t, k, uid="fin")
+        for ci, bi in LINK_TO_WIN:
+            d = neck((CX, AXIS, rw), pos_ch[ci][bi])
+            if d:
+                L.append({"k": "fill", "fill": ORANGE, "d": d, "ghost": False})
+        L += fl
+        L.append({"k": "fill", "id": "cellule", "fill": ORANGE, "d": circle_d(CX, AXIS, rw)})
+        if o_orange(t) < 0.97:
+            L.append(video(1.0 + 0.25 * (1 - o_in(t)), circle_d(CX, AXIS, rw * 0.94 * (1 - o_orange(t))) if rw < 1300 else None, ghost=False))
+        return L
     elif t < F(36):
         # la cellule éclate directement en 26 (le motif réapparaît)
         u = o_burst(t)
@@ -281,8 +369,8 @@ def outro(t):
 
 
 OUTRO = Anim("OUTRO", 4.0, outro, [
-    Beat(F(8), "Fin du plan : la vidéo se referme en une bulle centrée (zoom arrière 125 % -> 100 %).", "emphase"),
-    Beat(F(20), "La bulle redevient orange et se contracte en cellule (aspiration in expo).", "in_expo"),
+    Beat(F(7), "Fin du plan : la vidéo se referme dans la fenêtre, les chaînes rentrent par les bords (zoom arrière).", "emphase"),
+    Beat(F(19), "Tout est aspiré dans la fenêtre, qui redevient orange et se contracte en cellule.", "anticipe"),
     Beat(F(30), "♪ sol. Éclatement : la cellule repart d'un coup en 26 (8 / 10 / 8) avec dépassement.", "out_back"),
     Beat(F(44), "♪ mi. Les cellules fusionnent deux à deux : 26 → 11, les cous se reforment.", "in_cubic"),
     Beat(F(52), "11 → 3, plus vite : les rangées du haut et du bas rejoignent l'axe.", "in_cubic"),
@@ -308,3 +396,8 @@ NOTES = [
         "Écart à valider : cous obliques entre rangées pendant les divisions (transitoires de moins de 10 images).",
     ]),
 ]
+
+
+def AE_TRACK(layer_id):
+    """Regroupement des calques pour After Effects : toutes les cellules dans un seul calque de forme."""
+    return "Logo · points" if layer_id == "points-logo" else "Cellules · orange"

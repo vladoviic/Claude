@@ -1,8 +1,10 @@
-# La goutte dans After Effects
+# Scripts After Effects SFEER
 
 ## Lancer
 1. Ouvre ton projet After Effects (2018 ou plus récent).
-2. Va dans **Fichier › Scripts › Exécuter le fichier de script…** et choisis `p07_la_goutte.jsx`.
+2. Va dans **Fichier › Scripts › Exécuter le fichier de script…** et choisis le script :
+   - `p08_division_cellulaire.jsx` : **01 DIVISION**, qui crée `SFEER_INTRO_01_DIVISION_16x9`, `SFEER_OUTRO_01_DIVISION_16x9` et `SFEER_MONTAGE_01_DIVISION_16x9` ;
+   - `p07_la_goutte.jsx` : la goutte.
 3. Si After Effects demande l'accès aux fichiers, active **Préférences › Scripts et expressions › Autoriser les scripts à écrire des fichiers…**. Ce script n'écrit rien sur le disque, mais certaines versions demandent quand même l'autorisation.
 
 Tout est créé en une seule étape d'annulation (Ctrl/Cmd + Z pour tout retirer).
@@ -38,3 +40,16 @@ Chaque temps fort du storyboard est posé en **repère de composition**, avec sa
 - **Logo.** C'est un gabarit en Inter. Remplace les textes par le vectoriel officiel ·sfeer· / سفير en gardant les masques « Révélation ». Typo de marque : Loew Riyadh Air.
 - **Dégradé.** L'effet Dégradé ne gère que deux couleurs. La charte met le milieu du dégradé à 70 % : pour être exact, remplace le fond par un calque de forme en dégradé à 3 arrêts (indigo, #5243A8 à 70 %, lavande).
 - **Passer en 25 i/s.** Paramètres de composition › 25 i/s. Les clés restent à leur temps.
+
+## Export en MOV avec alpha (vidéo derrière)
+Chaque compo principale est construite en trois couches :
+
+| Calque | Rôle |
+|---|---|
+| `Cache · fenêtre (trou alpha)` | La forme de la fenêtre, désactivée, utilisée comme cache. |
+| `GRAPHISME · fond + bulles + logo` | La précompo de tout le graphisme, en **cache alpha inversé** : la fenêtre y fait un trou. |
+| `VIDÉO · aperçu en aveugle (guide, non rendu)` | La plaque verte en **calque guide** : tu la vois dans After Effects, elle ne sort jamais au rendu. |
+
+Pour exporter : **Composition › Ajouter à la file d'attente de rendu**, puis module de sortie **QuickTime**, **Apple ProRes 4444**, couches **RVB + Alpha**. La fenêtre sort transparente. Pose ta vidéo sous le MOV au montage (Premiere, Resolve, ou dans After Effects).
+
+La compo MONTAGE met la plaque sous l'intro et l'outro pour prévisualiser l'enchaînement.
