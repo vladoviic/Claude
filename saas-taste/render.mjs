@@ -46,6 +46,7 @@ async function openPage() {
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
   page.on('pageerror', e => console.error('page error:', e.message));
   page.on('console', m => { if (m.type() === 'error') console.error('console:', m.text()); });
+  page.on('response', r => { if (r.status() >= 400) console.error('missing:', r.url().replace(base, '')); });
   await page.goto(url);
   await page.waitForFunction(() => window.READY === true);
   return page;
