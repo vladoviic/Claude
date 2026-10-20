@@ -2,12 +2,18 @@
 @font-face{font-family:'ID';src:url(fonts/InterDisplay-Medium.otf);font-weight:500}
 @font-face{font-family:'ID';src:url(fonts/InterDisplay-SemiBold.otf);font-weight:600}
 @font-face{font-family:'ID';src:url(fonts/InterDisplay-Bold.otf);font-weight:700}
-@font-face{font-family:'IS';src:url(fonts/InstrumentSerif-Italic.ttf);font-style:italic}
-@font-face{font-family:'IS';src:url(fonts/InstrumentSerif-Regular.ttf);font-style:normal}
+@font-face{font-family:'BE';src:url(fonts/Besley-Italic.ttf);font-style:italic;font-weight:400 900}
 @font-face{font-family:'JB';src:url(fonts/JetBrainsMono-Regular.ttf);font-weight:400}
 @font-face{font-family:'JB';src:url(fonts/JetBrainsMono-Medium.ttf);font-weight:500}
 @font-face{font-family:'AR';src:url(fonts/LiberationSans-Regular.ttf);font-weight:400}
 @font-face{font-family:'AR';src:url(fonts/LiberationSans-Bold.ttf);font-weight:700}
+/* sites recréés de l'ouverture */
+@font-face{font-family:'AV';src:url(fonts/Archivo.ttf);font-weight:100 900;font-stretch:62% 125%}
+@font-face{font-family:'SY';src:url(fonts/Syne.ttf);font-weight:400 800}
+@font-face{font-family:'UB';src:url(fonts/Unbounded.ttf);font-weight:200 900}
+@font-face{font-family:'AN';src:url(fonts/Anton.ttf)}
+@font-face{font-family:'DS';src:url(fonts/DMSerifDisplay.ttf);font-style:normal}
+@font-face{font-family:'DS';src:url(fonts/DMSerifDisplay-Italic.ttf);font-style:italic}
 
 /* TOKENS : les règles visuelles du SPEC, une seule fois ici */
 :root{
@@ -18,7 +24,8 @@
 *{box-sizing:border-box}
 html,body{margin:0;background:#111;overflow:hidden}
 body{font-family:'ID',sans-serif;font-weight:500;color:var(--ink);-webkit-font-smoothing:antialiased}
-em{font-family:'IS';font-style:italic;font-weight:400;letter-spacing:0}
+em{font-family:'BE';font-style:italic;font-weight:500;letter-spacing:-0.01em}
+.big em,em.big{font-weight:400;letter-spacing:-0.035em}
 .m{font-family:'JB';font-weight:400}
 .ar{font-family:'AR'}
 #stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;background:var(--paper);transform-origin:0 0}
@@ -65,7 +72,11 @@ em{font-family:'IS';font-style:italic;font-weight:400;letter-spacing:0}
 
 /* prompt */
 .pbox{position:absolute;width:1020px;height:300px;border-radius:24px;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.04),0 30px 60px -30px rgba(60,40,40,.25)}
-.ptext{position:absolute;left:40px;top:44px;width:820px;font-size:34px;line-height:1.38;font-weight:400;color:#1c1a19;white-space:normal}
+.ptext{position:absolute;left:40px;top:44px;width:830px;font-size:30px;line-height:1.38;font-weight:400;color:#151413;white-space:normal}
+.ptext .blu{color:#2D6CDF}
+.pchip{position:absolute;font-size:22px;line-height:40px;height:40px;padding:0 14px;border-radius:10px;background:#F4F1ED;color:#5C5650}
+.pmodel{position:absolute;font:500 26px 'ID';color:#5C5650;display:flex;gap:8px;align-items:center}
+.psend.hover{background:#2E2B28}
 .pcaret{display:inline-block;width:3px;height:36px;background:#1c1a19;vertical-align:-6px;margin-left:2px}
 .psend{position:absolute;right:30px;top:30px;width:72px;height:72px;border-radius:18px;background:var(--ink)}
 .picon{position:absolute;font-family:'JB';font-size:34px;color:#B9B2AB}
@@ -191,3 +202,11 @@ em{font-family:'IS';font-style:italic;font-weight:400;letter-spacing:0}
 .vbtn span{position:absolute;right:6px;top:6px;width:28px;height:28px;border-radius:14px;background:#FF3D5E}
 .spsw{display:inline-block;width:18px;height:18px;border-radius:9px;background:#2D6CDF;vertical-align:-3px;box-shadow:0 0 0 2px rgba(255,255,255,.25)}
 .vhiri{position:absolute;background:linear-gradient(90deg,#FFA6C9,#A9E7F2,#FFC7A1,#B9A8FF,#FFA6C9);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent!important;pointer-events:none}
+
+/* curseur du fondateur */
+#cursor{position:absolute;left:0;top:0;z-index:60;transform-origin:4px 4px;pointer-events:none}
+#cursor svg{position:absolute;left:0;top:0;filter:drop-shadow(0 2px 3px rgba(0,0,0,.25))}
+#cursor .hand{display:none;left:-14px;top:-2px}
+#cursor[data-shape=hand] .arrow{display:none} #cursor[data-shape=hand] .hand{display:block}
+#cursor .flag{position:absolute;left:30px;top:40px;font:400 20px 'AR';color:#fff;background:#2D6CDF;border-radius:4px;padding:2px 8px;white-space:nowrap}
+#cursor[data-shape=hand] .flag{left:34px;top:48px}

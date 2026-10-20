@@ -13,8 +13,19 @@ const lerp=(a,b,t)=>a+(b-a)*t;
 function approach(f,f0,dur,k=0.12){ if(f<=f0) return 0; if(f>=f0+dur) return 1; const n=f-f0, t=n/dur; return 1-Math.pow(1-k,n)*(1-t)*(1-t); }
 // Sortie : accélère (pour les éléments qui quittent le cadre).
 function accel(f,f0,dur,pw=2.6){ return Math.pow(clamp((f-f0)/dur),pw); }
-// Pop avec léger dépassement.
-function back(f,f0,dur,s=1.5){ const p=clamp((f-f0)/dur); if(p<=0) return 0; const q=p-1; return 1+(s+1)*q*q*q+s*q*q; }
+// « vladan » : la courbe de vitesse du trait de Vladan (départ humain lognormal, arrivée rapide, atterrissage doux, zéro dépassement).
+// En attendant la prise G02 : CDF lognormale μ=ln(0,22), σ=0,5 (remplacée par la table tirée de la prise quand elle existe).
+const ERF=x=>{ const t=1/(1+0.3275911*Math.abs(x)); const y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x); return x>=0?y:-y; };
+const VL_MU=Math.log(0.22), VL_SG=0.5, VL_N=0.5*(1+ERF((0-VL_MU)/(VL_SG*Math.SQRT2)));
+let VL_LUT=null;
+function vladan(t){ t=clamp(t); if(t<=0) return 0; if(t>=1) return 1;
+  if(VL_LUT){ const x=t*(VL_LUT.length-1), i=Math.floor(x); return lerp(VL_LUT[i],VL_LUT[Math.min(i+1,VL_LUT.length-1)],x-i); }
+  return 0.5*(1+ERF((Math.log(t)-VL_MU)/(VL_SG*Math.SQRT2)))/VL_N; }
+const vl=(f,f0,dur,t0=0)=>f<=f0?0:vladan(t0+(1-t0)*clamp((f-f0)/dur));
+// l'ancien « pop » avec dépassement (Lottie) : remplacé par vladan, sans rebond
+function back(f,f0,dur){ return vl(f,f0,dur); }
+// la voix du fondateur bouge en linéaire, sur deux images
+const twos=(f,f0)=>f0+2*Math.floor((f-f0)/2);
 function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 function hex(c){ c=c.replace('#',''); return [0,2,4].map(i=>parseInt(c.slice(i,i+2),16)); }
 function mixc(a,b,t){ const A=hex(a),B=hex(b); return `rgb(${A.map((v,i)=>Math.round(lerp(v,B[i],t))).join(',')})`; }
@@ -42,7 +53,9 @@ function vel(fn,f){ return fn(f+0.5)-fn(f-0.5); }
 
 /* Curseur */
 const CUR=$('cursor');
-function cursor(x,y,press=0,on=true,size=1){ show(CUR,on); if(!on) return; CUR.style.transform=`translate(${(x-4).toFixed(1)}px,${(y-4).toFixed(1)}px) scale(${(size*(1-0.14*press)).toFixed(3)})`; }
+// le seul curseur du film : celui du fondateur (flèche ou main, bleu #2D6CDF, drapeau « You »)
+function cursor(x,y,press=0,on=true,size=1,shape='arrow'){ show(CUR,on); if(!on) return; CUR.dataset.shape=shape;
+  CUR.style.transform=`translate(${(x-4).toFixed(1)}px,${(y-4).toFixed(1)}px) scale(${(size*(1-0.14*press)).toFixed(3)})`; }
 
 /* Champ irisé (WebGL, rendu à mi-résolution) */
 const IRI=(()=>{

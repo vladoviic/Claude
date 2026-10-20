@@ -10,16 +10,22 @@
 <!-- Les plans sont construits par js/shots1.js et js/shots2.js, calés image par image sur la réf (SPEC.md). -->
 <div id="stage">
   <canvas id="iriFull" width="960" height="540"></canvas>
-  <svg id="cursor" viewBox="0 0 44 58">
-    <path d="M4 4 L4 46 L14.5 36 L21.5 52.5 L29 49.5 L22 33.5 L37 33.5 Z" fill="#111" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>
-  </svg>
+  <div id="cursor" data-shape="arrow">
+    <svg class="arrow" viewBox="0 0 44 58" width="34" height="45"><path d="M4 4 L4 46 L14.5 36 L21.5 52.5 L29 49.5 L22 33.5 L37 33.5 Z" fill="#2D6CDF" stroke="#fff" stroke-width="3" stroke-linejoin="round"/></svg>
+    <svg class="hand" viewBox="0 0 46 52" width="46" height="52"><path d="M15 26 V7.5 a4 4 0 0 1 8 0 V22 l.4-3.2 a3.8 3.8 0 0 1 7.5 .6 l-.3 2.4 .5-1.5 a3.7 3.7 0 0 1 7.1 1.8 l-.5 2 a3.6 3.6 0 0 1 6.9 1.9 l-1.7 9.8 C42 42.5 36 49 27.5 49 h-3.4 c-5.2 0-8.5-2.4-11.6-6.6 L4.6 31.6 a3.9 3.9 0 0 1 6.1-4.8 Z" fill="#2D6CDF" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/></svg>
+    <span class="flag">You</span>
+  </div>
 </div>
 <div id="ui" style="display:none"><span id="uif">0</span><input id="uis" type="range" min="0" max="1559" value="0"><span>espace : lecture · ← → : image</span></div>
 
 <script src="js/engine.js"></script>
+<script src="js/vendor/perfect-freehand.js"></script>
+<script src="js/pen.js"></script>
+<script src="js/inkfield.js"></script>
 <script src="js/dash.js"></script>
 <script src="js/screens.js"></script>
 <script src="js/velvet.js"></script>
+<script src="js/sites.js"></script>
 <script src="js/shots1.js"></script>
 <script src="js/shots2.js"></script>
 <script src="js/main.js"></script>

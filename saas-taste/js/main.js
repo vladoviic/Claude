@@ -25,10 +25,10 @@ async function init(){
   await Promise.all([...document.images,...PRELOAD].map(im=>im.complete&&im.naturalWidth?0:new Promise(r=>{ im.addEventListener('load',r,{once:true}); im.addEventListener('error',()=>{ console.error('image manquante : '+im.src); r(); },{once:true}); })));
   await Promise.all(ASYNC);
   await document.fonts.ready;
-  await Promise.all(['500 52px ID','600 52px ID','400 52px ID','italic 60px IS','20px JB','500 20px JB','700 30px AR','30px AR','30px "Noto Color Emoji"'].map(s=>document.fonts.load(s).catch(()=>{})));
+  await Promise.all(['500 52px ID','600 52px ID','400 52px ID','italic 400 60px BE','italic 500 60px BE','20px JB','500 20px JB','700 30px AR','30px AR','30px "Noto Color Emoji"','800 40px AV','700 40px SY','600 40px UB','40px AN','40px DS','italic 40px DS'].map(s=>document.fonts.load(s).catch(()=>{})));
   // mises en page qui dépendent des mesures de texte : scènes visibles le temps de mesurer
-  const meas=['sPills','sTerm','sOutro','sLogo'].map(id=>$(id)); meas.forEach(s=>show(s,true));
-  pillsLayout(); termLayout(); outroLayout(); logoLayout();
+  const meas=['sPills','sTerm','sOutro','sLogo','sW'].map(id=>$(id)); meas.forEach(s=>show(s,true));
+  pillsLayout(); termLayout(); outroLayout(); logoLayout(); wLayout(); prLayout();
   meas.forEach(s=>show(s,false));
   CUES.sort((a,b)=>a.f-b.f);
   window.CUES=CUES; window.TOTAL=TOTAL; window.renderFrame=renderFrame; window.READY=true;

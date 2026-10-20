@@ -15,64 +15,75 @@ const T=f=>f/FPS;
 const GM=k=>k===1?'url(#gmTherm)':k===2?'url(#gmPastel)':'';
 function setTint(c,o,a){ if(a<=0.003){ c.style.display='none'; return; } c.style.display='block'; c.style.opacity=a.toFixed(3); iriTo(c,o); }
 
-/* ---------- 1-3 · « Your SaaS is a bit boring. » + glyphes, code, écrans fades, collage ---------- */
+/* ---------- 1-3 · « Your SaaS is boring. » → caret rouge → « a bit » inséré ; puis l'éclatement de sites ---------- */
 const W1=scene('sW',0,119,f=>shotW(f));
-const wWord=el(W1.cam,'abs c word');
-const WORDS=[[18,'Your'],[24,'Your SaaS'],[45,'is'],[51,'is a'],[55,'is a bit'],[61,'a bit <span style="color:var(--accent)">boring.</span>'],[80,'bit <span style="color:var(--accent)">boring.</span>'],[85,'boring'],[88,'<span style="color:var(--accent)">boring</span>'],[91,'<span style="color:#FFA6C9">boring</span>'],[94,'']];
-const GACC='#FF3D5E', GLIL='#9C86FF', GINK='#151413';
-function gset(n,seed,rx,ry){ const r=rng(seed), a=[]; let t=0; while(a.length<n&&t++<600){ const x=(r()*2-1)*rx, y=(r()*2-1)*ry; if(Math.abs(x)<70&&Math.abs(y)<46) continue; if(x*x/(rx*rx)+y*y/(ry*ry)>1) continue; if(a.some(g=>Math.hypot(g[1]-x,g[2]-y)<54)) continue;
-  const q=r(); a.push([['/','/','/','<','>','*','|','\\'][(r()*8)|0],x,y,q<.14?GACC:q<.26?GLIL:GINK]); } return a; }
-// Les glyphes s'accumulent jusqu'à 53 (comme dans la réf) ; les deux premiers s'écartent pour laisser place aux mots.
-const GLY=[{ch:[[0,'/'],[24,'<']],pos:[[0,0,0],[8,-18,0],[13,-124,0],[19,-232,0],[45,-190,0]],col:GINK,born:0,big:1},
-           {ch:[[8,'/'],[24,'>']],pos:[[8,18,0],[13,124,0],[19,232,0],[45,190,0]],col:GINK,born:8,big:1}];
+// la phrase vit dans l'espace écran (hors caméra) : la coupe de 62 ne change que ce qu'il y a derrière
+const wWord=el(W1.s,'abs c word','', 'font-size:60px;z-index:30;text-shadow:0 0 24px rgba(238,233,228,.9)');
+wWord.innerHTML='<span class="wa"></span><span class="wi" style="display:inline-block;overflow:hidden;vertical-align:bottom;white-space:pre"></span><span class="wb ar" style="color:var(--blue);font-weight:400"></span>';
+const [wA,wI,wB2]=['.wa','.wi','.wb'].map(q=>wWord.querySelector(q));
+// états de la phrase (réf : un mot par temps) ; « boring. » est le bleu Arial du fondateur
+const WST=[[10,'Your',''],[17,'Your SaaS',''],[23,'Your SaaS is',''],[30,'Your SaaS is ','boring.'],[80,'is ','boring.'],[85,'','boring.'],[94,'','']];
+const W_INS='a bit '; let W_INSW=128, W_GAP=[0,0];
+function wLayout(){ show(W1.s,true); wA.textContent='Your SaaS is '; wB2.textContent='boring.'; wI.textContent=W_INS; wI.style.width='auto'; W_INSW=wI.offsetWidth;
+  wI.textContent=''; wI.style.width='0px'; place(wWord,960,540); const ra=wA.getBoundingClientRect(), rb=wB2.getBoundingClientRect(), st=W1.s.getBoundingClientRect(), k=st.width/W;
+  const isEnd=(ra.right-st.left)/k - 0.27*60/2;   // l'espace après « is »
+  W_GAP=[(isEnd+(rb.left-st.left)/k)/2, (rb.bottom-st.top)/k]; show(W1.s,false); }
+const wInk=inkLayer(W1.s);
+const GACC='#FF3D5E', GLIL='#9C86FF', GINK='#151413', GBORN='#C9D9F6';
+// Les glyphes s'accumulent jusqu'à 53 (comme dans la réf) ; les deux grands « / » s'écartent de part et d'autre de la phrase.
+const GLY=[{ch:[[0,'/'],[24,'<']],pos:[[0,0,0],[8,-18,0],[13,-124,0],[19,-232,0],[30,-450,0]],col:GINK,born:0,big:1},
+           {ch:[[8,'/'],[24,'>']],pos:[[8,18,0],[13,124,0],[19,232,0],[30,450,0]],col:GINK,born:8,big:1}];
 (()=>{ const r=rng(7), ex=[]; [27,30,30,33,36,36,36,39,42,45,45,45,45,47,49,51,51,51,52,52].forEach(b=>{ let x,y,t=0;
-  do{ x=(r()*2-1)*505; y=(r()*2-1)*330; t++; }while(t<500&&((Math.abs(x)<240&&Math.abs(y)<62)||x*x/(505*505)+y*y/(330*330)>1||ex.some(e=>Math.hypot(e[0]-x,e[1]-y)<74)));
-  ex.push([x,y]); const q=r(); GLY.push({ch:[[b,['/','/','/','<','>','*','|','\\'][(r()*8)|0]]],pos:[[b,x,y]],col:q<.15?GACC:q<.28?GLIL:GINK,born:b}); }); })();
+  do{ x=(r()*2-1)*560; y=(r()*2-1)*330; t++; }while(t<500&&((Math.abs(x)<470&&Math.abs(y)<70)||x*x/(560*560)+y*y/(330*330)>1||ex.some(e=>Math.hypot(e[0]-x,e[1]-y)<74)));
+  ex.push([x,y]); GLY.push({ch:[[b,['/','/','/','<','>','*','|','\\'][(r()*8)|0]]],pos:[[b,x,y]],col:GINK,born:b}); }); })();
+// glyphes épars (prompt, outro) : encre seulement (loi des couleurs : pas de rouge que le stylo n'a pas posé)
+function gset(n,seed,rx,ry){ const r=rng(seed), a=[]; let t=0; while(a.length<n&&t++<600){ const x=(r()*2-1)*rx, y=(r()*2-1)*ry; if(Math.abs(x)<70&&Math.abs(y)<46) continue; if(x*x/(rx*rx)+y*y/(ry*ry)>1) continue; if(a.some(g=>Math.hypot(g[1]-x,g[2]-y)<54)) continue;
+  r(); a.push([['/','/','/','<','>','*','|','\\'][(r()*8)|0],x,y,GINK]); } return a; }
 const wGly=GLY.map(g=>el(W1.cam,'abs c glyph','',g.big?'font-size:64px':''));
 function gpos(g,f){ let i=0; for(let k=0;k<g.pos.length;k++) if(f>=g.pos[k][0]) i=k; const c=g.pos[i], p=i?g.pos[i-1]:c, t=approach(f,c[0],5); return [lerp(p[1],c[1],t),lerp(p[2],c[2],t)]; }
 function gch(g,f){ let c=g.ch[0][1]; for(const k of g.ch) if(f>=k[0]) c=k[1]; return c; }
-const FRAGS=['font-family: Arial;','color: #2D6CDF;','box-shadow: 0 6px 10px #000;','border-radius: 4px;','/* TODO: make it pop */','<h1>Welcome back, User!</h1>','lorem ipsum dolor sit','img: stock_handshake.jpg','.btn-primary { }','font-size: 12px;','!important','z-index: 9999;','● ○','●','○ ●','<marquee>','cursor: pointer;','text-align: center;','#2D6CDF','Get Started Today!'];
-function fragPos(t,seed){ const r=rng(seed), w=t.length*20.4; let x,y,k=0; do{ x=30+r()*(1860-w); y=80+r()*900; k++; }while(k<300&&Math.abs(x+w/2-960)<w/2+250&&Math.abs(y-540)<80); return [x,y,r]; }
-const wFr=FRAGS.map((t,i)=>{ const d=el(W1.cam,'abs frag'); d._t=t; const [x,y,r]=fragPos(t,500+i); d._x=x; d._y=y; d._d=(r()*6)|0; d._c=r()<.38?GACC:r()<.7?GINK:'#9A928A'; d._ty=i%2; return d; });
-// deuxième couche plus dense et plus pâle (réf 59)
-const wFr2=FRAGS.map((t,i)=>{ const d=el(W1.cam,'abs frag',t,'font-size:22px;opacity:.16'); const [x,y]=fragPos(t,900+i); d._x=x; d._y=y; return d; });
-const wHeat=canvas(W1.cam,240,180,'left:40px;top:720px;width:330px;height:250px;border-radius:6px;display:none');
-const BR=[[0,0,884,405,'dash'],[1180,0,740,480,tplBoringStock()],[0,587,320,493,tplBoringMobile()],[330,783,550,297,tplBoringReport()],[1090,640,830,440,tplBoringLanding()]];
+// fragments du CSS ennuyeux, dans le bleu du fondateur sur 3 profondeurs ; une grille de 24 px et pas de chevauchement
+const FRAGS=['font-family: Arial;','color: #2D6CDF;','box-shadow: 0 6px 10px #000;','border-radius: 4px;','/* TODO: make it pop */','<h1>Welcome back, User!</h1>','lorem ipsum dolor sit','img: stock_handshake.jpg','.btn-primary { }','font-size: 12px;','!important','z-index: 9999;','<marquee>','cursor: pointer;','text-align: center;','Get Started Today!'];
+const FRBOX=[]; function fragPos(t,seed,sz){ const r=rng(seed), w=t.length*sz*0.6, h=sz*1.3; let x,y,k=0;
+  do{ x=40+Math.round(r()*(1840-w)/24)*24; y=72+Math.round(r()*900/24)*24; k++; }while(k<200&&((Math.abs(x+w/2-960)<w/2+520&&Math.abs(y-540)<100)||FRBOX.some(b=>x<b[2]+12&&x+w+12>b[0]&&y<b[3]+12&&y+h+12>b[1])));
+  FRBOX.push([x,y,x+w,y+h]); return [x,y,r]; }
+const wFr=FRAGS.map((t,i)=>{ const tier=i===4?0:i%3, sz=i===4?28:[34,30,26][tier]; const d=el(W1.cam,'abs frag','', `font-size:${sz}px`); d._t=t; const [x,y,r]=fragPos(t,500+i,sz); d._x=x; d._y=y; d._d=(r()*6)|0;
+  d._tier=tier; d.style.filter=tier===1?'blur(1.2px)':tier===2?'blur(2.5px)':''; d.style.opacity=[1,.55,.3][tier]; d._ty=i%2; d._read=i===4; return d; });
+// l'éclatement : onze sites recréés (js/sites.js), cinq en grand puis six qui rejoignent le collage
+const BR=[[0,0],[1180,0],[0,587],[330,783],[1090,640]].map(([x,y],i)=>[x,y,SITES[i].w,SITES[i].h,i]);
 const BCL=[[-200,-95,560,0],[210,-120,430,0],[-360,60,200,0],[-80,120,390,0],[260,95,470,0]];
 const BDR=[[-50,-20],[40,-5],[-45,10],[35,40],[100,45]], BST=[84,89,90,89,91], BSW=[[110,0],[-90,1.3],[140,2.2],[-80,3.1],[120,4.4]];
-// 5 écrans de plus entrent dans le collage (la réf en empile une dizaine)
-const BXT=[[tplBoringLogin(),420,300],[tplBoringTable(),420,300],[tplBoringEmail(),440,300],[tplBoringReport(),480,280],[tplBoringMobile(),240,380],[tplBoringStock(),420,300]];
+const BXT=[5,6,7,8,9,10].map(i=>[i,SITES[i].w,SITES[i].h]);
 const BXC=[[40,-30,300,-3,-1,-1],[-330,-180,270,4,-1,-1],[360,-10,300,-2,1,0],[-40,170,280,3,0,1],[150,-190,200,2,1,-1],[-260,150,240,-4,-1,1]];
-const wB=BR.map(([x,y,w,h,html],i)=>{ const d=el(W1.cam,'bshot','', `left:0;top:0;width:${w}px;height:${h}px;transform-origin:0 0`);
-  if(html==='dash'){ const dd=el(d,'','', 'position:absolute;left:0;top:0;width:1360px;height:800px;transform-origin:0 0;transform:scale(0.65)'); d._D=buildDash(dd); } else d.innerHTML=html;
-  d._tint=canvas(d,160,100,'inset:0;width:100%;height:100%;mix-blend-mode:hard-light;display:none'); d._r=[x,y,w,h]; return d; });
-const wX=BXT.map(([html,w,h],i)=>{ const d=el(W1.cam,'bshot',html, `left:0;top:0;width:${w}px;height:${h}px;transform-origin:0 0`); d._w=w; d._h=h; d._tint=canvas(d,160,100,'inset:0;width:100%;height:100%;mix-blend-mode:hard-light;display:none'); return d; });
+const wCol=el(W1.cam,'abs','', 'inset:0;width:1920px;height:1080px'); let wColB=null;
+const wB=BR.map(([x,y,w,h,si])=>{ const d=el(wCol,'bshot',SITES[si].html, `left:0;top:0;width:${w}px;height:${h}px;transform-origin:0 0;background:${SITES[si].color}`); d._r=[x,y,w,h]; d._si=si; return d; });
+const wX=BXT.map(([si,w,h])=>{ const d=el(wCol,'bshot',SITES[si].html, `left:0;top:0;width:${w}px;height:${h}px;transform-origin:0 0;background:${SITES[si].color}`); d._w=w; d._h=h; d._si=si; return d; });
 const ease3=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
-const wToast=el(wB[4],'ar','', 'position:absolute;right:24px;bottom:24px;height:46px;padding:0 18px;background:#333;color:#fff;font-size:17px;line-height:46px;border-radius:4px;display:none');
-function swapB(d,i,f){
-  if(i==2){ const hd=d.querySelector('.full>div'); if(hd) hd.style.background=f>=70?'#1F3A8A':'#2D6CDF'; }
-  if(i==1){ const sv=d.querySelector('svg'); if(sv) sv.style.opacity=f>=67&&f<70?0:1; const lb=d.querySelector('.ar'); if(lb) lb.textContent=f>=67&&f<70?'Loading…':'stock_handshake_final_v3.jpg'; }
-  if(i==0&&d._D){ d._D.side.style.background=f>=66?'#4B5BD6':'#2D6CDF'; }
-  if(i==4){ show(wToast,f>=91); if(f>=91) wToast.textContent='Saved!'.slice(0,Math.min(6,(f-90)*2)); }
-}
-cue(8,'tick',{v:.4}); [18,24,45,51,55,61].forEach((f,i)=>cue(f,'pluck',{n:[64,67,69,71,72,76][i],v:.3}));
-[27,30,36,42,49].forEach(f=>cue(f,'tick',{v:.25})); cue(53,'shimmer',{v:.35,end:61}); cue(104,'riser',{v:.4,end:119}); cue(62,'swish',{v:.45,peak:64,dur:6}); cue(89,'whoosh',{v:.4,peak:99,dur:14}); [64,66,67,70].forEach(f=>cue(f,'tick',{v:.2})); cue(96,'swish',{v:.45,peak:97,dur:4}); [104,108,113].forEach(f=>cue(f,'tick',{v:.22}));
+[10,17,23,30].forEach((f,i)=>cue(f,'pluck',{n:[64,67,69,71][i],v:.3})); cue(8,'tick',{v:.4}); cue(37,'tick',{v:.3}); [43,44,45,46,47].forEach(f=>cue(f,'tick',{v:.16}));
+[27,33,36,42,49].forEach(f=>cue(f,'tick',{v:.2})); cue(53,'shimmer',{v:.3,end:61}); cue(104,'riser',{v:.4,end:119}); cue(62,'swish',{v:.45,peak:64,dur:6}); cue(89,'whoosh',{v:.4,peak:99,dur:14}); [64,66,67,70].forEach(f=>cue(f,'tick',{v:.2})); cue(96,'swish',{v:.45,peak:97,dur:4}); [104,108,113].forEach(f=>cue(f,'tick',{v:.22}));
+function wState(f){ let st=['','']; for(const [wf,a,b] of WST) if(f>=wf) st=[a,b]; return st; }
 function shotW(f){ push(W1.cam,f,0,0.0009);
-  let w=''; for(const [wf,t] of WORDS) if(f>=wf) w=t; show(wWord,!!w); if(w){ wWord.innerHTML=w; place(wWord,960,540); }
-  const grow=f<45?1:f<51?1.2:1.45;
+  // la phrase
+  const [ta,tb]=wState(f); show(wWord,!!(ta||tb)); const ins=f>=43&&f<85;
+  wA.textContent=f>=80&&f<85?'is ':ta; wB2.textContent=tb;
+  const k=approach(f,43,6,0.2); wI.textContent=ins?W_INS.slice(0,clamp(f-42,0,6)):''; wI.style.width=ins?(W_INSW*k).toFixed(1)+'px':'0px';
+  if(f>=85) wI.style.width='0px';
+  if(ta||tb) place(wWord,960,540);
+  // M1 : le caret rouge sous l'espace entre « is » et « boring. » ; ses jambes rentrent dans la pointe pendant l'insertion
+  const cx=inkClear(wInk);
+  if(f>=37&&f<48){ const st=penPlace('G01',[W_GAP[0]-30,W_GAP[1]+2,W_GAP[0]+30,W_GAP[1]+62]); const r=approach(f,43,4,0.25);
+    penDraw(cx,st,f,37,{size:5.5,u0:0.5*r,u1:1-0.5*r}); }
+  const grow=f<45?1:f<51?1.2:1.35;
   GLY.forEach((g,i)=>{ const d=wGly[i]; const on=f>=g.born&&f<53; show(d,on); if(!on) return; let [x,y]=gpos(g,f);
     if(!g.big){ const r=rng(90+i*7+(f>=51?2:f>=45?1:0)); x=x*grow+(f>=45?(r()-0.5)*40:0); y=y*grow+(f>=45?(r()-0.5)*30:0); }
     const rot=i>=2&&i%2==1&&gch(g,f)!=='*'; d.textContent=rot?['/','|','\\','-'][(Math.floor(f/2)+i)%4]:gch(g,f);
-    const warm=approach(f,g.born,4), cool=g.col===GACC?approach(f,g.born+5,4):0;
-    d.style.color=mixc(mixc('#EEE9E4',g.col===GINK?'#FFB59A':g.col,warm),g.col===GACC?GINK:g.col,g.col===GINK?warm:cool);
+    d.style.color=mixc(GBORN,GINK,approach(f,g.born,8));   // les glyphes naissent bleu pâle et sèchent à l'encre
     place(d,960+x,540+y,g.born===0?1:back(f,g.born-1,4)); });
-  wFr.forEach((d,i)=>{ const st=53+d._d; const on=f>=st&&f<(i<5?64:62); show(d,on); if(!on) return;
-    d.textContent=d._ty?d._t.slice(0,Math.max(3,(f-st+1)*2)):d._t; d.style.color=mixc('#FFC9D6',d._c,approach(f,st,4)); placeTL(d,d._x+(f-53)*0.6,d._y,back(f,st-1,4)); });
-  wFr2.forEach(d=>{ const on=f>=59&&f<62; show(d,on); if(on) placeTL(d,d._x-(f-59)*1.5,d._y); });
-  if(f>=58&&f<62){ show(wHeat,true); iriTo(wHeat,{t:T(f),seed:4.4,zoom:1.4,hot:.7,bands:.6,therm:1}); } else show(wHeat,false);
-  // collage : accélère progressivement à partir de 89 (comme la réf), puis tout rétrécit en un blob irisé
-  const g=1-0.72*accel(f,113,8,2.0);
-  const tintK=(f,i)=>{ const k=f-i; return k<62?0:k<65?1:k<70?2:(f>=114&&f<117)?2:0; };
+  wFr.forEach((d,i)=>{ const st=53+d._d; const on=f>=st&&f<(d._read?86:(i<5?64:62)); show(d,on); if(!on) return;
+    d.textContent=d._ty?d._t.slice(0,Math.max(3,(f-st+1)*2)):d._t; d.style.color=mixc(GBORN,'#2D6CDF',approach(f,st,4)); placeTL(d,d._x+(f-53)*0.6,d._y,back(f,st-1,4)); });
+  // collage : accélère progressivement à partir de 89 (comme la réf) ; à 113 il se déchire le long du trait M2
+  const g=1;
+  const tinted=(f>=62&&f<70)||(f>=114&&f<117);   // les teintes de la réf, en camaïeu de la couleur de chaque site
   const sway=f<98?0:Math.sin(2*Math.PI*(f-98)/13.33);
   wB.forEach((d,i)=>{ if(f<62){ show(d,false); return; } show(d,true); const [x,y,w,h]=d._r, [cx,cy,cw]=BCL[i];
     const pc=ease3(clamp((f-BST[i])/18)), dr=approach(f,62,27,0.08);
@@ -81,105 +92,150 @@ function shotW(f){ push(W1.cam,f,0,0.0009);
     mblur(d,f>=84&&f<100?vel(t=>lerp(x+w/2,960+cx,ease3(clamp((t-BST[i])/18))),f)*BLUR*0.6:0,0);
     d.style.transform=`translate(${(Xg-w*Sg/2).toFixed(1)}px,${(Yg-h*Sg/2).toFixed(1)}px) scale(${Sg.toFixed(4)})`;
     d.style.boxShadow=pc>0?`0 ${(20*pc).toFixed(0)}px ${(50*pc).toFixed(0)}px -20px rgba(40,30,30,${(.35*pc).toFixed(2)})`:''; d.style.borderRadius=(10*pc)+'px';
-    show(d._tint,false); const bl=f>=116?` blur(${(accel(f,116,5,1.6)*18).toFixed(1)}px)`:''; d.style.filter=(GM(tintK(f,i))+bl).trim()||'';
-    if(d._D) updateDash(d._D,()=>0,f); swapB(d,i,f); });
+    const bl=f>=116?` blur(${(accel(f,116,5,1.6)*18).toFixed(1)}px)`:''; d.style.filter=((tinted?DUO(d._si):'')+bl).trim(); });
   wX.forEach((d,i)=>{ const st=96+(i%2); if(f<st){ show(d,false); return; } show(d,true); const [cx,cy,cw,rot,ox,oy]=BXC[i]; const p=approach(f,st,10);
     const sx=(i%2?-1:1)*90*sway; const X=lerp(960+ox*1400+cx,960+cx+sx,p), Y=lerp(540+oy*900+cy,540+cy,p), S=cw/d._w; const Xg=960+(X-960)*g, Yg=540+(Y-540)*g, Sg=S*g; d.style.zIndex=10+((i+(f>=104)+(f>=108)*2)%6);
     d.style.transform=`translate(${(Xg-d._w*Sg/2).toFixed(1)}px,${(Yg-d._h*Sg/2).toFixed(1)}px) rotate(${rot}deg) scale(${Sg.toFixed(4)})`; d.style.borderRadius='10px'; d.style.boxShadow='0 20px 50px -20px rgba(40,30,30,.35)';
     mblur(d,vel(t=>lerp(960+ox*1400+cx,960+cx,approach(t,st,12)),f)*BLUR,vel(t=>lerp(540+oy*900+cy,540+cy,approach(t,st,12)),f)*BLUR);
-    show(d._tint,false); const bl=f>=116?` blur(${(accel(f,116,5,1.6)*18).toFixed(1)}px)`:''; d.style.filter=((f>=114&&f<117?GM(2):'')+bl).trim(); });
+    d.style.filter=(f>=114&&f<117?DUO(d._si):''); });
+  // M2 : la barre oblique traverse toute la pile (104-111), la pile se déchire le long du trait (113-119)
+  if(f>=104&&f<120){ const st=M2(); if(f<114) penDraw(cx,st,f,104,{size:13}); else slashThread(cx,f); }
+  tear(f);
+}
+const M2=()=>penPlace('G02',[652,312,1262,770]);
+// la droite du trait (moindres carrés sur ses extrémités) et la déchirure : deux moitiés qui glissent de ±60 px, tombent et s'effacent
+function tear(f){ if(f<113){ if(wColB){ wColB.remove(); wColB=null; } wCol.style.clipPath=''; wCol.style.transform=''; wCol.style.opacity=''; return; }
+  const st=M2().flat(), a=st[0], b=st[st.length-1]; const dx=b[0]-a[0], dy=b[1]-a[1], L=Math.hypot(dx,dy), ux=dx/L, uy=dy/L, nx=-uy, ny=ux;
+  const far=4000, P=[a[0]-ux*far,a[1]-uy*far], Q=[b[0]+ux*far,b[1]+uy*far];
+  const half=sg=>`polygon(${[P,Q,[Q[0]+nx*far*sg,Q[1]+ny*far*sg],[P[0]+nx*far*sg,P[1]+ny*far*sg]].map(p=>p[0].toFixed(0)+'px '+p[1].toFixed(0)+'px').join(',')})`;
+  if(wColB) wColB.remove(); wColB=wCol.cloneNode(true); wCol.parentNode.appendChild(wColB);
+  const k=clamp((f-113)/6), fall=k*k*80;
+  [[wCol,1],[wColB,-1]].forEach(([c,sg])=>{ c.style.clipPath=half(sg); c.style.transform=`translate(${(nx*60*sg*k).toFixed(1)}px,${(ny*60*sg*k+fall).toFixed(1)}px)`; c.style.opacity=(1-k).toFixed(3); });
+}
+// le trait devient la barre du logo : il pivote sur 56,3° et raccourcit jusqu'à la fente de la marque (114-127), tête en premier
+const LG_A=[943.5,564.75], LG_B=[976.5,515.25];
+function slashThread(cx,f,col=null){ const base=penResample(M2().flat(),72); const t=clamp((f-114)/13); const N=base.length;
+  const pts=base.map((p,i)=>{ const u=i/(N-1); const e=vladan(clamp((t-0.25*u)/0.75)); const tx=lerp(LG_B[0],LG_A[0],u), ty=lerp(LG_B[1],LG_A[1],u);
+    return [lerp(p[0],tx,e),lerp(p[1],ty,e),lerp(p[2],.6,e),p[3]]; });
+  penDraw(cx,[pts],1e6,0,{size:lerp(13,12.4,vladan(t)),uniform:vladan(t),color:col,wetFrames:0});
 }
 
-/* ---------- 4 · blob → cercle → marque → « vladan » ---------- */
+/* ---------- 4 · le trait devient la marque : disque rouge derrière la barre, fantôme du geste, puis « vladan » ---------- */
 const L1=scene('sLogo',120,173,f=>shotLogo(f));
-const lgBlob=el(L1.cam,'abs','', 'overflow:hidden'); const lgIri=canvas(lgBlob,200,200,'inset:0;width:100%;height:100%');
-const lgG1=el(lgBlob,'full','', 'background:linear-gradient(135deg,#C7B8FF,#A9E7F2)'), lgG2=el(lgBlob,'full','', 'background:linear-gradient(135deg,#FFA6C9,#FFC7A1)'), lgG3=el(lgBlob,'full','', 'background:#FF3D5E');
+const lgGhost=inkLayer(L1.s,{ground:'dark'}); lgGhost.style.mixBlendMode='multiply';
+const lgBlob=el(L1.cam,'abs','', 'overflow:hidden;border-radius:50%'); const lgG3=el(lgBlob,'full','', 'background:#FF3D5E');
 const lgSlash=el(lgBlob,'full','<svg viewBox="0 0 96 96" width="100%" height="100%"><path d="M36 66 L60 30" stroke="#EEE9E4" stroke-width="9" stroke-linecap="round"/></svg>');
+const lgInk=inkLayer(L1.s);
 const lgWord=el(L1.cam,'abs','vladan','font-size:84px;font-weight:600;letter-spacing:-0.04em;line-height:1');
-// le mot sort de la marque en 2-3 images, bord adouci et irisé (comme la réf)
 let LGW=330; function logoLayout(){ show(lgWord,true); LGW=lgWord.offsetWidth; show(lgWord,false); }
+// le mot sort de la marque en 2-3 images, bord adouci ; il naît rose pâle et sèche à l'encre
 function revealWord(d,f,f0){ const p=approach(f,f0,3), e=lerp(-15,118,p);
   d.style.webkitMaskImage=d.style.maskImage=p<1?`linear-gradient(90deg,#000 ${(e-14).toFixed(1)}%,transparent ${(e+14).toFixed(1)}%)`:'';
-  const tint=p<1; d.style.background=tint?`linear-gradient(90deg,#151413 ${(e-30).toFixed(0)}%,#FFA6C9 ${(e-8).toFixed(0)}%,#A9E7F2 ${(e+6).toFixed(0)}%)`:'';
-  d.style.webkitBackgroundClip=d.style.backgroundClip=tint?'text':''; d.style.color=tint?'transparent':''; }
+  d.style.background=''; d.style.webkitBackgroundClip=d.style.backgroundClip=''; d.style.color=mixc('#FFC2CD','#151413',approach(f,f0,8)); }
 cue(120,'drop',{}); cue(132,'boom',{v:.95}); cue(139,'shimmer',{v:.45,end:147});
 function shotLogo(f){ push(L1.cam,f,140,0.0007);
-  const S=f<123?lerp(330,210,approach(f,120,3)):f<126?lerp(210,170,approach(f,123,3)):f<132?lerp(170,132,approach(f,126,6)):f<137?132:lerp(132,81,approach(f,137,4));
-  const ww=LGW, gap=24, tot=81+gap+ww, slide=approach(f,137,4);
+  const S=f<128?132*vl(f,119,9):f<137?132:lerp(132,81,vl(f,137,4));
+  const ww=LGW, gap=24, tot=81+gap+ww, slide=vl(f,137,4);
   const x=lerp(960,960-tot/2+40.5,slide);
-  Object.assign(lgBlob.style,{width:S+'px',height:S+'px',borderRadius:(f<123?28:50)+'%',filter:f<123?`blur(${lerp(22,6,approach(f,120,3)).toFixed(1)}px)`:f<128?`blur(${lerp(4,0,(f-123)/5).toFixed(1)}px)`:''});
-  lgBlob.style.transform=`translate(${(x-S/2).toFixed(1)}px,${(540-S/2).toFixed(1)}px)`;
-  if(f<124) iriTo(lgIri,{t:T(f),seed:2.2,zoom:1.6,hot:.3,bands:.4});
-  lgG1.style.opacity=clamp((f-121)/2)*(1-clamp((f-125)/2)); lgG2.style.opacity=clamp((f-124)/2)*(1-clamp((f-130)/2)); lgG3.style.opacity=clamp((f-129)/3);
-  lgSlash.style.opacity=f>=132?1:0; lgSlash.style.transform=`scale(${back(f,131,5).toFixed(3)})`;
-  show(lgWord,f>=139); if(f>=139){ placeTL(lgWord,x+40.5+gap,540-42,1+0.07*approach(f,139,16)); revealWord(lgWord,f,139); if(f>=142) lgWord.innerHTML=f<150?'<span style="color:#FFA6C9">v</span>ladan':'vladan'; }
+  show(lgBlob,S>0.5); Object.assign(lgBlob.style,{width:S+'px',height:S+'px'}); lgBlob.style.transform=`translate(${(x-S/2).toFixed(1)}px,${(540-S/2).toFixed(1)}px)`;
+  // 120-127 : le trait finit de rentrer dans la fente ; la barre passe au papier quand le disque dépasse 60 %
+  const ix=inkClear(lgInk); const crisp=f>=128; lgSlash.style.opacity=crisp?1:0;
+  if(!crisp){ const paper=S>132*0.6; lgInk.style.mixBlendMode=paper?'normal':'multiply'; slashThread(ix,f,paper?'#EEE9E4':null); }
+  // le geste d'origine, fantôme graphite à 7 % : main libre → marque nette
+  const gx=inkClear(lgGhost); const ga=0.07*vl(f,124,6)*(1-vl(f,137,4)); if(ga>0.002){ lgGhost.style.display='block'; penDraw(gx,M2(),1e6,0,{size:13,color:`rgba(21,20,19,${(ga/0.07).toFixed(3)})`,alpha:0.07}); }
+  show(lgWord,f>=139); if(f>=139){ placeTL(lgWord,x+40.5+gap,540-42,1+0.07*approach(f,139,16)); revealWord(lgWord,f,139); }
   L1.cam.style.translate=`0 ${(-12*accel(f,167,6,2)).toFixed(1)}px`;
 }
 
-/* ---------- 5-6 · le prompt, l'envoi, l'irisé qui avale tout ---------- */
-const P1=scene('sPrompt',174,233,f=>shotPrompt(f));
-const prIri=canvas(P1.cam,960,540,'inset:0;width:1920px;height:1080px;display:none');
+/* ---------- 5-6 · le brief du fondateur : il survole « Envoyer » sans cliquer ; le stylo biffe « Arial, », la caméra plonge dans l'encre ---------- */
+const P1=scene('sPrompt',174,227,f=>shotPrompt(f));
 const prBox=el(P1.cam,'pbox','', 'left:450px;top:396px');
-const prText=el(prBox,'ptext'); const prSend=el(prBox,'psend','<svg viewBox="0 0 72 72" width="72" height="72"><path d="M36 50 V22 M24 33 L36 21 L48 33" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>');
-el(prBox,'picon','+','left:40px;bottom:26px'); el(prBox,'picon','◉','right:36px;bottom:28px;font-size:26px');
-const PROMPT='Make my furniture store less boring. It’s blue, it’s Arial, and there’s a stock handshake.';
+const prText=el(prBox,'ptext ar'); const prSend=el(prBox,'psend','<svg viewBox="0 0 72 72" width="72" height="72"><path d="M36 50 V22 M24 33 L36 21 L48 33" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+el(prBox,'picon','+','left:40px;bottom:26px');
+el(prBox,'pchip m','⌁ velvetly.app · room planner for furniture brands','left:96px;bottom:24px');
+el(prBox,'pmodel','vladan <svg viewBox="0 0 18 18" width="18" height="18"><path d="M4 7 L9 12 L14 7" stroke="#5C5650" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>','right:36px;bottom:22px');
+const prInk=inkLayer(P1.cam);   // l'encre vit dans la caméra : elle colle au texte
+const PROMPT='Make my SaaS less boring. It’s blue, it’s Arial, and there’s a stock handshake.';
+// frappe : 36 caractères à 174, « handshake. » après 5 images de honte (le fondateur efface un « k » et le retape)
+const PR_INC=[3,2,3,2,2, 2,3,2,2,3,2,2,2,2, 0,0,-1,0,1, 2,2,3,2,2];
+const PR_N=(()=>{ const a=[36]; for(const k of PR_INC) a.push(a[a.length-1]+k); return a; })();
+for(let i=0;i<PR_INC.length;i++) if(PR_INC[i]) cue(175+i,'key',{v:.2+Math.abs(PR_INC[i])*0.08});
 const prGly=gset(12,33,640,250).map(g=>{ const d=el(P1.cam,'abs c glyph'); d._g=g; return d; });
-const prGhost=['const taste = {','font: "Inter Display",','arial: false','accent: "#FF3D5E"','ease: "out"'].map((t,i)=>{ const d=el(P1.cam,'abs m',t,`font-size:30px;color:rgba(255,255,255,.75)`); d._x=[180,1300,420,1180,760][i]; d._y=[120,150,860,820,980][i]; return d; });
-// frappe irrégulière (0-3 caractères par image, comme la réf) ; clic à 207-208 ; l'irisé envahit tout 215-218, bascule thermique à 222
-const PR_INC=[3,2,2,0,2,1,3,0,1,2,1,1,2,0,1,3,2,1,0,2,3,1];
-const PR_N=(()=>{ const a=[46]; for(const k of PR_INC) a.push(a[a.length-1]+k); return a; })();
-for(let i=0;i<PR_INC.length;i++) if(PR_INC[i]) cue(174+i,'key',{v:.2+PR_INC[i]*0.08});
-cue(207,'click',{v:1}); cue(208,'shimmer',{v:.5,end:216}); cue(212,'whoosh',{v:.7,peak:226,dur:20}); cue(222,'swish',{v:.45,peak:224,dur:5});
-const prGhostImg=el(P1.cam,'','', 'position:absolute;inset:0;display:none;mix-blend-mode:soft-light'); prGhostImg.innerHTML=vimg('room_eye','inset:0;width:100%;height:100%;filter:blur(12px)');
-const prGlow=el(prSend,'','', 'position:absolute;inset:0;border-radius:18px;background:radial-gradient(circle at 50% 30%,#FF8A3D,#7A2A10 60%,#151413);opacity:0');
-function shotPrompt(f){ push(P1.cam,f,174,0.0008); P1.cam.style.translate=`0 ${(-23*approach(f,174,20)).toFixed(1)}px`;
+cue(207,'scratch',{v:.8,end:212}); cue(212,'rub',{v:.7,peak:226,dur:16});
+let PR_ARIAL=[0,0,0,0], PR_XH=15.6;
+function prLayout(){ show(P1.s,true); prText.innerHTML=prSeg(PROMPT.length); const sp=prText.querySelector('.ari'), r=sp.getBoundingClientRect(), st=P1.s.getBoundingClientRect(), k=st.width/W;
+  PR_ARIAL=[(r.left-st.left)/k,(r.top-st.top)/k,(r.right-st.left)/k,(r.bottom-st.top)/k]; show(P1.s,false); }
+// le brief en segments : « blue » dans le bleu du fondateur, « Arial, » repérable pour le trait
+function prSeg(n){ const t=PROMPT.slice(0,n); const iB=PROMPT.indexOf('blue'), iA=PROMPT.indexOf('Arial,');
+  const seg=(a,b,cls)=>{ const x=t.slice(a,Math.min(b,n)); return x?(cls?`<span class="${cls}">${x}</span>`:x):''; };
+  return seg(0,iB)+seg(iB,iB+4,'blu')+seg(iB+4,iA)+seg(iA,iA+6,'ari')+seg(iA+6,PROMPT.length); }
+// la caméra : poussée lente, puis plongée exponentielle ×2,4/image dans le trait (219-227), l'origine glisse sur le centre du trait
+function prCam(f){ const base=1+0.0008*(f-174), ty=-23*approach(f,174,20);
+  const sp=M3().flat(), C=sp[Math.floor(sp.length*0.55)];
+  let k=base, t=[960-960*base,540-540*base+ty];
+  if(f>219){ const Z=Math.pow(2.4,f-219); k=base*Z; const sc=[t[0]+C[0]*base,t[1]+C[1]*base]; const m=clamp(Math.log(Z)/Math.log(30));
+    const Cs=[lerp(sc[0],960,m),lerp(sc[1],540,m)]; t=[Cs[0]-C[0]*k,Cs[1]-C[1]*k]; }
+  return {k,t}; }
+const M3=()=>penPlace('G03',[PR_ARIAL[0]-6,PR_ARIAL[3]-PR_XH*0.5-7,PR_ARIAL[2]+10,0]);
+function shotPrompt(f){
+  const {k,t}=prCam(f); P1.cam.style.transformOrigin='0 0'; P1.cam.style.translate=''; P1.cam.style.transform=`translate(${t[0].toFixed(2)}px,${t[1].toFixed(2)}px) scale(${k.toFixed(5)})`;
   const n=Math.min(PROMPT.length,PR_N[clamp(f-174,0,PR_N.length-1)]); const done=n>=PROMPT.length;
-  prText.innerHTML=PROMPT.slice(0,n)+((!done||Math.floor(f/7)%2==0)&&f<210?'<span class="pcaret"></span>':'');
-  const pr=f>=207&&f<209; prSend.style.transform=`scale(${pr?0.94:1})`; prGlow.style.opacity=f<207?0:(1-approach(f,208,6)).toFixed(3);
-  const cp=approach(f,193,5); cursor(lerp(1404+75,1404,cp),lerp(470+85,470,cp),pr?1:0,f>=193&&f<214);
+  const blink=f>=189&&f<194?Math.floor((f-189)/1)%2==0:(!done||Math.floor(f/7)%2==0);
+  prText.innerHTML=prSeg(n)+(blink&&f<207?'<span class="pcaret"></span>':'');
+  // le curseur du fondateur : linéaire, sur deux images, jusqu'au bouton ; il devient une main et reste en survol. Pas de clic.
+  const hov=f>=204; prSend.classList.toggle('hover',hov);
+  const cf=twos(f,199), cp=clamp((cf-199)/5);
+  const sx=450+1020-30-36, sy=396+30+36;   // centre du bouton dans la caméra
+  const px=lerp(1290,sx-4,cp), py=lerp(640,sy+4,cp), scr=[t[0]+px*k,t[1]+py*k];
+  cursor(scr[0],scr[1],0,f>=199,f>219?Math.min(k,60):1,hov?'hand':'arrow');
   prGly.forEach((d,i)=>{ const st=204+i; const on=f>=st&&f<224; show(d,on); if(!on) return; const g=d._g; const drift=1+(f-st)*0.012;
-    d.textContent=i%2?['/','|','\\','-'][(Math.floor(f/2)+i)%4]:g[0]; d.style.color=f>=216?'#fff':mixc('#EEE9E4',g[3]===GINK?'#FF9A6A':g[3],approach(f,st,4)); place(d,960+g[1]*drift,546+g[2]*drift,back(f,st,4)); });
-  // l'irisé part du bouton et envahit le fond, puis avale le champ
-  // l'irisé (rapide, ×8) gagne tout le cadre 215-218, bascule en thermique en 2 images à 222, chauffe jusqu'à 231, filé horizontal 229-231
-  if(f>=214){ show(prIri,true); const hot=f<226?lerp(.35,.45,approach(f,215,6)):lerp(.45,.9,approach(f,226,5));
-    iriTo(prIri,{t:T(f)*8,seed:3.1,zoom:1.2,hot,bands:lerp(.4,.85,approach(f,218,8)),therm:f<222?0:clamp((f-221)/2)});
-    prIri.style.opacity=clamp((f-214)/4).toFixed(3); prIri.style.webkitMaskImage=prIri.style.maskImage=''; mblur(prIri,f>=229?40:0,0); } else show(prIri,false);
-  show(prGhostImg,f>=216); if(f>=216){ prGhostImg.style.opacity=(0.45*approach(f,216,6)).toFixed(3); prGhostImg.style.transform=`scale(${(1+0.08*clamp((f-216)/17)).toFixed(4)})`; }
-  const dz=approach(f,222,5); prBox.style.opacity=(1-dz).toFixed(3); prBox.style.filter=dz>0?`blur(${(dz*14).toFixed(1)}px)`:''; prBox.style.transform=`scale(${(1+dz*0.04).toFixed(4)})`;
-  prGhost.forEach((d,i)=>{ const on=f>=222; show(d,on); if(on){ placeTL(d,d._x-(f-222)*2,d._y); d.style.opacity=(0.8*approach(f,222+i,5)).toFixed(2); } });
+    d.textContent=i%2?['/','|','\\','-'][(Math.floor(f/2)+i)%4]:g[0]; d.style.color=mixc(GBORN,GINK,approach(f,st,6)); place(d,960+g[1]*drift,546+g[2]*drift,back(f,st,4)); });
+  // M3 : le trait biffe « Arial, » (207-212) ; au-delà de ×3, le champ d'encre plein cadre prend le relais
+  const ix=inkClear(prInk); const st=M3();
+  if(f>=207&&k<3) penDraw(ix,st,f,207,{size:3.6});
+  if(INK&&k>=3){ show(INK.canvas,true); P1.s.appendChild(INK.canvas); INK.draw({O:[(960-t[0])/k,(540-t[1])/k],Z:k,mode:0,wet:clamp(1-(f-212)/6)},inkSpine(st.flat(),3.6)); }
+  else if(INK&&INK.canvas.parentNode===P1.s) show(INK.canvas,false);
 }
 
 /* ---------- 7 · la landing velvetly (vidéo Cycles), recul qui ralentit, accélération dans la coupe, « › Taste Files » ---------- */
-const LA=scene('sLand',234,299,f=>shotLand(f)); sky(LA.cam);
+const LA=scene('sLand',228,299,f=>shotLand(f)); sky(LA.cam);
 const laFrame=el(LA.cam); const laD=framed(laFrame,tplVLanding(),1440,900,1240,730,VINK);
-const laTint=canvas(laFrame,240,150,'inset:0;width:100%;height:100%;border-radius:18px;mix-blend-mode:hard-light;display:none');
 const laLabel=el(LA.cam,'abs','<span style="font-family:JB;margin-right:22px">›</span>Taste Files','font-size:84px;font-weight:400;color:#3A3633;letter-spacing:-0.01em');
 const laSeq=q1(laD,'.vseq'), laPills=qa(laD,'.vpill'), laTiles=qa(laD,'.vtile');
-const laShop=el(q1(laD,'.full'),'m','Shop','position:absolute;top:688px;height:22px;line-height:22px;padding:0 10px;border-radius:6px;background:#FF3D5E;color:#fff;font-size:11px');
-const PH_COL=['#FF9A4D','#FFA6C9','#B9A8FF'];
+const laShop=el(q1(laD,'.full'),'m','Live','position:absolute;top:688px;height:22px;line-height:22px;padding:0 10px;border-radius:6px;background:#151413;color:#F3EFEA;font-size:11px');
+const PH_COL=['#3A3633','#4A4542','#2E2B28'];   // squelettes de chargement (gris), pas de couleurs
+// l'icône du carré se dessine 234-238
+qa(laD,'.vmk svg path').forEach(p=>{ p.setAttribute('pathLength','1'); p.style.strokeDasharray='1'; });
+const laMark=q1(laD,'.vmk');
 cue(234,'impact',{v:.5}); cue(244,'tick',{v:.25}); cue(256,'tick',{v:.25}); cue(259,'swish',{v:.25,peak:262,dur:6}); cue(276,'whoosh',{v:.5,peak:281,dur:6}); cue(281,'tick',{v:.45}); cue(294,'shimmer',{v:.35,end:300});
 function laLayout(f){ // accordéon des tuiles (réf 259-270) : la tuile large passe à sa voisine
   const p=approach(f,259,11); const W=[236,lerp(236,330,p),236,lerp(250,156,p),236]; let x=12;
   laTiles.forEach((t,i)=>{ t.style.left=x+'px'; t.style.width=W[i]+'px'; x+=W[i]+8; });
   laShop.style.left=lerp(12+3*244+150-60,12+244+330-70,p).toFixed(1)+'px'; }
 function shotLand(f){
+  // 228-233 : l'encre de la plongée sèche à travers les fibres du papier ; la dernière qui reste est le carré de la landing
+  const fl=Math.max(f,234);
   // réf : recul qui ralentit (235-273), accélération dans la coupe (274-280), puis petit écran qui se pose (281+)
   let sc,x=960,y=540;
   if(f<235) sc=1.08; else if(f<274) sc=lerp(1.08,0.915,approach(f,235,38,0.09));
   else if(f<281){ const a=accel(f,274,6.5,2.6); sc=lerp(0.915,0.823,a); x=960+40*a; }
   else { const p=approach(f,281,14,0.25); sc=lerp(0.683,0.632,p); x=1588-720*sc+lerp(16,0,p); y=548; }
   const gone=f>=294?approach(f,294,5):0;
-  place(laFrame,x,y,sc); laFrame.style.filter=gone>0?`url(#gmPastel) blur(${(10*gone).toFixed(1)}px) brightness(${(1+0.35*gone).toFixed(2)})`:''; laFrame.style.opacity=(1-0.85*clamp((f-297)/3)).toFixed(3);
+  place(laFrame,x,y,sc); laFrame.style.filter=gone>0?`blur(${(10*gone).toFixed(1)}px) brightness(${(1+0.35*gone).toFixed(2)})`:''; laFrame.style.opacity=(1-0.85*clamp((f-297)/3)).toFixed(3);
   mblur(LA.cam,f>=276&&f<281?vel(t=>40*accel(t,274,6.5,2.6),f):0,0);
-  seqDraw(laSeq,SEQ.land,f-234);
+  seqDraw(laSeq,SEQ.land,fl-234);
   q1(laD,'.lnh').style.transform=`translateX(${(-290*approach(f,235,36,0.10)).toFixed(1)}px)`;
+  qa(laMark,'svg path').forEach(p=>p.style.strokeDashoffset=(1-vl(f,234,4)).toFixed(3));
+  if(INK&&f<234){ show(INK.canvas,true); LA.s.appendChild(INK.canvas); const r=laMark.getBoundingClientRect(), st=LA.s.getBoundingClientRect(), k=st.width/W;
+    const cx=((r.left+r.right)/2-st.left)/k, cy=((r.top+r.bottom)/2-st.top)/k, hw=(r.right-r.left)/2/k, hh=(r.bottom-r.top)/2/k;
+    const d=0.5-0.5*Math.cos(Math.PI*clamp((f-227.6)/5.8)); INK.draw({O:[960,540],Z:1,mode:1,dry:d,sig:70*Math.pow(2.5/70,d),rect:[cx,cy,hw,hh],rr:hw*0.52}); }
+  else if(INK&&INK.canvas.parentNode===LA.s) show(INK.canvas,false);
   // boutons d'abord en blocs de couleur qui changent toutes les 4 images, puis le logo (244) et les boutons (256)
-  laPills.forEach((pl,i)=>{ const ready=f>=(i==0?244:256); pl.style.color=ready?'':'transparent'; pl.style.background=ready?'':PH_COL[(Math.floor((f-234)/4)+i)%3];
-    if(i==0) pl.style.background=ready?'rgba(18,17,16,.55)':pl.style.background; if(i==1&&ready) pl.style.background='#FF3D5E'; if(i==2&&ready) pl.style.background='rgba(18,17,16,.55)';
+  laPills.forEach((pl,i)=>{ const ready=f>=(i==0?244:256); pl.style.color=ready?'':'transparent'; pl.style.background=ready?'':PH_COL[(Math.floor((fl-234)/4)+i)%3];
+    if(i==0) pl.style.background=ready?'rgba(18,17,16,.55)':pl.style.background; if(i==1&&ready) pl.style.background='#151413'; if(i==2&&ready) pl.style.background='rgba(18,17,16,.55)';
     pl.querySelectorAll('span').forEach(sp=>sp.style.visibility=ready?'visible':'hidden'); });
   q1(laD,'.full>.m').style.visibility=f>=242?'visible':'hidden';
   laLayout(f);
-  setTint(laTint,{t:T(f)*4,seed:5.2,zoom:1.2,hot:.6,bands:.6,therm:1},1-approach(f,234,6));
   show(laLabel,f>=281); if(f>=281) placeTL(laLabel,150,300-10*approach(f,281,12));
 }
 

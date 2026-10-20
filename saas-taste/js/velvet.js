@@ -15,20 +15,23 @@ const vimg=(n,css,pos='50% 50%')=>`<img class="vi" src="${IMG(n)}" style="${css}
 const VLOGO=(c='#F3EFEA',s=22)=>`<span style="font-family:'ID';font-weight:600;font-size:${s}px;letter-spacing:-0.035em;color:${c};white-space:nowrap"><span style="display:inline-block;width:${(s*0.62).toFixed(1)}px;height:${(s*0.62).toFixed(1)}px;border-radius:${(s*0.2).toFixed(1)}px;background:${VA};margin-right:${(s*0.32).toFixed(1)}px"></span>velvetly</span>`;
 const CHAIR_SVG=(c='#151413',w=4)=>`<svg viewBox="0 0 88 88" width="100%" height="100%"><g fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"><path d="M26 22 Q26 16 32 16 H56 Q62 16 62 22 V42 H26 Z"/><path d="M20 46 Q20 42 26 42 H62 Q68 42 68 46 V54 Q68 58 62 58 H26 Q20 58 20 54 Z"/><path d="M28 58 L24 72 M60 58 L64 72"/></g></svg>`;
 // pictogramme de la marque velvetly dans les titres géants (le ✿ de la réf)
-const VMARK=(s)=>`<span style="display:inline-block;width:${s}px;height:${s}px;border-radius:${(s*0.26).toFixed(1)}px;background:${VA};vertical-align:${(s*0.02).toFixed(1)}px;position:relative"><span style="position:absolute;inset:14%;display:block;line-height:0;font-size:0">${CHAIR_SVG('#fff',4.5)}</span></span>`;
+const VMARK=(s)=>`<span class="vmk" style="display:inline-block;width:${s}px;height:${s}px;border-radius:${(s*0.26).toFixed(1)}px;background:${VA};vertical-align:${(s*0.02).toFixed(1)}px;position:relative"><span style="position:absolute;inset:14%;display:block;line-height:0;font-size:0">${CHAIR_SVG('#fff',4.5)}</span></span>`;
 
 /* ---------- landing : salon plein cadre + « Sit with ▢ taste. » + tuiles ---------- */
 const CATS=[['chair','Lounge Chairs','24 pieces'],['sofa','Sofas','18 pieces'],['pouf','Poufs','31 pieces'],['lamp','Lighting','42 pieces'],['plant','Living Things','12 pieces']];
+// la landing de velvetly v2 : un SaaS de configurateur 3D pour marques de mobilier (pas une boutique)
+const FEATS=[['sofa','Room planner','drag, drop, done'],['chair','3D hero','360° in the browser'],['lamp','AR preview','see it in their room'],['pouf','Fabric swap','212 fabrics'],['plant','Embed','1 line of JS']];
 function tplVLanding(){ return `<div class="full" style="background:${VINK};overflow:hidden">
   ${vimg('room_eye','left:0;top:0;width:1240px;height:560px','50% 58%')}<canvas class="vseq" width="1240" height="560" style="position:absolute;left:0;top:0;width:1240px;height:560px"></canvas>
   <div class="full" style="height:560px;background:linear-gradient(180deg,rgba(18,17,16,.35) 0%,rgba(18,17,16,0) 22%,rgba(18,17,16,0) 55%,rgba(18,17,16,.92) 100%)"></div>
-  <div class="vpill" style="left:22px;top:20px;background:rgba(18,17,16,.55)">${VLOGO('#F3EFEA',17)}<span style="margin-left:16px;color:#8E877F">≡</span></div>
-  <div class="vpill" style="right:150px;top:20px;background:${VA};color:#fff">New in</div>
-  <div class="vpill" style="right:22px;top:20px;background:rgba(18,17,16,.55);color:#F3EFEA">Search pieces</div>
-  <div class="vhead lnh" style="left:-18px;top:338px;font-size:204px">Sit with ${VMARK(150)} <em style="font-size:226px">taste.</em></div>
-  <div class="m" style="position:absolute;left:24px;top:548px;font-size:12px;color:#F3EFEA">▪ Best sellers</div>
-  <div class="m" style="position:absolute;left:330px;top:548px;font-size:11px;color:${VG}">Pieces under €900, delivered in 3 days</div>
-  ${CATS.map(([k,t,n],i)=>`<div class="vtile" style="left:${12+i*244}px;top:572px;width:${i==3?250:236}px">${vimg('tile_'+k,'inset:0;width:100%;height:100%','50% 62%')}<div class="vtl">${t}</div><div class="m vtn">${n}</div></div>`).join('')}
+  <div class="vpill" style="left:22px;top:20px;background:rgba(18,17,16,.55)">${VLOGO('#F3EFEA',17)}<span style="margin-left:10px;color:#8E877F">▾ for brands</span></div>
+  <div style="position:absolute;left:470px;top:20px;height:34px;line-height:34px;font-size:14px;color:#F3EFEA;display:flex;gap:26px"><span>Product</span><span>Customers</span><span>Pricing</span></div>
+  <div class="vpill" style="right:150px;top:20px;background:#151413;color:#F3EFEA;box-shadow:inset 0 0 0 1px rgba(243,239,234,.25)">Book a demo</div>
+  <div class="vpill" style="right:22px;top:20px;background:rgba(18,17,16,.55);color:#F3EFEA">Sign in</div>
+  <div class="vhead lnh big" style="left:-18px;top:338px;font-size:204px">Plan with ${VMARK(150)} <em style="font-size:198px">taste.</em></div>
+  <div class="m" style="position:absolute;left:24px;top:548px;font-size:12px;color:#F3EFEA">▪ Used by 140 furniture brands¹</div>
+  <div class="m" style="position:absolute;left:330px;top:548px;font-size:11px;color:${VG}">Room planner · 3D hero · AR · one line of JS</div>
+  ${FEATS.map(([k,t,n],i)=>`<div class="vtile" style="left:${12+i*244}px;top:572px;width:${i==3?250:236}px">${vimg('tile_'+k,'inset:0;width:100%;height:100%','50% 62%')}<div class="vtl">${t}</div><div class="m vtn">${n}</div></div>`).join('')}
   </div>`; }
 
 /* ---------- Build your Room : panneau sombre + plan d'archi + tracé ---------- */
