@@ -18,9 +18,13 @@ Chaque image est une fonction pure de son numéro.
 
 **LOOK.** Loi des couleurs :
 - bleu `#2D6CDF` + Arial : le fondateur, l'ennuyeux (sur fond sombre, sa teinte claire `#6C9BF2`) ;
-- rouge `#FF3D5E` : uniquement là où l'encre du stylo a coulé ;
+- rouge `#FF3D5E` : la marque de Vladan seulement (le disque du logo, le velours corrigé, le soulignement de « taste. ») ;
 - encre `#151413` sur papier `#EEE9E4` : le système ;
 - Besley italique : le goût.
+
+Le geste de Vladan est le **morph** (choix du client) : aucun outil visible ; l'ancien élément se trouble
+et s'efface pendant que sa version corrigée se pose sur place (×0,94 → 1, flou 6 → 0 px, 5-7 images), en vague,
+née lilas `#CDB9F2` / `#9C7BE0`, sèche à l'encre en 10 images. Le bleu du fondateur passe par le lilas, jamais directement à l'encre.
 
 Hiérarchie des valeurs :
 - un seul élément fort par image ;

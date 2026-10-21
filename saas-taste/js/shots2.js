@@ -178,7 +178,7 @@ const pad2=i=>String(i).padStart(2,'0');
 const TURN={blue:[],red:[]};
 for(let i=0;i<48;i++) TURN.blue[i]=preload(`img/turn/blue_${pad2(i)}.jpg`);
 for(let i=38;i<72;i++) TURN.red[i]=preload(`img/turn/red_${pad2(i)}.jpg`);
-cue(880,'impact',{v:.55}); cue(881,'tick',{v:.2}); cue(883,'tick',{v:.25}); [895,901,910].forEach(f=>cue(f,'tick',{v:.2})); cue(918,'brush',{v:.7,end:928}); cue(926,'pluck',{v:.45,n:79}); cue(946,'beep',{v:.5}); cue(940,'whoosh',{v:.6,peak:951,dur:12});
+cue(880,'impact',{v:.55}); cue(881,'tick',{v:.2}); cue(883,'tick',{v:.25}); [895,901,910].forEach(f=>cue(f,'tick',{v:.2})); cue(918,'shimmer',{v:.7,end:928}); cue(926,'pluck',{v:.45,n:79}); cue(946,'beep',{v:.5}); cue(940,'whoosh',{v:.6,peak:951,dur:12});
 const CH_HOVER=[[895,898,'bolt','Steel bolts · ×8'],[901,907,'seat','Velvet · 380 g/m²'],[910,916,'back','Hand-tufted back']];
 function chView3(f){ // caméra de la vue produit (réf) : recul + travelling flou à l'entrée, roulis, secousse au coup de pinceau, anticipation, poussée finale
   const a=approach(f,880,10,0.25); let s=lerp(1.25,1,a), x=120*(1-a), y=0, r=3*(approach(f,892,4)-approach(f,898,6));
@@ -196,7 +196,6 @@ const CH_TAU=9.32, CH_I895=3*CH_TAU*(1-Math.exp(-15/CH_TAU)), CH_I931=CH_I895+0.
 function chIdx(f){ if(f<=880) return 0; if(f<=895) return 3*CH_TAU*(1-Math.exp(-(f-880)/CH_TAU)); if(f<=931) return CH_I895+0.7*(f-895);
   const t=clamp((f-931)/15); return CH_I931+10*(1-(1-t)*(1-t)); }
 // M7 : le grand coup de feutre traverse l'assise ; l'encre boit dans le velours (926-932) en suivant le poil (luminance du rendu)
-const M7=()=>penPlace('G07',[862,492,1290,540]);
 const CH_MASK=document.createElement('canvas'); CH_MASK.width=275; CH_MASK.height=200;
 // le velours bleu (teinte 200-225°, saturation > 0,35), à basse résolution, adouci par l'agrandissement
 const CH_BLUE=document.createElement('canvas'); CH_BLUE.width=275; CH_BLUE.height=200; let CH_BLUE_SRC=null;
@@ -215,8 +214,9 @@ function chToView(p,V){ // écran → pixels du canvas de la vue (inverse de la 
 function chNoise(x,y){ const h=(a,b)=>{ const s=Math.sin(a*127.1+b*311.7)*43758.5453; return s-Math.floor(s); };
   const vn=(x,y)=>{ const i=Math.floor(x), j=Math.floor(y), u=x-i, v=y-j, uu=u*u*(3-2*u), vv=v*v*(3-2*v); return lerp(lerp(h(i,j),h(i+1,j),uu),lerp(h(i,j+1),h(i+1,j+1),uu),vv); };
   return 0.65*vn(x/22,y/22)+0.35*vn(x/9+7.3,y/9+1.9)-0.5; }
-function chSoak(f,V,red){ const tt=clamp((f-924)/6), R=lerp(26,330,0.5-0.5*Math.cos(Math.PI*tt))*1100/918; const k=CH_MASK.width/1100;
-  const all=penResample(M7().flat(),40), prog=clamp((f-917)/6); const pts=all.slice(0,Math.max(2,Math.ceil(all.length*prog))).map(p=>chToView(p,V));
+// le morph : le velours rouge se répand en onde depuis l'assise (1076, 516 à l'écran), bord bruité, sans outil visible
+function chSoak(f,V,red){ const tt=clamp((f-918)/12), R=lerp(10,380,0.5-0.5*Math.cos(Math.PI*tt))*1100/918; const k=CH_MASK.width/1100;
+  const pts=[chToView([1060,516],V),chToView([1092,516],V)];
   const x=CH_MASK.getContext('2d'); const im=x.createImageData(CH_MASK.width,CH_MASK.height);
   // luminance du velours rouge, lue une fois à basse résolution pour moduler le front
   const L=document.createElement('canvas'); L.width=CH_MASK.width; L.height=CH_MASK.height; const lx=L.getContext('2d'); lx.drawImage(red,0,0,L.width,L.height); const ld=lx.getImageData(0,0,L.width,L.height).data;
@@ -246,10 +246,12 @@ function shotChat(f){
   qa(chRoot,'.clog').forEach(l=>{ const t0=+l.dataset.t; l.textContent=f<t0?'':l.dataset.s.slice(0,Math.ceil((f-t0+1)*2.5)); });
   chKids[7].style.visibility=f>=916?'visible':'hidden'; chKids[7].style.color=f>=926?'#151413':'#7A736C';
   // la carte d'approbation se résout quand le changement arrive (926) : les deux lignes barrées, « ✓ applied by v vladan »
-  const done=f>=926; qa(chRoot,'.crm').forEach((e,k)=>{ e.style.textDecoration=''; e.style.color=f>=926+k*2?'#8E877F':'#151413';
-    // le stylo barre chaque ligne en rouge (924-926, 926-928) : c'est lui qui applique le changement, pas le fondateur
-    if(f>=924+k*2){ const b=e.getBoundingClientRect(), st=CH.s.getBoundingClientRect(), kk=st.width/W; const L=(b.left-st.left)/kk, R=(b.right-st.left)/kk, Y=((b.top+b.bottom)/2-st.top)/kk;
-      penDraw(ix,penPlace('G03',[L-6,Y-2,R+10,Y+2],{mode:'stretch'}),f,924+k*2,{size:3.2,ground:'dark'}); } });
+  const done=f>=926; qa(chRoot,'.crm').forEach((e,k)=>{ e.style.textDecoration=''; e.style.color='#151413'; const f0=922+k*2;
+    // le morph : chaque ligne devient sa version corrigée (née lilas, sèche au gris des choses réglées)
+    if(e._t===undefined) e._t=e.textContent; const nt=k?'– #151413':'– font-family: Inter Display;';
+    if(f<f0){ e.textContent=e._t; return; } const p=morphT(f,f0,5);
+    e.innerHTML=`<span style="visibility:hidden">${nt.length>e._t.length?nt:e._t}</span><span style="position:absolute;left:0;top:0">${e._t}</span><span style="position:absolute;left:0;top:0">${nt}</span>`;
+    const [,o,n]=e.children; morphOut(o,p,4); morphIn(n,p,4,0.97); n.style.color=morphInk(f,f0,5,10,'#8E877F'); });
   const ca=q1(chRoot,'.chapp'); ca.innerHTML=done?'✓ applied by <span style="display:inline-block;width:20px;height:20px;border-radius:10px;background:#FF3D5E;color:#fff;font-size:12px;line-height:20px;text-align:center;margin:0 4px">v</span>vladan':'Resolve';
   if(ca._b===undefined){ ca._b=ca.style.background; ca._c=ca.style.color; ca._p=ca.style.paddingLeft; }   // garder les couleurs d'origine (les remettre à '' les effacerait)
   ca.style.background=done?'transparent':ca._b; ca.style.color=done?'#151413':ca._c; ca.style.paddingLeft=done?'0':ca._p; show(q1(chRoot,'.crej'),!done);
@@ -467,7 +469,7 @@ function shotReport(F){ const f=F-1;
   const cf=twos(f,1145), cp=clamp((cf-1145)/10); cursor(lerp(tx+58,tx,cp),lerp(ty+142,ty,cp),f==1161?1:0,f>=1145,1,cp>=1?'hand':'arrow');
 }
 
-/* ---------- 27 · les 47 tuiles ennuyeuses barrées d'un seul trait, puis le trait tiré comme un fil dans la fente de la marque ---------- */
+/* ---------- 27 · les 47 tuiles ennuyeuses réglées par une onde de morph, puis la grille resserrée devient la marque ---------- */
 const AL=scene('sAlerts',1176,1250,f=>shotAlerts(f),'dark'); AL.s.style.background='#151413';
 // à l'entrée, un champ thermique sombre (palette de nuit) que les alertes allument puis éteignent (réf 1175-1186)
 const alTh=canvas(AL.s,960,540,'left:-60px;top:-60px;width:2040px;height:1200px;filter:blur(30px);display:none'); AL.s.insertBefore(alTh,AL.cam);
@@ -504,48 +506,28 @@ const alMark=el(AL.cam,'abs','', 'width:150px;height:150px'); alMark.innerHTML=M
 const alDisc=el(AL.s,'','', 'position:absolute;left:885px;top:465px;width:150px;height:150px;border-radius:50%;background:#FF3D5E;transform:scale(0);z-index:2');
 const alFade=el(AL.s,'','', 'position:absolute;left:0;right:0;bottom:0;height:430px;background:linear-gradient(transparent,#3C3C3C);opacity:0');
 const alBtn=el(AL.cam,'abs','', 'display:none;overflow:hidden'); const alBtnBar=el(alBtn,'','', 'position:absolute;left:50%;top:50%;width:14px;height:58px;margin:-29px 0 0 -7px;border-radius:7px;background:#EEE9E4;transform-origin:50% 50%');
-// M8 : un seul trait, gribouillis sur les six rangées, pause sur la poignée de main, boucle « dele »
-const M8=()=>penPlace('G08',[574,292,1346,864]);
-const AL_A=[941.25,568.1], AL_B=[979,512];
-// le chemin du fil : le trait lui-même, puis de son extrémité jusqu'à la fente (A → B) ; tirer = faire glisser le trait le long de ce chemin
-let AL_PATH=null; function alPath(){ if(AL_PATH) return AL_PATH; const st=penResample(M8().flat(),260); const end=st[st.length-1];
-  // le fil quitte l'extrémité du trait dans sa direction et arrive dans la fente aligné sur elle (courbe de Bézier) : jamais d'angle vif
-  const pre=st[st.length-6], tx=end[0]-pre[0], ty=end[1]-pre[1], tl=Math.hypot(tx,ty)||1, ux=(AL_B[0]-AL_A[0])/Math.hypot(AL_B[0]-AL_A[0],AL_B[1]-AL_A[1]), uy=(AL_B[1]-AL_A[1])/Math.hypot(AL_B[0]-AL_A[0],AL_B[1]-AL_A[1]);
-  const c1=[end[0]+tx/tl*220,end[1]+ty/tl*220], c2=[AL_A[0]-ux*260,AL_A[1]-uy*260];
-  const lead=[]; for(let i=1;i<=40;i++){ const t=i/40, m=1-t; lead.push([m*m*m*end[0]+3*m*m*t*c1[0]+3*m*t*t*c2[0]+t*t*t*AL_A[0], m*m*m*end[1]+3*m*m*t*c1[1]+3*m*t*t*c2[1]+t*t*t*AL_A[1], lerp(end[2],.6,t), end[3]]); }
-  const slot=[]; for(let i=1;i<=8;i++){ const t=i/8; slot.push([lerp(AL_A[0],AL_B[0],t),lerp(AL_A[1],AL_B[1],t),0.6,end[3]]); }
-  const P=[...st,...lead,...slot], A=penArc(P); AL_PATH={P,A,Ls:penArc(st).pop(),L:A[A.length-1],AB:Math.hypot(AL_B[0]-AL_A[0],AL_B[1]-AL_A[1])}; return AL_PATH; }
-// à quel moment (ms de la prise) le trait passe sur chaque tuile
-let AL_CROSS=null; function alCross(){ if(AL_CROSS) return AL_CROSS; const st=M8().flat(); AL_CROSS=alTiles.map(t=>{ for(const p of st) if(Math.abs(p[0]-t._x)<52&&Math.abs(p[1]-t._y)<56) return p[3]; return 1e9; }); return AL_CROSS; }
-cR27(1175,'hush',{}); cR27(1186,'scribble',{v:.7,end:1208}); cR27(1210,'reel',{v:.6,end:1228}); cR27(1232,'boom',{v:.8});
+// le morph : une onde part du centre de la grille (1186) et règle chaque tuile à son passage ; la dernière à 1216
+cR27(1175,'hush',{}); cR27(1186,'shimmer',{v:.55,end:1219}); cR27(1222,'riser',{v:.45,end:1231}); cR27(1232,'boom',{v:.8});
 function shotAlerts(F){ const f=F-1; push(AL.cam,f,1175,0.0005);
   const tho=1-clamp((f-1178)/9); show(alTh,tho>0&&!!THERMAL); if(tho>0&&THERMAL){ heatField(f,7,1175,0.1,1); alTh.getContext('2d').drawImage(THERMAL.canvas,0,0); alTh.style.opacity=(0.85*tho).toFixed(3); }
-  const ms=(f-1186)*PEN.ms, cross=alCross();
   // le champ est déjà allumé à 1175 (le centre), le reste se remplit jusqu'à 1184 ; à la fin la grille se resserre dans la marque
   // (facteurs de la réf : ×0,87, ×0,73, ×0,73, ×0,73, ×0,71, ×0,52 sur 1226-1231) au lieu de s'éteindre
   const zc=alZ(f);
-  alTiles.forEach((t,n)=>{ const a=1175+9*Math.max(0,(t._d/alMaxD-0.3)/0.7); const on=f>=a&&f<1232&&!(n===46&&f>=1213); show(t,on); if(!on) return;
+  alTiles.forEach((t,n)=>{ const a=1175+9*Math.max(0,(t._d/alMaxD-0.3)/0.7); const on=f>=a&&f<1232; show(t,on); if(!on) return;
     const sIn=a<=1175?1:clamp((twos(f,Math.floor(a))-a)/3); t.style.left=(960+(t._x-960)*zc)+'px'; t.style.top=(540+(t._y-540)*zc)+'px';
-    // les tuiles tiennent pendant que le fil passe : il ne pend jamais seul sur le noir
-    // passé sous le trait, une tuile se règle en 3 images ; celles que le trait n'a pas touchées se règlent pendant le fil (1210-1228),
-    // au même rythme que le compteur : à 0, il ne reste plus une tuile bleue
-    const cf=alFix(n,cross), k=clamp((f-cf)/3), fade=clamp((f-1229)/3), bz=8*(1-zc);
-    t.style.transform=`scale(${(sIn*zc*(n===46?1-clamp((f-1210)/3):1)).toFixed(3)})`; t.style.filter=bz>0.3?`blur(${bz.toFixed(1)}px)`:''; t.style.opacity=(1-fade).toFixed(3);
-    t._o.style.opacity=(1-k).toFixed(3); t._f.style.opacity=k.toFixed(3); });
+    // au passage de l'onde, le triangle se trouble et le cercle réglé se pose (4 images), né lilas, sec au papier
+    const cf=alFix(n), k=morphT(f,cf,4), fade=clamp((f-1229)/3), bz=8*(1-zc);
+    t.style.transform=`scale(${(sIn*zc).toFixed(3)})`; t.style.filter=bz>0.3?`blur(${bz.toFixed(1)}px)`:''; t.style.opacity=(1-fade).toFixed(3);
+    morphOut(t._o,k,5); morphIn(t._f,k,5,0.9); const col=mixc(MORPH.fill,'#F3EFEA',clamp((f-cf-3)/8)); t._f.style.boxShadow=`inset 0 0 0 1.5px ${col}`; t._f.firstChild.style.color=col; });
   alDotsDraw(f,zc);
-  // le compteur part du « 47 » du rapport et descend d'une unité par tuile barrée ; à 0, il passe à l'encre fixée
-  // pendant le fil (1210-1228), les tuiles qui restent partent avec lui : le compteur finit sur 0 à 1228 et y tient
-  const left=47-alTiles.filter((t,n)=>n===46?f>=1213:f>=alFix(n,cross)+3).length;
+  // le compteur part du « 47 » du rapport et descend d'une unité par tuile réglée ; à 0 (1220), il passe au papier
+  const left=47-alTiles.filter((t,n)=>f>=alFix(n)+4).length;
   show(alCount,f>=1175&&f<1232); placeTL(alCount,120,860); alCount.style.opacity=vl(f,1175,4).toFixed(3);   // à sa place dès le début : il ne passe plus sur les tuiles
   alNum.textContent=Math.max(0,left); alLab.textContent=left===1?'boring issue left':'boring issues left';
   if(left<=0){ alNum.style.color='#F3EFEA'; alNum.style.fontFamily='ID'; alNum.style.opacity='1'; } else { alNum.style.color=AL_BL; alNum.style.fontFamily=''; alNum.style.opacity='0.7'; }
-  const ix=inkClear(alInk);
-  if(f>=1186&&f<1210) penDraw(ix,M8(),f,1186,{size:13.5,ground:'dark'});
-  // 1210-1227 : on tire le fil ; il glisse le long de son propre chemin et entre dans la fente, la queue se défait rangée par rangée
-  if(f>=1210&&f<1232){ const T=alPath(); const t=clamp((f-1210)/17), d=(T.L-T.AB)*(t*t*(3-2*t));
-    const vis=penSlice(T.P,d/T.L,Math.min(1,(d+T.Ls)/T.L)); const disc=clamp((f-1228)/4), paper=disc>0.6;
-    penDraw(ix,[vis.map(p=>[p[0],p[1],p[2],0])],1e6,0,{size:lerp(13.5,14,clamp((f-1224)/3)),uniform:clamp((f-1224)/3),ground:'dark',color:paper?'#EEE9E4':null,wetFrames:0});
-    alDisc.style.transform=`scale(${vladan(disc).toFixed(3)})`; }
+  inkClear(alInk);
+  // la grille resserrée devient la marque : le disque naît lilas au centre (1226) et sèche au rouge de la marque
+  if(f>=1226&&f<1232){ const disc=clamp((f-1226)/5); alDisc.style.transform=`scale(${vladan(disc).toFixed(3)})`; alDisc.style.background=mixc(MORPH.fill,'#FF3D5E',clamp((f-1227)/4)); }
   else alDisc.style.transform='scale(0)';
   show(alMark,f>=1232&&f<1243); if(f>=1232){ place(alMark,960,540,lerp(1.04,1,approach(f,1232,6))); }
   // 1243-1250 : le disque devient le bouton (228×90, rayon 14, encre) ; la barre se redresse et rétrécit jusqu'au caret : le rouge est dépensé
@@ -557,8 +539,7 @@ function shotAlerts(F){ const f=F-1; push(AL.cam,f,1175,0.0005);
   AL.cam.style.scale=(1+0.04*accel(f,1243,7,2.2)).toFixed(4);
 }
 const AL_Z=[1,.87,.635,.464,.338,.240,.125];
-function alFix(n,cross){ const cf=1186+cross[n]/PEN.ms; if(cf<=1210) return cf;
-  const rest=alTiles.map((_,i)=>i).filter(i=>1186+cross[i]/PEN.ms>1210), r=rest.indexOf(n)/Math.max(1,rest.length-1), e=r*r*(3-2*r); return 1209+7*e; }
+function alFix(n){ return 1186+30*(alTiles[n]._d/alMaxD); }
 function alZ(f){ if(f<=1225) return 1; if(f>=1231) return AL_Z[6]; const i=Math.floor(f-1225); return lerp(AL_Z[i],AL_Z[i+1],f-1225-i); }
 
 /* ---------- 28 · la fenêtre de la pièce : le ciel glisse sous le bouton déjà en place, « Ship it » se tape ; le fondateur clique (1295) ---------- */
@@ -694,14 +675,15 @@ ouCard.innerHTML=`<div class="oto" style="position:absolute;left:44px;top:0;righ
   <div class="omodel" style="position:absolute;right:124px;bottom:34px;font:500 24px 'ID';color:#151413;background:#ECE6DF;border-radius:10px;padding:6px 12px;display:flex;align-items:center;overflow:hidden;white-space:nowrap"><span class="omc">@</span><span class="omw">vladan</span></div>
   <div class="osend" style="position:absolute;right:30px;bottom:24px;width:72px;height:72px;border-radius:36px;background:#151413"><svg viewBox="0 0 72 72" width="72" height="72"><path d="M36 50 V22 M24 33 L36 21 L48 33" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
 const ouTo=q1(ouCard,'.oto'), ouToA=q1(ouCard,'.otoa'), ouBody=q1(ouCard,'.obody'), ouBrief=q1(ouCard,'.obrief'), ouModel=q1(ouCard,'.omodel'), ouMW=q1(ouCard,'.omw'), ouMC=q1(ouCard,'.omc'), ouSend=q1(ouCard,'.osend');
-ouBrief.innerHTML=prSeg(PROMPT.length);
+ouBrief.innerHTML=prSeg(PROMPT.length); { const a=q1(ouBrief,'.ari'); if(a) a.innerHTML='<span style="font-family:ID;font-weight:500">Inter Display,</span>'; }
+const ouUL=el(OU.cam,'','', 'position:absolute;left:0;top:0;height:6px;border-radius:3px;background:#FF3D5E;transform-origin:0 50%;display:none');
 const ouFly=el(OU.cam,'abs','vladan','font:500 26px ID;color:#151413;line-height:1;display:none;transform-origin:0 0');
 const ouInk=inkLayer(OU.cam);
 let OUL={};
 function outroLayout(){ OUL.ws=ouWords.map(e=>e.offsetWidth); OUL.ww=ouWord.offsetWidth; OUL.lw=ouLine.offsetWidth;
   show(ouTasteB,true); OUL.tb=ouTasteB.offsetWidth; show(ouTasteB,false); }
 cR31(1378,'shimmer',{v:.35,end:1386}); cR31(1385,'reverse',{v:.6,end:1393}); cR31(1393,'boom',{v:1.15}); cR31(1408,'shimmer',{v:.4,end:1416});
-OUW.forEach(([f],i)=>cR31(f,'key',{v:.4})); cR31(1439,'swish',{v:.3,peak:1446,dur:7}); cR31(1492,'final',{}); cR31(1524,'tick',{v:.25}); cR31(1508,'scratch',{v:.8,end:1516});
+OUW.forEach(([f],i)=>cR31(f,'key',{v:.4})); cR31(1439,'swish',{v:.3,peak:1446,dur:7}); cR31(1492,'final',{}); cR31(1524,'tick',{v:.25}); cR31(1508,'shimmer',{v:.35,end:1515});
 // la ligne « Give it taste. » : dans la pill (48 px), puis titre de 200 px aligné à x=144, ligne de base ≈ 300
 function ouLineGeom(f){ const sp=12, pad=30; const TW=OUW.map((_,i)=>OUL.ws.slice(0,i+1).reduce((a,b)=>a+b+sp,0)-sp); let tw=TW[0]; for(let i=1;i<OUW.length;i++) tw=lerp(tw,TW[i],approach(f,OUW[i][0],9,0.5));
   const h=vl(f,1489,10); const S=lerp(1,200/48,h); const x0=lerp(960-tw/2,144,h), y0=lerp(540-26,120,h); return {tw,S,x0,y0,sp,pad,h}; }
@@ -739,11 +721,11 @@ function shotOutro(F){ const f=F-2; push(OU.cam,f,1378,f<1489?0.0008:0);
     show(ouFly,f>=1499&&f<1505); if(f>=1499&&f<1505){ const sx=144+1500-130-110, sy=440+OU_CH-38-26, tx=144+44+150, ty=440+16+5; const cx=1480, cy=430, m=1-fe; const x=m*m*sx+2*m*fe*cx+fe*fe*tx, y=m*m*sy+2*m*fe*cy+fe*fe*ty;   // remonte le bord droit puis file dans TO : jamais au-dessus du texte
       placeTL(ouFly,x,y,lerp(1,92/26,fe)); }
     ouToA.textContent=f<1505?'':'vladan'+'@kwinndo.fr'.slice(0,Math.floor((f-1505+1)*2));
-    // le trait M3 séché, toujours sur « Arial, »
-    const ix=inkClear(ouInk); const sp=q1(ouBrief,'.ari'); if(sp&&r>0.5){ const b=sp.getBoundingClientRect(); const cx_=v=>960+(v-960)/OS, cy_=v=>540+(v-540)/OS; const rr=[cx_((b.left-st.left)/kk),cy_((b.top-st.top)/kk),cx_((b.right-st.left)/kk),cy_((b.bottom-st.top)/kk)];   // écran → caméra (la poussée finale)
-      penDraw(ix,penPlace('G03',[rr[0]-6,rr[3]-28*0.52*0.5-9,rr[2]+10,0]),1e6,0,{size:3.4,alpha:r}); }
+    inkClear(ouInk);
     // M9 : le stylo souligne « taste. » (1508-1516) ; le soulignement dépasse quand l'italique, plus étroit, prend sa place
-    if(f>=1508){ const x=G.x0+(OUL.ws[0]+OUL.ws[1]+2*G.sp)*G.S, w=OUL.ws[2]*G.S; penDraw(ix,penPlace('G09',[x-4,G.y0+48*G.S*0.98,x+w+8,0]),f,1508,{size:13}); } }
+    show(ouUL,f>=1508); if(f>=1508){ const x=G.x0+(OUL.ws[0]+OUL.ws[1]+2*G.sp)*G.S, w=OUL.ws[2]*G.S, p=morphT(f,1508,6);
+      Object.assign(ouUL.style,{left:(x-2)+'px',top:(G.y0+48*G.S*0.98-3)+'px',width:(w+6)+'px',opacity:p.toFixed(3),filter:p<0.99?`blur(${(4*(1-p)).toFixed(1)}px)`:'',background:mixc(MORPH.fill,'#FF3D5E',clamp((f-1511)/8))});
+      ouUL.style.transform=`scaleX(${lerp(0.82,1,p).toFixed(4)})`; } }
   // le fondateur revient (linéaire, sur deux images) ; à 1524 la main survole Envoyer, au même décalage qu'à 206. Il ne clique jamais : le bouton ne change pas.
   // la cible est lue sur le bouton lui-même (il suit la poussée) ; à 1542 la main hésite (6 px vers Envoyer, puis revient) ; anneau de survol, jamais pressé
   const cf=twos(f,1516), cp=clamp((cf-1516)/8); let sx2=144+1500-30-36, sy2=440+OU_CH-24-36;

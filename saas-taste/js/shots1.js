@@ -77,24 +77,22 @@ wFo.innerHTML=`<div class="ar" style="position:absolute;inset:0;font-family:'AR'
     ${[40,52,34,60,48,70,44,74,62,84,66,90].map((h,i)=>`<i style="position:absolute;left:${16+i*19}px;bottom:16px;width:12px;height:${h*1.25}px;background:#2D6CDF;display:block"></i>`).join('')}</div>
   <div style="position:absolute;left:402px;top:156px;width:142px;height:176px;background:#D9DCE1"><svg width="56" height="45" viewBox="0 0 120 96" style="position:absolute;left:43px;top:52px"><rect x="3" y="3" width="114" height="90" rx="6" fill="none" stroke="#A9AEB6" stroke-width="6"/><circle cx="84" cy="30" r="10" fill="#A9AEB6"/><path d="M8 84 L42 44 L66 70 L80 56 L112 84 Z" fill="#A9AEB6"/></svg>
     <div style="position:absolute;left:0;right:0;top:112px;text-align:center;font-size:8.5px;color:#8A8F97">stock_handshake_final_v3.jpg</div></div></div>`;
-[10,17,23,30].forEach((f,i)=>cue(f,'pluck',{n:[64,67,69,71][i],v:.3})); cue(8,'tick',{v:.4}); cue(37,'scratch',{v:.45,end:41}); [43,44,45,46,47].forEach(f=>cue(f,'tick',{v:.16}));
-[27,33,36,42,49].forEach(f=>cue(f,'tick',{v:.2})); cue(53,'shimmer',{v:.3,end:61}); cue(104,'riser',{v:.4,end:119}); cue(62,'swish',{v:.45,peak:64,dur:6}); cue(89,'whoosh',{v:.4,peak:99,dur:14}); [64,66,67,70].forEach(f=>cue(f,'tick',{v:.2})); cue(96,'swish',{v:.45,peak:97,dur:4}); cue(104,'scratch',{v:.9,end:111}); cue(113,'whoosh',{v:.55,peak:120,dur:8}); cue(114,'reel',{v:.35,end:127});
+[10,17,23,30].forEach((f,i)=>cue(f,'pluck',{n:[64,67,69,71][i],v:.3})); cue(8,'tick',{v:.4}); cue(42,'shimmer',{v:.3,end:49});
+[27,33,36,42,49].forEach(f=>cue(f,'tick',{v:.2})); cue(53,'shimmer',{v:.3,end:61}); cue(104,'riser',{v:.4,end:119}); cue(62,'swish',{v:.45,peak:64,dur:6}); cue(89,'whoosh',{v:.4,peak:99,dur:14}); [64,66,67,70].forEach(f=>cue(f,'tick',{v:.2})); cue(96,'swish',{v:.45,peak:97,dur:4}); cue(104,'shimmer',{v:.5,end:112}); cue(113,'whoosh',{v:.55,peak:120,dur:8}); cue(114,'reel',{v:.35,end:127});
 function wState(f){ let st=['','']; for(const [wf,a,b] of WST) if(f>=wf) st=[a,b]; return st; }
 function shotW(f){ push(W1.cam,f,0,0.0009);
   // la phrase
   const [ta,tb]=wState(f); show(wWord,!!(ta||tb)); const ins=f>=43&&f<85;
   wA.textContent=f>=80&&f<85?'is ':ta; wB2.textContent=tb;
-  const k=approach(f,43,6,0.2); wI.textContent=ins?W_INS.slice(0,clamp(f-42,0,6)):''; wI.style.width=ins?(W_INSW*k).toFixed(1)+'px':'0px';
+  const k=approach(f,43,6,0.2); wI.textContent=ins?W_INS:''; wI.style.width=ins?(W_INSW*k).toFixed(1)+'px':'0px';
+  if(ins){ morphIn(wI,morphT(f,42,7),6,0.9); wI.style.color=morphInk(f,42,7,10); } else { wI.style.opacity=''; wI.style.filter=''; wI.style.scale=''; wI.style.color=''; }
   if(f>=85) wI.style.width='0px';
   // à partir de 85, « boring. » passe dans la caméra, sous les sites : le beau travail l'enterre, la carte bleue du fondateur reste dessus
   const buried=f>=85; if(buried&&wWord.parentNode!==wCol){ wCol.appendChild(wWord); } else if(!buried&&wWord.parentNode!==W1.s){ W1.s.appendChild(wWord); }
   wWord.style.zIndex=buried?1:30;
   if(ta||tb) place(wWord,960,540,buried?1/(1+0.0009*f):1);
   wWord.style.opacity=f>=89?(1-clamp((f-89)/4)).toFixed(3):'';
-  // M1 : le caret rouge sous l'espace entre « is » et « boring. » ; ses jambes rentrent dans la pointe pendant l'insertion
-  const cx=inkClear(wInk);
-  if(f>=37&&f<48){ const st=penPlace('G01',[W_GAP[0]-30,W_GAP[1]+2,W_GAP[0]+30,W_GAP[1]+62]); const r=approach(f,43,4,0.25);
-    penDraw(cx,st,f,37,{size:5.5,u0:0.5*r,u1:1-0.5*r}); }
+  inkClear(wInk);
   const grow=f<45?1:f<51?1.2:1.35;
   GLY.forEach((g,i)=>{ const d=wGly[i]; const on=f>=g.born&&f<53; show(d,on); if(!on) return; let [x,y]=gpos(g,f);
     if(!g.big){ const r=rng(90+i*7+(f>=51?2:f>=45?1:0)); x=x*grow+(f>=45?(r()-0.5)*40:0); y=y*grow+(f>=45?(r()-0.5)*30:0); }
@@ -134,11 +132,29 @@ function shotW(f){ push(W1.cam,f,0,0.0009);
     wFo.style.boxShadow='0 30px 60px -24px rgba(40,30,30,.45)'; mblur(wFo,0,f<98?vel(foY,f)*BLUR*0.5:0);
     wFo.style.filter=bl.trim();
     const cp=clamp((twos(f,97)-97)/7), tg=wMap([X+238*S,Y-175*S+40*S],f); if(f>=97&&f<113) cursor(lerp(1330,tg[0],cp),lerp(820,tg[1],cp),0,true,1,cp>=1?'hand':'arrow'); }
-  // M2 : la barre oblique traverse toute la pile (104-111), la pile se déchire le long du trait (113-119)
-  if(f>=104){ const m=wCam(f); if(f<114) penDraw(cx,M2().map(s=>s.map(p=>[...wMap(p,f),p[2],p[3]])),f,104,{size:13*m.z}); else slashThread(cx,clamp((f-114)/7),null,m,LG_IN/132); }
+  wFoMorph(f);
   gather(f);
 }
-const M2=()=>penPlace('G02',[652,312,1262,770]);
+// la version corrigée de la carte du fondateur (velvetly v2), posée sur elle ; chaque groupe se corrige à son tour
+const WFO_K=['s',0,0,1,2,2,2,3,4]; [...wFo.firstElementChild.children].forEach((e,i)=>{ e.dataset.k=WFO_K[i]; });
+const wFo2=el(wFo,'','', 'position:absolute;inset:0;pointer-events:none');
+wFo2.innerHTML=`<div data-k="s" style="position:absolute;left:0;top:0;bottom:0;width:118px;background:#151413;color:#F3EFEA"><div style="position:absolute;left:16px;top:18px;font:600 16px 'ID';letter-spacing:-.02em">● velvetly</div>
+    ${['Overview','Rooms','Embeds','Settings'].map((t,i)=>`<div style="position:absolute;left:16px;top:${60+i*28}px;font:500 11px 'ID';color:${i?'#8E877F':'#F3EFEA'}">${t}</div>`).join('')}</div>
+  <div data-k="0" style="position:absolute;left:138px;top:16px;font:500 26px 'ID';letter-spacing:-.035em;color:#151413">Morning, <em style="font-family:'BE'">Léa.</em></div>
+  <div data-k="0" style="position:absolute;left:139px;top:50px;font:400 10px 'JB';color:#8E877F">velvetly · Studio plan · 14/20 seats</div>
+  <div data-k="1" style="position:absolute;right:16px;top:17px;height:30px;line-height:30px;padding:0 15px;border-radius:15px;background:#151413;color:#F3EFEA;font:500 12px 'ID'">New report →</div>
+  ${[['ROOMS','1,234','+18%'],['EMBEDS','312','+9%'],['3D VIEWS','48.2k','+31%']].map(([t,v,d],i)=>`<div data-k="2" style="position:absolute;left:${138+i*136}px;top:78px;width:124px;height:64px;border-top:1px solid #E1DAD2"><div style="position:absolute;left:0;top:8px;font:400 9px 'JB';color:#8E877F;letter-spacing:.06em">${t}</div><div style="position:absolute;right:0;top:7px;font:500 9px 'JB';color:#151413">${d}</div><div style="position:absolute;left:0;top:26px;font:500 28px 'ID';letter-spacing:-.04em;color:#151413">${v}</div></div>`).join('')}
+  <div data-k="3" style="position:absolute;left:138px;top:156px;width:250px;height:176px"><div style="position:absolute;left:0;top:4px;font:500 13px 'ID';color:#151413">3D views <span style="font:400 9px 'JB';color:#8E877F">12 mo</span></div>
+    ${[40,52,34,60,48,70,44,74,62,84,66,90].map((h,i)=>`<i style="position:absolute;left:${4+i*20}px;bottom:16px;width:13px;height:${h*1.25}px;background:#151413;border-radius:2px 2px 0 0;display:block"></i>`).join('')}</div>
+  <div data-k="4" style="position:absolute;left:402px;top:156px;width:142px;height:176px;border-radius:12px;overflow:hidden;background:#E6DED4"><img src="img/tile_chair.jpg" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><div style="position:absolute;left:10px;bottom:9px;font:500 12px/1.1 'ID';color:#fff">Room 04<br><em style="font-family:'BE'">is live.</em></div></div>`;
+// la vague : titre (104), barre latérale et bouton (105), chiffres (106), courbe (107), photo (108) ; 6 images chacun, sec en 10
+const WFO_T={0:104,s:105,1:105,2:106,3:107,4:108};
+function wFoMorph(f){ const o=[...wFo.firstElementChild.children], n=[...wFo2.children];
+  o.forEach(e=>{ const p=morphT(f,WFO_T[e.dataset.k],6); morphOut(e,p,5); });
+  n.forEach(e=>{ const k=e.dataset.k, f0=WFO_T[k], p=morphT(f,f0,6); morphIn(e,p,5,0.96);
+    if(k!=='s'&&k!=='4') e.style.color=''; if(k==='0') e.style.color=morphInk(f,f0,6,10);
+    if(k==='1'||k==='s') e.style.background=morphInk(f,f0,6,10,MORPH.ink,MORPH.fill);
+    if(k==='3') [...e.querySelectorAll('i')].forEach(b=>b.style.background=morphInk(f,f0,6,10,MORPH.ink,MORPH.fill)); }); }
 // le regroupement (réf, largeurs mesurées image par image) : toute la pile se contracte vers le centre en accélérant,
 // ×0,28 de 113 à 120 (−27 %/image à la fin), avec un flou qui monte ; le disque du logo prend la suite au même rythme (121)
 const W_Z=[1,.85,.80,.74,.64,.55,.40,.284], wZ=f=>f<=113?1:f>=120?W_Z[7]:lerp(W_Z[Math.floor(f-113)],W_Z[Math.floor(f-113)+1],(f-113)%1);
@@ -150,14 +166,8 @@ function wCam(f){ const n=clamp(f,97,113)-97; return {z:Math.pow(0.986,n)*wZ(f)*
 function wMap(p,f){ const m=wCam(f); return [960+(p[0]-960+m.dx)*m.z,540+(p[1]-540+m.dy)*m.z]; }
 function gather(f){ if(f<97){ wCol.style.transform=''; return; } const m=wCam(f); wCol.style.transformOrigin='960px 540px';
   wCol.style.transform=`scale(${m.z.toFixed(4)}) translate(${m.dx.toFixed(1)}px,${m.dy.toFixed(1)}px)`; }
-// le trait devient la barre du logo : il pivote sur 56,3° et raccourcit jusqu'à la fente de la marque, tête en premier.
-// La source (le trait sur la pile) suit la contraction zs ; la cible (la barre) est à l'échelle zd du disque.
-const LG_A=[943.5,564.75], LG_B=[976.5,515.25], LG_IN=232;
-function slashThread(cx,t,col=null,m={z:1,dx:0,dy:0},zd=1){ const base=penResample(M2().flat(),72); const N=base.length;
-  const pts=base.map((p,i)=>{ const u=i/(N-1); const e=vladan(clamp((t-0.25*u)/0.75)); const tx=960+(lerp(LG_B[0],LG_A[0],u)-960)*zd, ty=540+(lerp(LG_B[1],LG_A[1],u)-540)*zd;
-    return [lerp(960+(p[0]-960+m.dx)*m.z,tx,e),lerp(540+(p[1]-540+m.dy)*m.z,ty,e),lerp(p[2],.6,e),p[3]]; });
-  penDraw(cx,[pts],1e6,0,{size:lerp(13*m.z,12.4*zd,vladan(t)),uniform:vladan(t),color:col,wetFrames:0});
-}
+// le disque du logo naît à la taille de la pile contractée
+const LG_IN=232;
 
 /* ---------- 4 · le trait devient la marque : disque rouge derrière la barre, fantôme du geste, puis « vladan » ---------- */
 const L1=scene('sLogo',120,173,f=>shotLogo(f));
@@ -180,7 +190,7 @@ function shotLogo(f){ push(L1.cam,f,140,0.0007);
   show(lgBlob,S>0.5); Object.assign(lgBlob.style,{width:S+'px',height:S+'px'}); lgBlob.style.transform=`translate(${(x-S/2).toFixed(1)}px,${(540-S/2).toFixed(1)}px)`;
   // 120-127 : le trait finit de rentrer dans la fente ; la barre passe au papier quand le disque dépasse 60 %
   const ix=inkClear(lgInk); const crisp=f>=128; lgSlash.style.opacity=crisp?1:0;
-  if(!crisp){ lgInk.style.mixBlendMode='normal'; slashThread(ix,1,'#EEE9E4',undefined,S/132); }
+  if(!crisp){ const p=morphT(f,121,6); lgSlash.style.opacity=p.toFixed(3); lgSlash.style.filter=p<0.99?`blur(${(4*(1-p)).toFixed(1)}px)`:''; } else lgSlash.style.filter='';
   // le disque naît encre fraîche (rose pâle) et sèche au rouge, comme le mot « vladan »
   // tant qu'elle est humide, l'encre a un reflet (le disque de la réf est en dégradé) ; il s'éteint en séchant
   { const dry=approach(f,120,8,0.2); lgG3.style.background=`radial-gradient(circle at 34% 28%,rgba(255,255,255,${(0.42*(1-dry)).toFixed(3)}),rgba(255,255,255,0) 62%),${mixc('#FFC2CD','#FF3D5E',dry)}`; }
@@ -205,7 +215,13 @@ q1(prSite,'.prD').style.filter='blur(2.5px)';
 const prDash=buildDash(q1(prSite,'.prD'));
 // le repère du commentaire, planté sur la photo de poignée de main
 const prPin=el(P1.cam,'','', 'position:absolute;left:1494px;top:536px;width:46px;height:46px;border-radius:23px 23px 23px 4px;background:#2D6CDF;color:#fff;font:700 21px/46px AR;text-align:center;box-shadow:0 0 0 3px #fff,0 8px 18px rgba(0,0,0,.25)'); prPin.textContent='L';
+const prTh=canvas(P1.s,960,540,'left:0;top:0;width:1920px;height:1080px;display:none'); P1.s.insertBefore(prTh,P1.cam);
 const prBox=el(P1.cam,'pbox','', 'left:450px;top:396px');
+const prCode=el(P1.s,'','', 'position:absolute;inset:0;display:none;pointer-events:none;z-index:31');
+function prHeat(f,C){ const g=clamp((f-214)/13), im=SEQ.land[0], ok=im&&im.naturalWidth;
+  // l'encre du trait reste le point le plus chaud, sans halo : une tache étroite qui s'élargit à peine
+  THERMAL.draw(ok?im:THERMAL.blank,{spots:[[C[0]/1920,C[1]/1080,0.05+0.04*g,0.22*g]],wimg:ok?0.2+0.8*g:0,lo:0.12,hi:0.9,gam:1.1,blur:5,bias:-0.3+0.3*g,t:f});
+  const c=prTh.getContext('2d'); c.clearRect(0,0,960,540); c.drawImage(THERMAL.canvas,0,0); prTh.style.filter=`blur(${lerp(26,3,g).toFixed(1)}px)`; }
 el(prBox,'','', 'position:absolute;left:36px;top:30px;width:44px;height:44px;border-radius:22px;background:#2D6CDF;color:#fff;font:700 20px/44px AR;text-align:center').textContent='L';
 el(prBox,'','Léa <span class="m" style="font-size:15px;color:#8E877F;margin-left:10px">velvetly · founder · now</span>','position:absolute;left:94px;top:38px;font-size:23px;color:#151413');
 const prText=el(prBox,'ptext ar'); const prSend=el(prBox,'psend','<svg viewBox="0 0 72 72" width="72" height="72"><path d="M36 50 V22 M24 33 L36 21 L48 33" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>');
@@ -220,25 +236,24 @@ const PR_N=(()=>{ const a=[58]; for(const k of PR_INC) a.push(a[a.length-1]+k); 
 for(let i=0;i<PR_INC.length;i++) if(PR_INC[i]) cue(175+i,'key',{v:.2+Math.abs(PR_INC[i])*0.08});
 // autour de la carte (443-1476 × 371-675, marge 40 px), jamais sur son texte
 const prGly=gset(12,33,860,430,(x,y)=>!(Math.abs(x)<560&&y>-215&&y<170)).map(g=>{ const d=el(P1.cam,'abs c glyph'); d._g=g; return d; });
-cue(207,'scratch',{v:.8,end:212}); cue(212,'rub',{v:.7,peak:226,dur:16}); cue(220,'impact',{v:.35});
+cue(207,'shimmer',{v:.55,end:215}); cue(212,'rub',{v:.7,peak:226,dur:16}); cue(220,'impact',{v:.35});
 let PR_ARIAL=[0,0,0,0], PR_XH=15.6; const PR_BOXH=330;
 function prLayout(){ show(P1.s,true); prText.innerHTML=prSeg(PROMPT.length); const sp=prText.querySelector('.ari'), r=sp.getBoundingClientRect(), st=P1.s.getBoundingClientRect(), k=st.width/W;
-  PR_ARIAL=[(r.left-st.left)/k,(r.top-st.top)/k,(r.right-st.left)/k,(r.bottom-st.top)/k]; show(P1.s,false); }
+  PR_ARIAL=[(r.left-st.left)/k,(r.top-st.top)/k,(r.right-st.left)/k,(r.bottom-st.top)/k];
+  sp.innerHTML='<span style="font-family:ID;font-weight:500">Inter Display,</span>'; PR_AW=[(r.right-r.left)/k,sp.firstChild.getBoundingClientRect().width/k]; show(P1.s,false); }
+let PR_AW=[80,190];
 // le brief en segments : « blue » dans le bleu du fondateur, « Arial, » repérable pour le trait
 function prSeg(n){ const t=PROMPT.slice(0,n); const iB=PROMPT.indexOf('blue'), iA=PROMPT.indexOf('Arial,');
   const seg=(a,b,cls)=>{ const x=t.slice(a,Math.min(b,n)); return x?(cls?`<span class="${cls}">${x}</span>`:x):''; };
   return seg(0,iB)+seg(iB,iB+4,'blu')+seg(iB+4,iA)+seg(iA,iA+6,'ari')+seg(iA+6,PROMPT.length); }
 // la caméra : poussée lente, puis plongée exponentielle ×2,4/image dans le trait (219-227), l'origine glisse sur le centre du trait
 // la plongée : ×2,4 par image (220-224), puis elle freine en entrant dans le rouge (×2,2, ×1,8, ×1,45 : le rouge couvre le cadre à 227) au lieu de s'arrêter net
-const PR_DIVE=[2.2,1.8,1.45];
-function prDiveZ(f){ let z=1; for(let j=220;j<=f;j++) z*=j<=224?2.4:(PR_DIVE[j-225]||1); return z; }
 function prCam(f){ const base=1+0.0008*(f-174), ty=-23*approach(f,174,20);
-  const sp=M3().flat(), C=sp[Math.floor(sp.length*0.55)];
+  const C=[(PR_ARIAL[0]+PR_ARIAL[2])/2,(PR_ARIAL[1]+PR_ARIAL[3])/2];
   let k=base, t=[960-960*base,540-540*base+ty];
-  if(f>219){ const Z=prDiveZ(f); k=base*Z; const sc=[t[0]+C[0]*base,t[1]+C[1]*base]; const m=clamp(Math.log(Z)/Math.log(30));
+  if(f>212){ const p=ease3(clamp((f-212)/15)), Z=1+0.55*p; k=base*Z; const sc=[t[0]+C[0]*base,t[1]+C[1]*base], m=0.35*p;
     const Cs=[lerp(sc[0],960,m),lerp(sc[1],540,m)]; t=[Cs[0]-C[0]*k,Cs[1]-C[1]*k]; }
   return {k,t}; }
-const M3=()=>penPlace('G03',[PR_ARIAL[0]-6,PR_ARIAL[3]-PR_XH*0.5-7,PR_ARIAL[2]+10,0]);
 function shotPrompt(f){
   updateDash(prDash,()=>0,f);   // le site tel qu'il est : la v1 du fondateur
   const {k,t}=prCam(f); P1.cam.style.transformOrigin='0 0'; P1.cam.style.translate=''; P1.cam.style.transform=`translate(${t[0].toFixed(2)}px,${t[1].toFixed(2)}px) scale(${k.toFixed(5)})`;
@@ -256,10 +271,15 @@ function shotPrompt(f){
   prGly.forEach((d,i)=>{ const st=204+i; const on=f>=st&&f<224; show(d,on); if(!on) return; const g=d._g; const drift=1+(f-st)*0.012;
     d.textContent=i%2?['/','|','\\','-'][(Math.floor(f/2)+i)%4]:g[0]; d.style.color=mixc(GBORN,GINK,approach(f,st,6)); place(d,960+g[1]*drift,546+g[2]*drift,back(f,st,4)); });
   // M3 : le trait biffe « Arial, » (207-212) ; au-delà de ×3, le champ d'encre plein cadre prend le relais
-  const ix=inkClear(prInk); const st=M3();
-  if(f>=207&&k<3) penDraw(ix,st,f,207,{size:3.6});
-  if(INK&&k>=3){ show(INK.canvas,true); P1.s.appendChild(INK.canvas); INK.draw({O:[(960-t[0])/k,(540-t[1])/k],Z:k,mode:0,wet:clamp(1-(f-212)/6)},inkSpine(st.flat(),3.6)); }
-  else if(INK&&INK.canvas.parentNode===P1.s) show(INK.canvas,false);
+  const C3=[(PR_ARIAL[0]+PR_ARIAL[2])/2,(PR_ARIAL[1]+PR_ARIAL[3])/2], ho=clamp((f-213)/6); show(prTh,ho>0&&!!THERMAL); if(ho>0&&THERMAL){ prHeat(f,[t[0]+C3[0]*k,t[1]+C3[1]*k]); prTh.style.opacity=ho.toFixed(3); }   // le trait en coordonnées écran
+  prBox.style.opacity=(1-0.88*clamp((f-223)/4)).toFixed(3); prSite.style.opacity=(1-clamp((f-213)/6)).toFixed(3);
+  const co=clamp((f-221)/4); show(prCode,co>0); if(co>0){ if(!prCode.firstChild) prCode.innerHTML=laCode.innerHTML; prCode.style.opacity=(0.42*co).toFixed(3); prCode.style.transform=`translateY(${(-(f-221)*4).toFixed(1)}px)`; }
+  inkClear(prInk);
+  if(f>=207){ const a=q1(prText,'.ari'); if(a){ const p=morphT(f,207,7);
+    a.innerHTML='<span style="visibility:hidden">Arial,</span><span>Arial,</span><span style="font-family:ID;font-weight:500">Inter Display,</span>';
+    Object.assign(a.style,{display:'inline-block',position:'relative',whiteSpace:'nowrap',width:lerp(PR_AW[0],PR_AW[1],p).toFixed(1)+'px'});
+    const [,o,nn]=a.children; o.style.cssText='position:absolute;left:0;top:0'; Object.assign(nn.style,{position:'absolute',left:'0',top:'0'});
+    morphOut(o,p,5); morphIn(nn,p,5,0.96); nn.style.color=morphInk(f,207,7,10); } }
 }
 
 /* ---------- 7 · la landing velvetly (vidéo Cycles), recul qui ralentit, accélération dans la coupe, « › Taste Files » ---------- */
@@ -278,7 +298,7 @@ function laLensAt(f){ const t=ease3(clamp((f-246)/42)); return [lerp(420,1095,t)
 // 228-235 : l'aplat d'encre se développe en image thermique de la landing (le rouge du stylo est le 0,70 de la palette),
 // qui recule en accélérant comme la carte thermique de la réf, puis refroidit vers la photo ; le carré de la marque reste chaud le dernier
 const laTh=document.createElement('canvas'); laTh.width=1920; laTh.height=1080; laTh.style.cssText='position:absolute;left:0;top:0;width:1920px;height:1080px;z-index:30;display:none;pointer-events:none'; LA.s.appendChild(laTh);
-const LA_FLAT=[.55,.2,0,0];
+const LA_FLAT=[.25,.1,0,0];
 // l'image thermique d'une landing à l'écran (sa carte, sa photo, sa bande papier, sa marque chaude), dans le canvas dest
 function landThermal(stage,frame,seq,mark,dest,o){ const st=stage.getBoundingClientRect(), k=st.width/W, R=e=>{ const r=e.getBoundingClientRect(); return [(r.left-st.left)/k/2,(r.top-st.top)/k/2,(r.right-r.left)/k/2,(r.bottom-r.top)/k/2]; };
   const x=THERMAL.srcCtx; x.fillStyle='#2A2624'; x.fillRect(0,0,960,540);
@@ -291,7 +311,7 @@ const LA_CODE=[[118,92,'export const taste = {'],[1396,70,'taste.font'],[262,318
 const laCode=el(LA.s,'','', 'position:absolute;inset:0;display:none;pointer-events:none;z-index:31');
 laCode.innerHTML=LA_CODE.map(([x,y,t])=>`<div class="m" style="position:absolute;left:${x}px;top:${y}px;font-size:22px;color:#151413;white-space:pre">${t}</div>`).join('');
 function laThermal(f){ const on=THERMAL&&f>=228&&f<236; show(laTh,on); show(laCode,false); if(!on) return;
-  show(laCode,true); laCode.style.opacity=(0.42*(1-clamp((f-231)/4))).toFixed(3); laCode.style.transform=`translateY(${(-(f-228)*4).toFixed(1)}px)`;
+  show(laCode,true); laCode.style.opacity=(0.42*(1-clamp((f-231)/4))).toFixed(3); laCode.style.transform=`translateY(${(-(f-221)*4).toFixed(1)}px)`;
   landThermal(LA.s,laFrame,laSeq,laMark,laTh,{flat:LA_FLAT[Math.min(f-228,3)],t:f});
   // 232-235 : la chaleur sèche par un balayage dans le sens du trait (gauche → droite, bord doux de 30 %), pas un voile
   const w=f<232?-40:lerp(-30,110,(f-231.5)/4); laTh.style.webkitMaskImage=laTh.style.maskImage=f<232?'':`linear-gradient(100deg,transparent ${w.toFixed(1)}%,#000 ${(w+30).toFixed(1)}%)`; }
@@ -475,8 +495,7 @@ plChips.forEach((c,i)=>{ c._st=496+i*1.3; c._x0=parseFloat(c.style.left); c._y0=
 const plInk=inkLayer(plRoot);
 // M4 : le S d'inversion relie « Ship » (lundi) et « Taste Check » (vendredi) ; chacun part sur un lobe du S (523-529)
 const PL_SHIP=plChips[0], PL_TC=plChips[4];
-const M4=()=>penPlace('G04',[PL_SHIP._x0+150,PL_SHIP._y0+20,PL_TC._x0+40,PL_TC._y0+52],{mode:'stretch'});
-cR12(514,'scratch',{v:.8,end:521}); cR12(523,'glide',{v:.4,end:529});
+cR12(515,'glide',{v:.5,end:523}); cR12(523,'tick',{v:.3});
 for(let k=0;k<7;k++) cR12(494+k*2.4,'tick',{v:.2}); PL_BARS.forEach(b=>cR12(b._st,'swish',{v:.18,peak:b._st+3,dur:6}));
 cR12(532,'impact',{v:.45}); cR12(541,'swish',{v:.35,peak:542,dur:5}); cR12(550,'swish',{v:.35,peak:551,dur:5}); cR12(555,'whoosh',{v:.4,peak:559,dur:5});
 const m3=(p,q,t)=>p.map((v,k)=>lerp(v,q[k],t));
@@ -503,11 +522,13 @@ function shotPlan(F){ const f=F-2;   // numéros de la réf (REMAP +2)
   // les tâches secondaires arrivent après les principales, déjà en retrait
   plMinor.forEach((c,i)=>{ const p=approach(f,508+i*1.5,6,0.25); c.style.opacity=p.toFixed(3); c.style.visibility=p>0?'visible':'hidden'; });
   // l'inversion : « Taste Check » prend le lobe du haut vers lundi, « Ship » le lobe du bas vers vendredi ; l'encre de chaque lobe se rétracte derrière sa puce
-  const sw=vl(f,523,6); const sx=PL_TC._x0-PL_SHIP._x0, sy=PL_TC._y0-PL_SHIP._y0;
+  const sw=vl(f,515,8); const sx=PL_TC._x0-PL_SHIP._x0, sy=PL_TC._y0-PL_SHIP._y0;
   [[PL_TC,-1,-140],[PL_SHIP,1,140]].forEach(([c,dir,bow])=>{ const u=sw; const dx=-dir*sx*u*-1, dy=dir*sy*u*-1;
     const ox=dir>0?sx*u:-sx*u, oy=(dir>0?sy:-sy)*u+bow*Math.sin(Math.PI*u)*(dir>0?1:-1)*0.5; c.style.translate=`${ox.toFixed(1)}px ${oy.toFixed(1)}px`; c.style.zIndex=u>0?5:''; });
-  PL_SHIP.classList.toggle('fd',f<530);   // une fois déplacée par le stylo, « Ship » n'est plus au fondateur : contour encre
-  const ix=inkClear(plInk); if(f>=514&&f<530){ const r=vl(f,523,6); penDraw(ix,M4(),f,514,{size:5,u0:0.5*r,u1:1-0.5*r}); }
+  PL_SHIP.classList.toggle('fd',f<515);   // une fois corrigée, « Ship » n'est plus au fondateur : plus de contour
+  inkClear(plInk);
+  // le morph : pendant l'échange, les deux tâches sont lilas, puis elles sèchent vers leur teinte (523-533)
+  [[PL_TC,4],[PL_SHIP,0]].forEach(([c,i])=>{ if(f<515||f>=534||c.classList.contains('phero')){ c.style.background=''; return; } c.style.background=mixc(MORPH.fill,PLAN_TINT[i][0],clamp((f-521)/12)); });
   // le week-end sèche directement vers son gris (il ne passe plus par l'encre avant de sauter au gris)
   plDays.forEach((d,i)=>{ const st=494+i*2.4, fin=i>=5?'#B3ABA4':'#151413'; d.style.visibility=f>=st?'visible':'hidden'; d.style.color=f<st+4?mixc('#C6D8F7',fin,clamp((f-st)/4)):fin; });
   plDn.forEach((d,i)=>{ d.style.visibility=f>=497+i*2.4?'visible':'hidden'; });
@@ -593,10 +614,8 @@ const CL_C={0:i=>i<4?[150,150+i*52]:i<8?[380+(i-4)*350,186]:[366+(i-8)*46,730],1
   5:i=>i===0?[400,370]:i<=12?[366+(i-1)*46,650]:[900,500],6:()=>[1235,75],7:()=>[1150,555]};
 let CL_S=[560,77], CL_X=[1150,555];
 // la vague part de 653 (et non 659) : le v2 tient ~15 images avant la poussée vers la barre d'outils, au lieu de 10
-function clFront(k,i,f){ const c=(CL_C[k]||(()=>[680,400]))(i); const t=Math.min(653+Math.hypot(c[0]-CL_S[0],c[1]-CL_S[1])/300, 655+Math.hypot(c[0]-CL_X[0],c[1]-CL_X[1])/300);
-  return k===3||k===7?vladan(clamp((f-t)/4)):(f>=t?1:0); }
-const M5a=()=>{ const r=clRect(clDash.usr); return penPlace('G05',[r[0]-4,r[1]+(r[3]-r[1])*0.55,r[2]+6,0]); };
-const M5b=()=>{ const r=clRect(clDash.img); return penPlace('G06',[r[0]+8,r[1]+8,r[2]-8,r[3]-8],{mode:'stretch'}); };
+function clFront(k,i,f){ const c=(CL_C[k]||(()=>[680,400]))(i); const t=648+Math.hypot(c[0]-CL_S[0],c[1]-CL_S[1])/260;
+  return morphT(f,t,5); }
 function clRect(e){ const r=e.getBoundingClientRect(), st=CL.s.getBoundingClientRect(), k=st.width/W; return [(r.left-st.left)/k,(r.top-st.top)/k,(r.right-st.left)/k,(r.bottom-st.top)/k]; }
 const clZoom=el(CL.s,'','', 'position:absolute;inset:0;display:none;background:#F6F2EE');
 const clBelow=el(clZoom,'','', 'position:absolute;left:0;top:0;width:1400px;height:880px;transform-origin:0 0;filter:blur(7px);opacity:.45');
@@ -604,7 +623,7 @@ const clBand=el(clZoom,'','', 'position:absolute;left:-40px;right:-200px;top:300
 const CL_IC=[['branch',560],['activity',830],['terminal',1100],['code',1370]];
 const clIcons=CL_IC.map(([k,x])=>{ const d=el(clBand,'','', `position:absolute;left:${x}px;top:95px;width:170px;height:170px;border-radius:34px`); el(d,'',lu(k,120,'#151413',1.6),'position:absolute;inset:25px'); return d; });
 el(clBand,'abs','Share','left:1640px;top:96px;height:170px;line-height:166px;padding:0 60px;border-radius:30px;background:#fff;box-shadow:0 0 0 3px #DDD6CE;font-size:84px');
-cue(642,'impact',{v:.5}); cue(645,'scratch',{v:.6,end:648}); cue(648,'scratch',{v:.6,end:652}); cue(653,'glide',{v:.5,end:659}); cue(668,'whoosh',{v:.45,peak:671,dur:4}); cue(676,'tick',{v:.25}); cue(690,'click',{v:.95}); cue(687,'whoosh',{v:.4,peak:694,dur:7});
+cue(642,'impact',{v:.5}); cue(648,'shimmer',{v:.5,end:660}); cue(668,'whoosh',{v:.45,peak:671,dur:4}); cue(676,'tick',{v:.25}); cue(690,'click',{v:.95}); cue(687,'whoosh',{v:.4,peak:694,dur:7});
 function shotClients(f){ const z=f>=672; show(clZoom,z); show(CL.cam,!z);
   if(!z){ const y=70+40*(1-approach(f,642,4,0.3)); placeTL(clCard,-10,y,1.3);
     CL.cam.style.transform=`scale(${((1+0.035*clamp((f-642)/26))*(1+0.058*accel(f,668,4,3))).toFixed(4)})`;   // lente poussée vers la barre d'outils pendant l'avant/après
@@ -614,11 +633,9 @@ function shotClients(f){ const z=f>=672; show(clZoom,z); show(CL.cam,!z);
     // la salutation : la v1 s'efface, « Morning, Léa. » se tape ; pas de glissement
     const pg=clFront(3,0,f); const sa=clDash.greet.parentNode.parentNode; sa.children[0].style.transform=''; sa.children[0].style.opacity=pg>0?'0':'1';   // l'ancienne salutation part d'un coup : la nouvelle s'écrit sur du vide
     sa.children[1].style.transform=''; sa.children[1].style.clipPath=`inset(0 ${(100*(1-pg)).toFixed(1)}% 0 0)`;
-    const pi=clFront(7,0,f); clTri.forEach(t=>{ t.style.translate=`${(t._d[0]*14*pi).toFixed(1)}px ${(t._d[1]*14*pi).toFixed(1)}px`; t.style.opacity=(1-pi).toFixed(3); });
+    const pi=clFront(7,0,f); clTri.forEach(t=>{ t.style.translate=''; t.style.filter=pi>0.01&&pi<0.99?`blur(${(6*pi).toFixed(1)}px)`:''; t.style.opacity=(1-pi).toFixed(3); });
     const ix=inkClear(clInk);
     // les deux marques, tracées 1,6× plus vite (le geste reste le même)
-    if(f>=645&&f<657){ const r=clamp((f-653)/3); penDraw(ix,M5a(),645+(f-645)*1.6,645,{size:4.5,u0:r}); }
-    if(f>=648&&f<659){ const r=clamp((f-655)/3); penDraw(ix,M5b(),648+(f-648)*1.6,648,{size:6,u0:0,u1:1-r}); }
     cursor(0,0,0,false); return; }
   // la poussée continue à travers la coupe et ralentit (672-680), on tient (680-686), puis panoramique qui accélère vers la gauche (687-694)
   const zp=approach(f,672,8,0.25), pan=-60*accel(f,686,8,2.8);

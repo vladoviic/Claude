@@ -54,6 +54,8 @@ function buildDash(root){
 const SH_B=[0,8,18,0,0,0,0,0.28], SH_T=[0,50,90,-40,60,30,20,0.30];
 function shadow(t){ const s=mixa(SH_B,SH_T,t); return `${s[0]}px ${s[1].toFixed(1)}px ${s[2].toFixed(1)}px ${s[3].toFixed(1)}px rgba(${s[4]|0},${s[5]|0},${s[6]|0},${s[7].toFixed(3)})`; }
 // comp(c,i) -> progression du composant c pour l'élément d'indice i
+// le morph : bleu → lilac → encre (le bleu ne se mélange jamais directement à l'encre)
+function morphMix(a,b,p){ return p<0.5?mixc(a,MORPH.fill,p*2):mixc(MORPH.fill,b,(p-0.5)*2); }
 function updateDash(D,comp,f){
   const c=k=>comp(k,0);
   // swaps
@@ -68,14 +70,14 @@ function updateDash(D,comp,f){
   D.win.style.boxShadow=shadow(c1)+`, 0 0 0 ${lerp(1,0,c1).toFixed(2)}px #C9CDD3`;
   // sidebar
   const c2=c(2);
-  D.side.style.background=mixc('#2D6CDF','#151413',c2);
+  D.side.style.background=morphMix('#2D6CDF','#151413',c2);
   D.act.style.background=rgba(mixa([255,255,255,.18],[243,239,234,.07],c2)); D.act.style.borderRadius=lerp(4,14,c2)+'px';
   const KINDS=['overview','reports','customers','settings'];
   D.icoA.forEach((el,i)=>{ const p=comp(2,i); el.style.transform=`scale(${(1-p).toFixed(3)})`; el.style.display=p>=1?'none':'block'; });
   D.icoB.forEach((el,i)=>{ const p=comp(2,i); const pop=p<=0?0:back(p*10,0,10,1.7); el.style.display=pop>0.001?'block':'none'; });
   // bouton
   const c6=c(6); const bw=lerp(170,214,c6), bh=lerp(46,58,c6);
-  Object.assign(D.btn.style,{left:(1320-bw)+'px',width:bw+'px',height:bh+'px',top:lerp(52,48,c6)+'px',borderRadius:lerp(4,29,c6)+'px',background:mixc('#2D6CDF','#151413',c6),
+  Object.assign(D.btn.style,{left:(1320-bw)+'px',width:bw+'px',height:bh+'px',top:lerp(52,48,c6)+'px',borderRadius:lerp(4,29,c6)+'px',background:morphMix('#2D6CDF','#151413',c6),
     boxShadow:`0 ${lerp(6,0,c6)}px ${lerp(10,0,c6)}px rgba(0,0,0,${lerp(.45,0,c6).toFixed(3)}), inset 0 ${lerp(-3,0,c6)}px 0 rgba(0,0,0,${lerp(.25,0,c6).toFixed(3)})`});
   for(const sp of D.btn.querySelectorAll('.sw>span')) sp.style.lineHeight=bh+'px';
   // KPI
@@ -91,7 +93,7 @@ function updateDash(D,comp,f){
   let maxX=0,maxH=0;
   D.bars.forEach((b,i)=>{ const p=comp(5,i+1); const w=lerp(30,36,p), gap=lerp(16.5,12,p);
     const x=lerp(66,58,p)+i*(w+gap); const hh=lerp(HB[i],HT[i],p);
-    const col=mixc('#2D6CDF','#151413',p);
+    const col=morphMix('#2D6CDF','#151413',p);
     Object.assign(b.style,{left:x+'px',width:w+'px',height:hh+'px',background:col,borderRadius:`${lerp(2,6,p)}px ${lerp(2,6,p)}px 0 0`});
     if(i==11){maxX=x+w/2;maxH=hh;}
     D.mlabs[i].style.left=(x+w/2-4)+'px';

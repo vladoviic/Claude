@@ -1,6 +1,6 @@
 // Rend index.html image par image avec Chromium (Playwright), puis assemble avec ffmpeg.
 //
-//   node render.mjs --stills 68,190,278,430,960   → out/stills/fXXXX.png
+//   node render.mjs --stills 68,190,278,430,960   → out/stills/fXXXX.png (--sdir <dossier> pour un autre dossier)
 //   node render.mjs                               → out/frames/*.png + out/cues.json
 //   node render.mjs --from 300 --to 509           → une plage seulement
 //   node render.mjs --cues                       → out/cues.json seulement (pour audio.py)
@@ -83,10 +83,12 @@ if (process.argv.includes('--cues')) {
   writeFileSync(join(out, 'qa', 'dom.json'), JSON.stringify(rows));
   console.log(`out/qa/dom.json : ${rows.length} images`);
 } else if (stills) {
-  mkdirSync(join(out, 'stills'), { recursive: true });
+  // --sdir <dossier> : un autre dossier de stills (deux sessions de travail en parallèle ne s'écrasent pas)
+  const sdir = arg('sdir') || join(out, 'stills');
+  mkdirSync(sdir, { recursive: true });
   const page = await openPage();
   for (const f of stills.split(',').map(Number)) {
-    const file = join(out, 'stills', `f${String(f).padStart(4, '0')}.png`);
+    const file = join(sdir, `f${String(f).padStart(4, '0')}.png`);
     await shoot(page, f, file); console.log(file);
   }
 } else {

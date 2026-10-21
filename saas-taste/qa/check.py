@@ -42,9 +42,10 @@ def rule(ok, msg, warn=False):
 dom = json.load(open(os.path.join(OUT, 'qa', 'dom.json')))
 need_stills(EARLY + POSTERS)
 
-# 1 · les prises du stylo : tant qu'elles manquent, les traits sont des brouillons de synthèse
-takes = sorted(glob.glob(os.path.join(HERE, 'pen', 'G0[1-9].json')))
-rule(len(takes) == 9, f'prises du stylo : {len(takes)}/9 (sinon brouillons de synthèse)', warn=True)
+# 1 · le geste de Vladan est le morph (choix du client) : plus aucun trait de stylo dans le film
+PEN = re.compile(r'penDraw\(|penPlace\(')
+left = [f for f in glob.glob(os.path.join(HERE, 'js', 'shots*.js')) if PEN.search(open(f).read())]
+rule(not left, f'traits de stylo restants : {[os.path.basename(f) for f in left] or "aucun"}')
 
 # 2 · loi du rouge : pas de rouge avant le caret M1 (37)
 worst = 0

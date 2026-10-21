@@ -83,3 +83,13 @@ function seqDraw(cv,frames,i,px=0.5,py=0.5,zoom=1){ const k=frames.length-1; let
 // cue écrit en numéros de la réf pour une scène recalée de d images (le REMAP le ramènera)
 function cueAt(d){ return (f,k,o={})=>{ const q={...o}; if('peak' in q) q.peak+=d; if('end' in q) q.end+=d; cue(f+d,k,q); }; }
 function seqDrawRaw(cv,im){ cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height); }
+
+/* ---------- le morph : le geste de Vladan (choix du client, à la place du crayon) ----------
+   Aucun outil visible : l'ancien élément se trouble et s'efface pendant que sa version corrigée se pose sur place,
+   légèrement plus petite et floue ; elle naît lilas et sèche à l'encre. Toujours en vague (un élément après l'autre). */
+const MORPH={born:'#9C7BE0',fill:'#CDB9F2',ink:'#151413'};
+function morphT(f,f0,dur=7){ const t=clamp((f-f0)/dur); return t*t*(3-2*t); }
+function morphOut(el,p,blur=6){ el.style.opacity=(1-p).toFixed(3); el.style.filter=p>0.01&&p<0.99?`blur(${(blur*p).toFixed(1)}px)`:''; }
+function morphIn(el,p,blur=6,s0=0.94){ el.style.opacity=p.toFixed(3); el.style.filter=p>0.01&&p<0.99?`blur(${(blur*(1-p)).toFixed(1)}px)`:''; el.style.scale=lerp(s0,1,p).toFixed(4); }
+// la couleur de naissance : lilas tant que l'élément se pose, puis il sèche vers sa couleur finale
+function morphInk(f,f0,dur=7,dry=10,to=MORPH.ink,born=MORPH.born){ return mixc(born,to,clamp((f-f0-dur*0.6)/dry)); }
