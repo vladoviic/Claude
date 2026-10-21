@@ -6,21 +6,71 @@
 const TE=scene('sTerm',696,815,f=>shotTerm(f),'dark');
 const cR17=cueAt(1);
 const ARROW=(w,h)=>`<svg width="${w}" height="${h}" viewBox="0 0 240 170"><path d="M14 85 H210 M140 20 L214 85 L140 150" fill="none" stroke="#F3EFEA" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-const teGhost=el(TE.cam,'abs tt','taste','font-size:520px;color:#fff;opacity:.03;left:0;top:0');
+const teGhost=el(TE.cam,'abs','<em>taste.</em>','font-size:520px;color:#fff;opacity:.03;left:0;top:0;line-height:1');
 const teBig=el(TE.cam,'abs',ARROW(240,170),'line-height:0');
 const teBigCaret=el(TE.cam,'abs','', 'width:30px;height:280px;border-radius:4px');
 const teLine=el(TE.cam,'abs tt'); const teBox=el(TE.cam,'tpanel','', 'border-color:#3A3633;display:none');
-const tePanel=el(TE.cam,'tpanel'); const teDim1=el(tePanel,'abs m','velvetly / src / taste.ts','left:26px;top:18px;font-size:16px;color:#3E3B38');
-const teDim2=el(tePanel,'abs m','ln 12 · utf-8 · typescript','right:26px;bottom:16px;left:auto;font-size:16px;color:#3E3B38');
+const tePanel=el(TE.cam,'tpanel'); const teDim1=el(tePanel,'abs','<span style="color:#CFC8BF">taste.ts</span>&nbsp;&nbsp;velvetly / src','left:26px;top:20px;font-family:FM;font-size:15px;color:#5A544E');
+const teDim2=el(tePanel,'abs','ln 6 · utf-8 · typescript','right:26px;bottom:16px;left:auto;font-family:FM;font-size:14px;color:#4A4541');
 const teSide=el(tePanel,'','', 'position:absolute;left:0;top:0;bottom:0;width:64px;border-right:1px solid #2C2C2C;display:none');
 for(let k=0;k<5;k++) el(teSide,'','', `position:absolute;left:20px;top:${70+k*56}px;width:24px;height:24px;border-radius:6px;border:2px solid ${k==1?'#F3EFEA':'#3E3B38'}`);
 const tePanelLine=el(TE.cam,'abs tt','', 'font-size:84px');
-const CODE=[['<span class="k">export const</span> taste = {',0],['  font: <span class="s">"Inter Display"</span>,',1],['  accent: <span class="s">"#FF3D5E"</span>,   <span class="c">// one. used well.</span>',2],['  ease: <span class="s">"out"</span>,',3],
-  ['  motion: { arrive: <span class="s">"fast"</span>, land: <span class="s">"soft"</span> },',4],['  arial<span class="colon">:</span> <span class="k">false</span>,',5],['  stockPhotos: <span class="n">0</span>,',6],['};',7],['',8],['app.use(taste);   <span class="c">// the whole trick</span>',9],['<span class="k">export default</span> velvetly;',10],['<span class="c">// before: font-family: Arial;</span>',11]];
+// coloration à l'encre : mots-clés papier, chaînes en italique, commentaires et « taste » en Besley (la loi : Besley Italic = le goût)
+const CODE=[['<span class="k">export const</span> <span class="t">taste</span> = {',0],['  font: <span class="s">"Inter Display"</span>,',1],['  accent: <span class="sq"></span><span class="s">"#FF3D5E"</span>,  <span class="c">// one. used well.</span>',2],['  ease: <span class="s">"out"</span>,',3],
+  ['  motion: { arrive: <span class="s">"fast"</span>, land: <span class="s">"soft"</span> },',4],['  arial<span class="colon"><svg viewBox="0 0 60 100"><circle cx="30" cy="47.75" r="6.25"/><circle cx="30" cy="93.75" r="6.25"/></svg></span> <span class="k">false</span>,',5],['  stockPhotos: <span class="n">0</span>,',6],['};',7],['',8],['app.use(<span class="t">taste</span>);  <span class="c">// the whole trick</span>',9],['<span class="k">export default</span> velvetly;',10],['<span class="c">// before: font-family: Arial;</span>',11]];
+const GUT=i=>`<span class="n" style="display:inline-block;width:64px">${i+1}</span>`;
+// les n premiers caractères visibles d'une ligne colorée (les balises passent telles quelles)
+function sliceHTML(h,n){ let o='',k=0; for(let i=0;i<h.length;i++){ if(h[i]=='<'){ const j=h.indexOf('>',i); o+=h.slice(i,j+1); i=j; continue; } if(k>=n) continue; o+=h[i]; k++; } return o; }
 const CODE_T=[767,767,767,767,773,784,784,788,788,792,796,799];   // arrivées par paquets (réf)
-const teCode=CODE.map(([h,i])=>{ const d=el(tePanel,'cline'); d._h=`<span class="n" style="display:inline-block;width:64px">${i+1}</span>${h}`; d.innerHTML=d._h; d.style.fontSize='34px'; return d; });
-const teSel=el(tePanel,'','', 'position:absolute;top:0;height:46px;border-radius:6px;background:rgba(120,150,255,.22)');
-const teTok=el(tePanel,'','', 'position:absolute;top:0;height:46px;border-radius:6px;background:rgba(243,239,234,.12)');
+const teCode=CODE.map(([h,i])=>{ const d=el(tePanel,'cline'); d._h=GUT(i)+h; d.innerHTML=d._h; return d; });
+const teSel=el(tePanel,'','', 'position:absolute;top:0;height:40px;border-radius:6px;background:rgba(243,239,234,.13)');
+const teTok=el(tePanel,'','', 'position:absolute;top:0;height:40px;border-radius:6px;background:rgba(243,239,234,.12)');
+/* l'aperçu en direct : le site du fondateur (bleu, Arial, poignée de main) se recharge à chaque ligne de code.
+   font (769) : les polices basculent ; accent (771) : le bleu passe à l'encre, un seul rouge apparaît ;
+   motion (784) : les blocs ré-arrivent vite et se posent doucement ; arial: false (786) : le dernier Arial tombe ;
+   stockPhotos: 0 (788) : la photo de stock tombe à son tour, le fauteuil était dessous */
+const TP_BLUE='#2D6CDF', TP_INK='#151413';
+const tpPair=(css,a,b)=>`<div class="tpp" style="${css}"><span class="a">${a}</span><span class="b">${b}</span></div>`;
+const tePrev=el(tePanel,'','', 'position:absolute;left:0;top:0;width:600px;height:640px;border-radius:14px;overflow:hidden;background:#1C1B1A;box-shadow:0 0 0 1px #2C2C2C;transform-origin:0 0;display:none');
+tePrev.innerHTML=`<div style="position:absolute;left:18px;top:0;height:40px;line-height:40px;font-family:FM;font-size:13px;color:#6E6862">localhost:5173<span style="color:#45403C"> / velvetly</span></div>
+  <div style="position:absolute;right:18px;top:0;height:40px;line-height:40px;font-family:FM;font-size:13px;color:#6E6862"><span class="tpDot" style="display:inline-block;width:8px;height:8px;border-radius:4px;background:#4A4542;margin-right:8px;vertical-align:1px"></span>live</div>
+  <div class="tpBar" style="position:absolute;left:0;top:38px;height:2px;width:0;background:#F3EFEA"></div>
+  <div class="tpPage" style="position:absolute;left:0;top:40px;width:600px;height:600px;overflow:hidden;background:#fff">
+    ${tpPair('left:24px;top:20px;width:220px;height:32px','<span class="ar" style="font-weight:700;font-size:22px;line-height:32px">velvetly</span>',
+      `<span style="font-family:ID;font-weight:600;font-size:22px;line-height:32px;letter-spacing:-0.035em"><span class="tpMk" style="display:inline-block;width:0;height:13.6px;border-radius:4.4px;background:${VA};vertical-align:0"></span>velvetly</span>`)}
+    ${tpPair('right:24px;top:24px;width:330px;height:24px','<span class="ar" style="font-size:13px;line-height:24px;word-spacing:14px">Home Products About Contact</span>','<span style="font-family:ID;font-size:13px;line-height:24px;word-spacing:16px">Product Customers Pricing</span>')}
+    ${tpPair('left:24px;top:86px;width:560px;height:172px','<span class="ar" style="font-weight:700;font-size:40px;line-height:1.12;color:#1F2A44">Furniture Planning<br>Software For Your<br>Business</span>',
+      `<span style="font-family:ID;font-weight:500;font-size:78px;line-height:.98;letter-spacing:-0.055em">Plan with<br>${VMARK(58)} <em style="font-size:76px">taste.</em></span>`)}
+    ${tpPair('left:24px;top:272px;width:560px;height:24px','<span class="ar" style="font-size:15px;line-height:24px;color:#6B7280">The #1 solution for all your furniture needs!</span>','<span style="font-family:FM;font-size:12.5px;line-height:24px;color:#8E877F">Room planner · 3D hero · AR · one line of JS</span>')}
+    <div class="tpBtn" style="position:absolute;left:24px;top:312px;height:46px">${tpPair('left:0;top:0;width:100%;height:100%','<span class="ar" style="display:block;width:100%;text-align:center;font-weight:700;font-size:15px;line-height:46px;color:#fff">Get Started Today!</span>','<span style="display:block;width:100%;text-align:center;font-family:ID;font-weight:500;font-size:15px;line-height:46px;color:#F3EFEA">Book a demo →</span>')}</div>
+    <div class="tpImg" style="position:absolute;left:24px;top:384px;width:552px;height:178px;overflow:hidden"><img src="img/chair_hero.jpg" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 58%"></div>
+    <div class="tpPh" style="position:absolute;left:24px;top:384px;width:552px;height:178px;background:#D9DCE1;transform-origin:30% 100%"><svg width="70" height="56" viewBox="0 0 120 96" style="position:absolute;left:241px;top:44px"><rect x="3" y="3" width="114" height="90" rx="6" fill="none" stroke="#A9AEB6" stroke-width="5"/><circle cx="84" cy="30" r="10" fill="#A9AEB6"/><path d="M8 84 L42 44 L66 70 L80 56 L112 84 Z" fill="#A9AEB6"/></svg><div class="ar" style="position:absolute;left:0;right:0;top:112px;text-align:center;font-size:12px;color:#8A8F97">stock_handshake_final_v3.jpg</div></div>
+    <div class="tpFoot ar" style="position:absolute;left:24px;top:574px;font-size:11px;color:#9AA0A8;white-space:pre">${[...'© 2024 velvetly Inc. All rights reserved.'].map(c=>`<span style="display:inline-block">${c==' '?'&nbsp;':c}</span>`).join('')}</div>
+  </div>`;
+const TP={pairs:qa(tePrev,'.tpp'),page:q1(tePrev,'.tpPage'),mk:q1(tePrev,'.tpMk'),vmk:q1(tePrev,'.vmk'),btn:q1(tePrev,'.tpBtn'),img:q1(tePrev,'.tpImg'),ph:q1(tePrev,'.tpPh'),
+  foot:qa(q1(tePrev,'.tpFoot'),'span'),dot:q1(tePrev,'.tpDot'),bar:q1(tePrev,'.tpBar')};
+const TP_RELOAD=[769,771,784,786,788];
+function tePrevUpdate(f){
+  const pF=k=>vl(f,769+k*0.7,4), pA=vl(f,771,4), pop=pA*(1+0.28*Math.sin(Math.PI*pA));
+  // les polices glissent (même geste que les composants du dashboard), le haut part en haut, le bas arrive par le bas
+  TP.pairs.forEach((d,k)=>{ const p=pF(k), H=d.offsetHeight; d.children[0].style.transform=`translateY(${(-p*H).toFixed(1)}px)`; d.children[1].style.transform=`translateY(${((1-p)*H).toFixed(1)}px)`; });
+  const [lo,nav,hd]=TP.pairs; lo.children[0].style.color=TP_BLUE; lo.children[1].style.color=mixc(TP_BLUE,TP_INK,pA);
+  nav.children[0].style.color='#5A6270'; nav.children[1].style.color=mixc('#5A6270',TP_INK,pA); hd.children[1].style.color=mixc('#1F2A44',TP_INK,pA);
+  TP.mk.style.width=(13.6*pA).toFixed(2)+'px'; TP.mk.style.marginRight=(7*pA).toFixed(2)+'px'; TP.vmk.style.transform=`scale(${pop.toFixed(3)})`;
+  TP.page.style.background=mixc('#FFFFFF','#EEE9E4',pA);
+  Object.assign(TP.btn.style,{width:lerp(212,178,pA)+'px',borderRadius:lerp(4,23,pA)+'px',background:mixc(TP_BLUE,TP_INK,pA),
+    boxShadow:`0 ${lerp(6,0,pA).toFixed(1)}px ${lerp(10,0,pA).toFixed(1)}px rgba(0,0,0,${lerp(.45,0,pA).toFixed(3)})`});
+  TP.img.style.borderRadius=lerp(4,14,pA)+'px'; TP.ph.style.borderRadius=TP.img.style.borderRadius;
+  // motion : le titre, la ligne, le bouton et l'image ré-arrivent (arrive: fast, land: soft)
+  [hd,TP.pairs[3],TP.btn].forEach((d,k)=>{ if(f<784){ d.style.translate=''; d.style.opacity=''; return; } const v=vl(f,784+k*1.5,7); d.style.translate=`0 ${(28*(1-v)).toFixed(1)}px`; d.style.opacity=v.toFixed(3); });
+  // arial: false : les lettres du dernier Arial tombent, une à une
+  TP.foot.forEach((c,i)=>{ const k=clamp((f-786-i*0.22)/4); c.style.transform=`translateY(${(30*k*k).toFixed(1)}px)`; c.style.opacity=(1-k).toFixed(2); });
+  // stockPhotos: 0 : la photo de stock bascule et tombe hors de la page
+  const g=accel(f,788,8,2); TP.ph.style.transform=`translateY(${(560*g).toFixed(1)}px) rotate(${(11*g).toFixed(2)}deg)`;
+  // chaque rechargement : la pastille « live » s'allume, un filet de progression court sous la barre
+  let lit=0, bar=0; for(const r of TP_RELOAD){ if(f>=r&&f<r+5) lit=Math.max(lit,1-(f-r)/5); if(f>=r&&f<r+3) bar=clamp((f-r+1)/3); }
+  TP.dot.style.background=mixc('#4A4542','#F3EFEA',lit); TP.bar.style.width=(600*bar).toFixed(0)+'px';
+}
 const teBlack=el(TE.s,'','', 'position:absolute;inset:0;background:#000;opacity:0;pointer-events:none');
 // le raccord : les deux points du « : » de « arial: false » deviennent les deux boulons de la macro (positions du rendu, image 0)
 const MA_BOLT=[[1044,522],[1044,780]];
@@ -50,10 +100,13 @@ function shotTerm(F){ const f=F-1;
     show(teBox,f>=740); if(f>=740){ const w=TEL.w+120; Object.assign(teBox.style,{left:(960-1.6*(f-707)-w/2)+'px',top:'462px',width:w+'px',height:'156px',opacity:approach(f,740,5).toFixed(2)}); } }
   else show(teBox,false);
   const panel=f>=750; show(tePanel,panel); show(tePanelLine,panel&&f<767);
+  show(tePrev,panel&&f>=767);
   if(panel){ // panneau fixe ; recul par palier à 790 (barre d'icônes qui apparaît), pas de poussée continue
-    const st=approach(f,790,3,0.4), pw=f<767?1280:lerp(1357,1568,st), ph=f<767?300:lerp(660,720,st);
+    const st=approach(f,790,3,0.4), pw=f<767?1280:lerp(1500,1640,st), ph=f<767?300:lerp(680,740,st);
     Object.assign(tePanel.style,{left:(960-pw/2)+'px',top:(540-ph/2)+'px',width:pw+'px',height:ph+'px'});
-    show(teSide,f>=790); const lx=f>=790?96:40, fs=lerp(34,26,st), lh=lerp(51,40,st);
+    show(teSide,f>=790); const lx=lerp(40,96,st), fs=lerp(28,25,st), lh=lerp(44,39,st);
+    // l'aperçu occupe la droite du panneau, à pleine hauteur
+    if(f>=767){ const ps=(ph-44)/640; tePrev.style.transform=`translate(${(pw-24-600*ps).toFixed(1)}px,22px) scale(${ps.toFixed(4)})`; tePrevUpdate(f); }
     let w=''; for(const [wf,t] of TEW) if(f>=wf) w=t;
     // une seule espace après « add » (plus de trou laissé par l'italique effacé) ; le caret clignote toutes les 8 images
     tePanelLine.innerHTML=`<span style="color:#F2EEE8">→</span> <span style="color:#F2EEE8">add</span> ${w.replace(/^(&nbsp;|\s)+/,'')}<span style="display:inline-block;width:3px;height:1em;background:#F2EEE8;vertical-align:-0.15em;margin-left:4px;visibility:${Math.floor(f/8)%2?'hidden':'visible'}"></span>`;
@@ -61,24 +114,31 @@ function shotTerm(F){ const f=F-1;
     placeTL(tePanelLine,970-tePanelLine.offsetWidth/2,540-44,f>=766?1+0.1*(1-approach(f,766,4)):1);
     // le code arrive par paquets : insertion avec sélection (773, frappe 2 car./image jusqu'à 784), sauts d'indentation (784), paquets (788, 792, 796, 799)
     let row=0; teCode.forEach((d,i)=>{ const t0=CODE_T[i], on=f>=t0&&f>=767; show(d,on); if(!on) return;
-      d.style.fontSize=fs+'px'; d.style.left=(lx+(i==5||i==6?45*(1-approach(f,784,3,0.4)):0))+'px'; d.style.top=(70+row*lh)+'px'; row++;
+      d.style.fontSize=fs+'px'; d.style.lineHeight=lh+'px'; d.style.left=(lx+(i==5||i==6?45*(1-approach(f,784,3,0.4)):0))+'px'; d.style.top=(66+row*lh)+'px'; row++;
       if(i!==4&&t0>767&&f<t0+3) d.style.clipPath=`inset(0 ${((1-(f-t0+1)/3)*100).toFixed(0)}% 0 0)`; else d.style.clipPath='';
-      d.innerHTML=i==4&&f<784?`<span class="n" style="display:inline-block;width:64px">5</span>`+'  motion: { arrive: "fast", land: "soft" },'.slice(0,2+(f-773)*4):d._h; });
-    show(teSel,f>=773&&f<786); if(f>=773){ Object.assign(teSel.style,{left:(lx-6)+'px',top:(70+4*lh-4)+'px',width:(f<784?260+(f-773)*30:600)+'px'}); }
-    show(teTok,f>=792); if(f>=792){ const sp=approach(f,792,4); Object.assign(teTok.style,{left:(lx+64*(fs/34)+16)+'px',top:(70+5*lh-4)+'px',width:(300*sp*(fs/34))+'px'}); } }
+      d.innerHTML=i==4&&f<784?GUT(4)+sliceHTML(CODE[4][0],2+(f-773)*4):d._h; });
+    const cw=fs*0.6;
+    show(teSel,f>=773&&f<786); if(f>=773){ Object.assign(teSel.style,{left:(lx+58)+'px',top:(66+4*lh-3)+'px',height:(lh-2)+'px',width:(f<784?cw*(2+(f-773)*4)+12:cw*44+12)+'px'}); }
+    show(teTok,f>=792); if(f>=792){ const sp=approach(f,792,4); Object.assign(teTok.style,{left:(lx+58)+'px',top:(66+5*lh-3)+'px',height:(lh-2)+'px',width:((cw*15+12)*sp)+'px'}); } }
   // 790-806 : poussée qui accélère dans le « : » ; tout le reste s'éteint au noir ; 808-815 : il ne reste que les deux points
   const col=q1(tePanel,'.colon'); let z=1;
   if(f>=792&&col){ const r=col.getBoundingClientRect(), st=TE.s.getBoundingClientRect(), kk=st.width/W;
     // centre du « : » dans la caméra au repos (la caméra n'est pas encore transformée à cette image)
-    TE.cam.style.transform=''; const r0=col.getBoundingClientRect(); const cx=((r0.left+r0.right)/2-st.left)/kk, cy=((r0.top+r0.bottom)/2-st.top)/kk;
-    const a=accel(f,792,14,2.2); z=Math.exp(Math.log(17)*a); const tx=lerp(cx,MA_BOLT[0][0],a), ty=lerp(cy,(MA_BOLT[0][1]+MA_BOLT[1][1])/2,a);
+    // les deux points sont ronds (dessinés, pas la glyphe carrée de Fragment Mono) ; le zoom final pose leur écartement sur celui des boulons
+    TE.cam.style.transform=''; const [d0,d1]=qa(col,'circle').map(e=>e.getBoundingClientRect()); const cx=((d0.left+d0.right)/2-st.left)/kk, cy=((d0.top+d1.bottom)/2-st.top)/kk;
+    const zEnd=(MA_BOLT[1][1]-MA_BOLT[0][1])/((d1.top-d0.top)/kk);
+    // poussée en S (792-812) : elle accélère puis freine sur les boulons (≈ ×1,26/image au plus fort), au lieu de couper à ×1,5/image
+    const tz=clamp((f-792)/20), a=tz*tz*(3-2*tz); z=Math.exp(Math.log(zEnd)*a); const tx=lerp(cx,MA_BOLT[0][0],a), ty=lerp(cy,(MA_BOLT[0][1]+MA_BOLT[1][1])/2,a);
     TE.cam.style.transformOrigin='0 0'; TE.cam.style.transform=`translate(${(tx-cx*z).toFixed(1)}px,${(ty-cy*z).toFixed(1)}px) scale(${z.toFixed(4)})`;
     const fade=clamp((f-794)/12); tePanel.style.borderColor=`rgba(44,44,44,${(1-fade).toFixed(2)})`;
     teCode.forEach(d=>{ d.style.color=fade>0?mixc('#BFB9B2','#000000',fade):''; qa(d,'span').forEach(sp=>{ if(!sp.classList.contains('colon')) sp.style.opacity=(1-fade).toFixed(2); }); });
-    [teDim1,teDim2,teSide,teSel,teTok].forEach(e=>e.style.opacity=(1-fade).toFixed(2)); col.style.color='#F3EFEA'; }
-  else { TE.cam.style.transform=''; TE.cam.style.transformOrigin=''; teCode.forEach(d=>{ d.style.color=''; qa(d,'span').forEach(sp=>sp.style.opacity=''); }); [teDim1,teDim2,teSide,teSel,teTok].forEach(e=>e.style.opacity=''); tePanel.style.borderColor=''; }
-  teBlack.style.opacity=f>=807?'1':'0';
-  teDots.forEach((d,i)=>{ show(d,f>=807); d.style.left=MA_BOLT[i][0]+'px'; d.style.top=MA_BOLT[i][1]+'px'; });
+    [teDim1,teDim2,teSide,teSel,teTok,tePrev].forEach(e=>e.style.opacity=(1-fade).toFixed(2)); col.style.color='#F3EFEA';
+    // à partir de 803 le noir monte ; les deux points passent au-dessus (calque teDots), exactement là où la caméra les a menés
+    const dots=f>=803; col.style.visibility=dots?'hidden':''; qa(col,'circle').forEach((c,k)=>{ const r=c.getBoundingClientRect(), d=(r.right-r.left)/kk;
+      Object.assign(teDots[k].style,{left:((r.left+r.right)/2-st.left)/kk+'px',top:((r.top+r.bottom)/2-st.top)/kk+'px',width:d+'px',height:d+'px',margin:`${-d/2}px 0 0 ${-d/2}px`}); }); }
+  else { if(col) col.style.visibility=''; TE.cam.style.transform=''; TE.cam.style.transformOrigin=''; teCode.forEach(d=>{ d.style.color=''; qa(d,'span').forEach(sp=>sp.style.opacity=''); }); [teDim1,teDim2,teSide,teSel,teTok,tePrev].forEach(e=>e.style.opacity=''); tePanel.style.borderColor=''; }
+  teBlack.style.opacity=clamp((f-802)/6).toFixed(3);
+  teDots.forEach(d=>show(d,f>=803));
 }
 
 /* ---------- 20 · macro N&B en contre-jour (séquence Cycles) : le fond s'allume, puis le sujet ; recul qui accélère (réf, +1) ---------- */
@@ -91,9 +151,10 @@ cR20(815,'riser',{v:.35,end:826}); cR20(864,'whoosh',{v:.6,peak:876,dur:12});
 const MA_CUR=[[826,683,1011],[832,896,649],[868,1515,559],[878,1109,627]];
 function maCursor(f){ if(f<826) return null; for(let k=0;k<MA_CUR.length-1;k++){ const [a,x0,y0]=MA_CUR[k],[b,x1,y1]=MA_CUR[k+1]; if(f<=b){ const t=(f-a)/(b-a), e=k==1?1-Math.pow(1-t,1.6):k==2?t*t:t; return [lerp(x0,x1,e),lerp(y0,y1,e)]; } } return [1109,627]; }
 function shotMacro(F){ const f=F-1;
-  seqDraw(maSeq,SEQ.macro,f-816);
+  seqDraw(maSeq,SEQ.macro,f-816); maSeq.style.opacity=vl(f,815,4).toFixed(3);   // la macro monte du noir (réf 815-818), sous les deux points
   // fin : le recul rendu continue en 2D avec un flou directionnel croissant (pas de roulis)
-  const wh=accel(f,872,6,2.4); MA.cam.style.transform=`scale(${(1-0.12*wh).toFixed(4)})`; MA.cam.style.filter=wh>0?`blur(${(wh*10).toFixed(1)}px)`:'';
+  // −5, −8, −12 %/image en plus du rendu, jusqu'à la coupe
+  const wh=accel(f,872,7.6,3); MA.cam.style.transform=`scale(${(1-0.35*wh).toFixed(4)})`; MA.cam.style.filter=wh>0?`blur(${(wh*10).toFixed(1)}px)`:'';
   // les deux points du « : » fondent dans les deux boulons quand la macro s'allume (816-822)
   const m=vl(f,816,6); maDots.forEach((d,i)=>{ show(d,m<1); d.style.left=MA_BOLT[i][0]+'px'; d.style.top=MA_BOLT[i][1]+'px'; d.style.opacity=(1-m).toFixed(3); d.style.transform=`scale(${(1-0.4*m).toFixed(3)})`; });
   cursor(0,0,0,false);
@@ -119,14 +180,17 @@ function chView3(f){ // caméra de la vue produit (réf) : recul + travelling fl
   const a=approach(f,880,10,0.25); let s=lerp(1.25,1,a), x=120*(1-a), y=0, r=3*(approach(f,892,4)-approach(f,898,6));
   y+=22*(approach(f,924,2,0.5)-approach(f,927,8)); const an=approach(f,936,3); s*=1-0.04*an; r-=2.4*an*(1-approach(f,940,4));
   s*=1+0.06*(0.5-0.5*Math.cos(Math.PI*clamp((f-890)/46)));   // lente poussée dans la vue 3D seulement : les panneaux et le texte ne bougent pas
-  const pu=accel(f,940,10,3); s*=1+0.8*pu; y-=150*pu;
+  const pu=accel(f,940,11.5,3); s*=1+0.35*pu; y-=65*pu;   // n'arrive pas à 1 avant la coupe (952) : pas d'image figée
   // la vue doit toujours couvrir son cadre (630,196)-(1548,862) : échelle minimale pour que les 4 coins restent dans l'image tournée
   { const c=Math.cos(r*Math.PI/180), sn=Math.sin(r*Math.PI/180); let need=1;
     for(const [cx,cy] of [[-459,-334],[459,-334],[-459,334],[459,334]]){ const dx=cx-x, dy=cy-y, u=dx*c+dy*sn, v=-dx*sn+dy*c; need=Math.max(need,Math.abs(u)/459,Math.abs(v)/334); }
     s=Math.max(s,need*1.01); }
-  return {s,x,y,r,bx:vel(t=>120*(1-approach(t,880,10,0.25)),f), by:vel(t=>-150*accel(t,940,10,3),f)}; }
-// le plateau tourne à vitesse constante (1,9°/image) jusqu'à 930, puis ralentit sur vladan et se pose de trois quarts
-function chIdx(f){ if(f<=930) return f-880; const t=clamp((f-930)/15); return 50+10*(1-(1-t)*(1-t)); }
+  return {s,x,y,r,bx:vel(t=>120*(1-approach(t,880,10,0.25)),f), by:vel(t=>-65*accel(t,940,11.5,3),f)}; }
+// le plateau entre lancé (≈ 6°/image, comme la réf) et ralentit jusqu'à 1,3°/image à 895, tourne ainsi jusqu'à 931
+// (l'indice 38 du velours rouge est atteint à 918, au coup de pinceau), puis se pose de trois quarts
+const CH_TAU=9.32, CH_I895=3*CH_TAU*(1-Math.exp(-15/CH_TAU)), CH_I931=CH_I895+0.7*36;
+function chIdx(f){ if(f<=880) return 0; if(f<=895) return 3*CH_TAU*(1-Math.exp(-(f-880)/CH_TAU)); if(f<=931) return CH_I895+0.7*(f-895);
+  const t=clamp((f-931)/15); return CH_I931+10*(1-(1-t)*(1-t)); }
 // M7 : le grand coup de feutre traverse l'assise ; l'encre boit dans le velours (926-932) en suivant le poil (luminance du rendu)
 const M7=()=>penPlace('G07',[862,492,1290,540]);
 const CH_MASK=document.createElement('canvas'); CH_MASK.width=275; CH_MASK.height=200;
@@ -266,7 +330,8 @@ function shotDone(F){ const f=F-2;
     doSum.style.clipPath=`inset(0 0 ${((1-approach(f,956,10))*100).toFixed(1)}% 0 round 18px)`; }
   // 989-1079 : la page claire et sa chaleur à l'encre
   const hp=f>=989; show(doTP,hp); show(doFull,false);
-  if(hp){ const z=1+0.0026*(f-989), pan=f<1062?0:f<1075?(f-1062)*15:13*15+(f-1075)*40, zz=f<1075?1:1-0.045*(f-1075);
+  // sortie : plus de glissement qui accélère vers une coupe sèche ; une dérive lente et un fondu par le flou (1068-1077) que la grille reprend
+  if(hp){ const z=1+0.0026*(f-989), pan=f<1062?0:(f-1062)*6, zz=1;
     doTPi.style.transform=`translate(${pan.toFixed(1)}px,${(pan*0.6).toFixed(1)}px) scale(${(z*zz).toFixed(4)})`;
     // les étiquettes restent fixes à l'écran pendant la poussée (sinon le cadre coupe « 1,204 sessions » et la légende)
     if(f<1062){ const Z=z*zz; Object.assign(doHud.style,{right:(1920-(960+(1892-960)/Z)).toFixed(1)+'px',top:(540+(84-540)/Z).toFixed(1)+'px',transform:`scale(${(1/Z).toFixed(4)})`,transformOrigin:'100% 0'});
@@ -280,7 +345,7 @@ function shotDone(F){ const f=F-2;
     const rg=vl(f,1024,6); show(doRing,f>=1024); show(doRingL,f>=1024); doRing.style.left=DO_SEAT[0]+'px'; doRing.style.top=DO_SEAT[1]+'px'; doRing.style.transform=`scale(${rg.toFixed(3)})`;
     doRingL.style.left=(DO_SEAT[0]+46)+'px'; doRingL.style.top=(DO_SEAT[1]-58)+'px'; doRingL.style.opacity=rg.toFixed(3);
     [doHud,doLeg].forEach(e=>e.style.opacity=f<1052?'1':'0');
-    const df=approach(f,1067,10); doTP.style.filter=df>0?`blur(${(20*df).toFixed(1)}px) brightness(${(1+0.3*df).toFixed(2)}) saturate(${(1-0.6*df).toFixed(2)})`:''; }
+    const df=vl(f,1068,9); doTP.style.filter=df>0?`blur(${(20*df).toFixed(1)}px) brightness(${(1+0.3*df).toFixed(2)}) saturate(${(1-0.6*df).toFixed(2)})`:''; }
   // le bouton : apparaît à 0,91, texte accent 1 image, grandit de 10 % ; clic 1050 = 1 image à 0,82, brun chaud qui reste
   const bOn=f>=1020&&f<1072; show(doBtn,bOn); if(bOn){ const sc=lerp(0.91,1,approach(f,1020,14))*(f==1050?0.82/1:f==1051?0.97:1);
     place(doBtn,960,556,sc); doBtn.style.color='#F3EFEA'; doBtn.style.background=f>=1050&&f<1052?'#2E2B28':'#151413';
@@ -319,11 +384,14 @@ const grListL=GR_LIST.map((t,i)=>el(grList,'abs m','',`left:18px;top:${24+i*40}p
 const grThumb=crop(el(grIn,'gcard','', 'left:360px;top:0;width:120px;height:120px;background:#D9DCE1;display:none')); grThumb.innerHTML+=`<svg width="60" height="48" viewBox="0 0 120 96" style="position:absolute;left:30px;top:36px"><rect x="3" y="3" width="114" height="90" rx="6" fill="none" stroke="#A9AEB6" stroke-width="6"/><path d="M8 84 L42 44 L66 70 L80 56 L112 84 Z" fill="#A9AEB6"/></svg>`;
 cR25(1078,'drop2',{}); cR25(1078,'impact',{v:.6}); [1084,1087,1090,1093,1096,1099,1102].forEach(f=>cR25(f,'tick',{v:.3})); for(let k=0;k<9;k++) cR25(1093+k*2.6,'tick',{v:.14});
 function shotGrid(F){ const f=F-2;
-  const z1=lerp(1.25,1,approach(f,1078,14,0.2)), z2=lerp(1.03,1,approach(f,1100,14)); GR.cam.style.transform=`scale(${(z1*(f>=1100?z2:1.03)).toFixed(4)})`;
-  const X=-313*(1-approach(f,1086,40,0.11)), Y=-300*(1-approach(f,1077,12,0.2));
+  // entrée : la grille sort du même flou clair que la page de chaleur (fondu enchaîné 1078-1082), sans recul ni glissement hérités
+  const z2=lerp(1.03,1,approach(f,1100,14)); GR.cam.style.transform=`scale(${(f>=1100?z2:1.03).toFixed(4)})`;
+  const dz=1-vl(f,1077,5); GR.cam.style.filter=dz>0.01?`blur(${(20*dz).toFixed(1)}px) brightness(${(1+0.3*dz).toFixed(2)}) saturate(${(1-0.6*dz).toFixed(2)})`:'';
+  const X=-313*(1-approach(f,1086,40,0.11)), Y=0;
   grIn.style.transform=`translate(${X.toFixed(1)}px,${Y.toFixed(1)}px)`;
-  mblur(grIn,vel(t=>-313*(1-approach(t,1086,40,0.11)),f)*BLUR*0.6,vel(t=>-300*(1-approach(t,1077,12,0.2)),f)*BLUR*0.6);
-  show(grMacroTile,f>=1087); if(f>=1087) seqDraw(grMacro,SEQ.macro,6+(f-1087)*0.9,0.56,0.46);
+  mblur(grIn,vel(t=>-313*(1-approach(t,1086,40,0.11)),f)*BLUR*0.6,0);
+  // la macro se révèle en 2 images
+  show(grMacroTile,f>=1086); grMacroTile.style.opacity=clamp((f-1085)/2).toFixed(2); if(f>=1086) seqDraw(grMacro,SEQ.macro,6+(f-1087)*0.9,0.56,0.46);
   show(grThumb2,f>=1100); if(f>=1100) seqDraw(grMacro2,SEQ.macro,30+(f-1100)*1.2,0.5,0.5,1.4);
   grChips.forEach((d,i)=>{ const on=f>=d._st; show(d,on); if(!on) return; placeTL(d,GR_CHP[i][0],GR_CHP[i][1]); d.style.translate=`${((1-approach(f,d._st,6))*-60).toFixed(1)}px 0`;
     d.textContent=d._t.slice(0,Math.max(1,Math.floor((f-d._st+1)*2.2))); });
@@ -351,7 +419,7 @@ const reBtn=el(reCard,'abs','Accept all','left:auto;right:44px;top:316px;height:
 const reProg=q1(reCard,'.rprog');
 cR26(1130,'impact',{v:.5}); cR26(1161,'click',{v:1}); cR26(1162,'pop',{v:.5,n:84});
 function shotReport(F){ const f=F-1;
-  RE.cam.style.transform=`scale(${(1+0.11*(1-Math.pow(1-clamp((f-1131)/44),2))).toFixed(4)})`;   // poussée continue jusqu'à la coupe
+  RE.cam.style.transform=`scale(${(1+0.0025*(f-1131)).toFixed(4)})`;   // poussée à vitesse constante jusqu'à la coupe (l'ease-out figeait les 4 dernières images)
   // la carte monte (40 px, 10 images), le 47 se compte, les lignes et les barres par catégorie arrivent une à une
   const p=approach(f,1130,6); place(reCard,960,545+40*(1-vl(f,1131,10))); reCard.style.opacity=lerp(0.3,1,p).toFixed(3);
   reNum.textContent='47';   // pas de compte à partir de 0 : dans ce film, 0 veut dire « réglé »
@@ -404,14 +472,18 @@ let AL_CROSS=null; function alCross(){ if(AL_CROSS) return AL_CROSS; const st=M8
 cR27(1175,'hush',{}); cR27(1186,'scribble',{v:.7,end:1208}); cR27(1210,'reel',{v:.6,end:1228}); cR27(1232,'boom',{v:.8});
 function shotAlerts(F){ const f=F-1; push(AL.cam,f,1175,0.0005);
   const ms=(f-1186)*PEN.ms, cross=alCross();
-  alTiles.forEach((t,n)=>{ const a=1176+10*t._d/alMaxD; const on=f>=a&&f<1228&&!(n===46&&f>=1213); show(t,on); if(!on) return;
-    const sIn=clamp((twos(f,Math.floor(a))-a)/3); t.style.left=t._x+'px'; t.style.top=t._y+'px';
-    const cf=1186+cross[n]/PEN.ms, k=clamp((f-cf)/3); const fade=clamp((f-1215)/12);   // les tuiles tiennent pendant que le fil passe : il ne pend jamais seul sur le noir
-    t.style.transform=`scale(${(sIn*(n===46?1-clamp((f-1210)/3):1)).toFixed(3)})`; t.style.filter=k>0?`grayscale(${k.toFixed(2)})`:''; t.style.opacity=((1-0.68*k)*(1-fade)).toFixed(3); });
+  // le champ est déjà allumé à 1175 (le centre), le reste se remplit jusqu'à 1184 ; à la fin la grille se resserre dans la marque
+  // (facteurs de la réf : ×0,87, ×0,73, ×0,73, ×0,73, ×0,71, ×0,52 sur 1226-1231) au lieu de s'éteindre
+  const zc=alZ(f);
+  alTiles.forEach((t,n)=>{ const a=1175+9*Math.max(0,(t._d/alMaxD-0.3)/0.7); const on=f>=a&&f<1232&&!(n===46&&f>=1213); show(t,on); if(!on) return;
+    const sIn=a<=1175?1:clamp((twos(f,Math.floor(a))-a)/3); t.style.left=(960+(t._x-960)*zc)+'px'; t.style.top=(540+(t._y-540)*zc)+'px';
+    // les tuiles tiennent pendant que le fil passe : il ne pend jamais seul sur le noir
+    const cf=1186+cross[n]/PEN.ms, k=clamp((f-cf)/3), fade=clamp((f-1229)/3), bz=8*(1-zc);
+    t.style.transform=`scale(${(sIn*zc*(n===46?1-clamp((f-1210)/3):1)).toFixed(3)})`; t.style.filter=((k>0?`grayscale(${k.toFixed(2)}) `:'')+(bz>0.3?`blur(${bz.toFixed(1)}px)`:'')).trim(); t.style.opacity=((1-0.68*k)*(1-fade)).toFixed(3); });
   // le compteur part du « 47 » du rapport et descend d'une unité par tuile barrée ; à 0, il passe à l'encre fixée
   // pendant le fil (1210-1228), les tuiles qui restent partent avec lui : le compteur finit sur 0 à 1228 et y tient
   let left=47-cross.filter(c=>c<=ms).length; if(f>=1210){ const l0=47-cross.filter(c=>c<=(1210-1186)*PEN.ms).length, t=clamp((f-1210)/18); left=Math.round(lerp(l0,0,t*t*(3-2*t))); }
-  show(alCount,f>=1176&&f<1232); const mv=vl(f,1176,8); placeTL(alCount,lerp(800,120,mv),lerp(450,860,mv));
+  show(alCount,f>=1175&&f<1232); const mv=vl(f,1176,8); placeTL(alCount,lerp(800,120,mv),lerp(450,860,mv));
   alNum.textContent=Math.max(0,left); if(left<=0&&f>=1210){ alNum.style.color='#F3EFEA'; alNum.style.fontFamily='ID'; } else { alNum.style.color='#2D6CDF'; alNum.style.fontFamily=''; }
   const ix=inkClear(alInk);
   if(f>=1186&&f<1210) penDraw(ix,M8(),f,1186,{size:13.5,ground:'dark'});
@@ -427,7 +499,11 @@ function shotAlerts(F){ const f=F-1; push(AL.cam,f,1175,0.0005);
   if(f>=1243){ Object.assign(alBtn.style,{width:lerp(150,228,mo)+'px',height:lerp(150,90,mo)+'px',borderRadius:lerp(75,14,mo)+'px',background:mixc('#FF3D5E','#151413',mo)});
     place(alBtn,960,540); alBtnBar.style.transform=`rotate(${lerp(33.7,0,mo).toFixed(1)}deg) scale(${lerp(1,0.5,mo).toFixed(3)},${lerp(1,0.55,mo).toFixed(3)})`; alBtnBar.style.width=lerp(9*1.5625,3,mo)+'px'; }
   alFade.style.opacity=approach(f,1243,7).toFixed(3);
+  // sortie : petite poussée qui accélère dans la coupe (réf +0,2 → +2 %/image), pas d'image figée
+  AL.cam.style.scale=(1+0.04*accel(f,1243,7,2.2)).toFixed(4);
 }
+const AL_Z=[1,.87,.635,.464,.338,.240,.125];
+function alZ(f){ if(f<=1225) return 1; if(f>=1231) return AL_Z[6]; const i=Math.floor(f-1225); return lerp(AL_Z[i],AL_Z[i+1],f-1225-i); }
 
 /* ---------- 28 · la fenêtre de la pièce : le ciel glisse sous le bouton déjà en place, « Ship it » se tape ; le fondateur clique (1295) ---------- */
 const SH=scene('sShip',1251,1307,f=>shotShip(f));
@@ -499,20 +575,27 @@ const tplReport0=()=>`<div class="full" style="background:#F7F4F0;color:#151413"
   <div style="position:absolute;right:80px;bottom:70px;height:64px;line-height:64px;padding:0 30px;border-radius:12px;background:#151413;color:#F3EFEA;font-size:26px">Ship it</div></div>`;
 const moDa=el(MO.cam); const moDaD=framed(moDa,tplReport0(),1368,912,1240,730,'#F7F4F0'); const moBars=[...q1(moDaD,'.mbars').children];
 const moL=el(MO.cam); const moLD=framed(moL,tplVLanding(),1368,912,1240,730,VINK);
-const moLSeq=q1(moLD,'.vseq'), moLh=q1(moLD,'.lnh'), moLT=qa(moLD,'.vtile'), moStat=q1(moPD,'.mst'), moStat2=q1(moPD,'.mst2');
+const moLSeq=q1(moLD,'.vseq'), moLXr=q1(moLD,'.vxr'), moLh=qa(moLD,'.lnh'), moLT=qa(moLD,'.vix'), moStat=q1(moPD,'.mst'), moStat2=q1(moPD,'.mst2');
 const MOS=[[moP,1307],[moR,1325],[moDa,1336],[moL,1349]];
 cR29(1307,'impact',{v:.7}); cR29(1325,'impact',{v:.6}); cR29(1336,'impact',{v:.6}); cR29(1349,'impact',{v:.7}); [1312,1314,1315].forEach(f=>cR29(f,'tick',{v:.2})); cR29(1372,'shimmer',{v:.45,end:1378});
 // les fragments corrigés reviennent à la place exacte de leurs jumeaux ennuyeux (5, lisibles, 30 px), à cheval sur la fin du montage
 const OU_FIX=[[4,'/* done. it sits. */'],[10,'/* nothing is !important */'],[13,'cursor: you;'],[5,'<h1>Morning, Léa.</h1>'],[12,'ease: vladan;']];
 const moFix=OU_FIX.map(([i,t])=>{ const d=el(MO.s,'abs frag','','font-size:30px;z-index:20;display:none'); d.textContent=t; d._i=i; return d; });
-function fixFrags(list,f,f0){ list.forEach(d=>{ const on=f>=f0&&f<1386; show(d,on); if(!on) return; const src=wFr[d._i]; placeTL(d,src._x,src._y); d.style.color=mixc('#FFC2CD','#151413',clamp((f-f0)/6)); }); }
+// les fragments ne figent plus puis ne sautent plus : ils se rassemblent vers le centre en accélérant (1379-1390), jusqu'au point
+function fixFrags(list,f,f0){ const G=1-0.92*accel(f,1379,11,2.2); list.forEach(d=>{ const on=f>=f0&&f<1390; show(d,on); if(!on) return; const src=wFr[d._i];
+  placeTL(d,960+(src._x-960)*G,540+(src._y-540)*G,G); d.style.color=mixc('#FFC2CD','#151413',clamp((f-f0)/6)); d.style.opacity=(1-clamp((f-1387)/3)).toFixed(2); }); }
 function shotMont(F){ const f=F-1; let cur=MOS[0]; for(const m of MOS) if(f>=m[1]) cur=m;
   MOS.forEach(m=>show(m[0],m===cur)); const a=f-cur[1];
-  let sc=1; if(cur[0]===moP) sc=1+0.035*approach(f,1307,18,0.12); else if(cur[0]===moR) sc=1+0.0007*a; else if(cur[0]===moDa) sc=1+0.0016*a; else sc=1-0.03*accel(f,1366,10,2);
+  let sc=1; if(cur[0]===moP) sc=1+0.035*approach(f,1307,18,0.12); else if(cur[0]===moR) sc=1+0.0007*a; else if(cur[0]===moDa) sc=1+0.0016*a; else sc=1-0.03*accel(f,1366,12,2);
   place(cur[0],960,540,sc);
-  if(cur[0]===moP){ moStat.firstChild.textContent=f>=1314?'+45%':'+14%'; moStat2.textContent=f>=1315?'0:42':'0:52'; }   // même format que le téléphone
+  // les chiffres se comptent (1308-1316) au lieu de sauter de +14 % à +45 % en une image ; même format que le téléphone
+  if(cur[0]===moP){ const c=ease3(clamp((f-1308)/8)); moStat.firstChild.textContent='+'+Math.round(lerp(14,45,c))+'%'; moStat2.textContent='0:'+Math.round(lerp(52,42,c)); }
   if(cur[0]===moDa) moBars.forEach((r,i)=>{ r.lastChild.style.transform=`scaleX(${(1-vl(f,1336+i*0.4,3)).toFixed(3)})`; });   // toutes à 0 dès 1342
-  if(cur[0]===moL){ seqDraw(moLSeq,SEQ.land,a*1.0,0.5,0.58); moLh.style.transform=`translateX(${(-2.3*a).toFixed(1)}px)`;
+  // panoramique au rythme de la réf (≈ 5 px/image : le cadre dérive, le titre glisse un peu moins, sans être rogné) ; 1374-1377 : la vague de chaleur passe sur la landing (25, 60, 100 %) avant les fragments
+  // la reprise : la même landing, loupe déjà ouverte sur le fauteuil
+  if(cur[0]===moL){ seqDraw(moLSeq,SEQ.land,a*1.0,0.5,0.58); seqDraw(moLXr,SEQ.landX,a*1.0,0.5,0.58); landLens(moLD,110,lerp(1040,1095,a/29),330,'');
+    place(cur[0],960-3*a,540,sc); moLh.forEach(h=>h.style.transform=`translateX(${(-0.8*a).toFixed(1)}px)`);
+    const hk=[0,.25,.6,1,1][clamp(f-1373,0,4)]; cur[0].style.filter=hk>0?`sepia(${hk}) saturate(${(1+3*hk).toFixed(2)}) hue-rotate(${(-28*hk).toFixed(1)}deg) contrast(${(1+0.25*hk).toFixed(2)}) brightness(${(1+0.18*hk).toFixed(2)})`:'';
     moLT.forEach((t,i)=>{ const p=approach(f,1350+i,8,0.2); t.style.translate=`0 ${((1-p)*24).toFixed(1)}px`; }); }
   fixFrags(moFix,f,1366);
 }
@@ -556,16 +639,15 @@ function outroLayout(){ OUL.ws=ouWords.map(e=>e.offsetWidth); OUL.ww=ouWord.offs
   show(ouTasteB,true); OUL.tb=ouTasteB.offsetWidth; show(ouTasteB,false); }
 cR31(1378,'shimmer',{v:.35,end:1386}); cR31(1385,'reverse',{v:.6,end:1393}); cR31(1393,'boom',{v:1.15}); cR31(1408,'shimmer',{v:.4,end:1416});
 OUW.forEach(([f],i)=>cR31(f,'key',{v:.4})); cR31(1439,'swish',{v:.3,peak:1446,dur:7}); cR31(1492,'final',{}); cR31(1524,'tick',{v:.25}); cR31(1508,'scratch',{v:.8,end:1516});
-const DOT_C=['#151413','#151413','#151413','#FF3D5E'];
 // la ligne « Give it taste. » : dans la pill (48 px), puis titre de 200 px aligné à x=144, ligne de base ≈ 300
 function ouLineGeom(f){ const sp=12, pad=30; const TW=OUW.map((_,i)=>OUL.ws.slice(0,i+1).reduce((a,b)=>a+b+sp,0)-sp); let tw=TW[0]; for(let i=1;i<OUW.length;i++) tw=lerp(tw,TW[i],approach(f,OUW[i][0],9,0.5));
-  const h=vl(f,1489,6); const S=lerp(1,200/48,h); const x0=lerp(960-tw/2,144,h), y0=lerp(540-26,120,h); return {tw,S,x0,y0,sp,pad,h}; }
+  const h=vl(f,1489,10); const S=lerp(1,200/48,h); const x0=lerp(960-tw/2,144,h), y0=lerp(540-26,120,h); return {tw,S,x0,y0,sp,pad,h}; }
 function shotOutro(F){ const f=F-2; push(OU.cam,f,1378,f<1489?0.0008:0);
   const OS=f>=1520?1+0.015*(1-Math.pow(1-clamp((f-1520)/39),2)):1; if(f>=1520) OU.cam.style.transform=`scale(${OS.toFixed(4)})`;   // l'affiche respire : 1,5 % de poussée, pas un arrêt sur image
   fixFrags(ouFix,f,1366);
   // anneau de glyphes à l'encre (1385-1391), le point à l'encre puis rouge à l'arrivée de la marque (1398)
   const k=lerp(1,0.7,approach(f,1387,6)); ouGl.forEach((d,i)=>{ const on=f>=1385&&f<1392; show(d,on); if(!on) return; const g=d._g; place(d,960+g[1]*k,540+g[2]*k); });
-  const dOn=f>=1390&&f<1398; show(ouDot,dOn); if(dOn){ const S=f<1394?lerp(90,120,(f-1390)/4):lerp(120,81,approach(f,1394,4)); Object.assign(ouDot.style,{width:S+'px',height:S+'px',background:DOT_C[Math.min(3,Math.floor((f-1390)/2))]}); place(ouDot,960,540); }
+  const dOn=f>=1390&&f<1398; show(ouDot,dOn); if(dOn){ const S=f<1394?lerp(90,120,(f-1390)/4):lerp(120,81,approach(f,1394,4)); Object.assign(ouDot.style,{width:S+'px',height:S+'px',background:f<1396?mixc('#CDB9F2','#FF8FA3',clamp((f-1390)/6)):'#FF3D5E'}); place(ouDot,960,540); }
   const tot=81+24+OUL.ww; const slide=approach(f,1404,4); const logoOn=f>=1398&&f<1448;
   show(ouMark,logoOn); show(ouWord,logoOn&&f>=1408); show(ouLine,logoOn&&f>=1408);
   if(logoOn){ const an=accel(f,1439,8,2), ex=-40*an, es=1-0.04*an, st=approach(f,1408,9);

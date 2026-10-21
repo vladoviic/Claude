@@ -5,6 +5,7 @@
    ============================================================ */
 const HB=[120,150,100,170,140,190,130,200,160,215,175,230];
 const HT=[84,104,98,128,150,138,168,192,184,222,246,274];
+const KSPARK=[[.1,.18,.15,.3,.28,.42,.5,.47,.62,.7,.86,1],[.2,.15,.28,.25,.38,.34,.45,.52,.5,.63,.72,.8],[.05,.1,.12,.2,.26,.3,.42,.55,.6,.74,.9,1]];
 function sw(c,i,x,y,h,a,b,extra=''){ return `<div class="sw" data-c="${c}" data-i="${i}" style="left:${x}px;top:${y}px;height:${h}px;${extra}"><span class="a" style="line-height:${h}px">${a}</span><span class="b" style="line-height:${h}px">${b}</span></div>`; }
 function buildDash(root){
   // la même app velvetly, deux goûts : v1 (le fondateur : Arial, bleu, ombres noires) et v2 (après le stylo). Mêmes valeurs, même géométrie.
@@ -23,7 +24,10 @@ function buildDash(root){
     h+=`<div class="d-box kpi" style="left:${300+i*350}px;top:170px;width:320px;height:150px">`;
     h+=sw(0,4+i,24,16,26,`<span class="ar" style="font-size:15px;color:#888">${k[0]}</span>`,`<span class="m" style="font-size:13px;letter-spacing:.08em;color:#8E877F">${k[1]}</span>`);
     h+=sw(4,i,22,52,80,`<span class="ar" style="font-weight:700;font-size:31px;color:#333">${k[2]}</span>`,`<span style="font-size:62px;letter-spacing:-0.045em">${k[3]}</span>`);
-    h+=`<div class="chip kchip" style="right:20px;top:18px;border:1.5px solid rgba(21,20,19,.25);line-height:25px;color:var(--ink)">${k[4]}</div></div>`;
+    h+=`<div class="chip kchip" style="right:20px;top:18px;border:1.5px solid rgba(21,20,19,.25);line-height:25px;color:var(--ink)">${k[4]}</div>`;
+    // v2 : une sparkline à l'encre, finie par un point (le KPI se lit comme une donnée, pas comme une carte)
+    const sp=KSPARK[i].map((v,j)=>`${(j*120/(KSPARK[i].length-1)).toFixed(1)},${(26-v*24).toFixed(1)}`);
+    h+=`<svg class="kspk" width="124" height="30" viewBox="-2 -2 124 30" style="position:absolute;left:176px;top:104px;overflow:visible;opacity:0"><polyline points="${sp.join(' ')}" fill="none" stroke="#151413" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${sp[sp.length-1].split(',')[0]}" cy="${sp[sp.length-1].split(',')[1]}" r="3" fill="#151413"/></svg></div>`;
   });
   h+=`<div class="d-box" id="CH" style="left:300px;top:350px;width:650px;height:410px">`;
   h+=sw(5,0,28,20,36,`<span class="ar" style="font-weight:700;font-size:18px;color:#333">Monthly 3D Views</span>`,`<span style="font-size:25px;letter-spacing:-0.02em">3D views <span class="m" style="font-size:15px;color:#8E877F;letter-spacing:0">· 12 mo</span></span>`);
@@ -44,7 +48,7 @@ function buildDash(root){
   h+=`</div>`;
   root.innerHTML=h;
   const q=s=>root.querySelector(s), qa=s=>[...root.querySelectorAll(s)];
-  return {root,win:q('.d-win'),side:q('.d-side'),act:q('.d-act'),icoA:qa('.ico-a'),icoB:qa('.ico-b'),img3:q('.IMG3'),sws:qa('.sw'),btn:q('#BTN'),kpis:qa('.kpi'),kchips:qa('.kchip'),
+  return {root,win:q('.d-win'),side:q('.d-side'),act:q('.d-act'),icoA:qa('.ico-a'),icoB:qa('.ico-b'),img3:q('.IMG3'),sws:qa('.sw'),btn:q('#BTN'),kpis:qa('.kpi'),kchips:qa('.kchip'),kspk:qa('.kspk'),
     ch:q('#CH'),grids:qa('.grid'),glabs:qa('.gl'),bars:qa('.d-bar'),tip:q('#TIP'),img:q('#IMG'),imgc:q('.IMGC'),ph1:q('.PH1'),imgt:q('.IMGT'),mlabs:qa('.mlab'),usr:q('.usr'),greet:q('.greet')};
 }
 const SH_B=[0,8,18,0,0,0,0,0.28], SH_T=[0,50,90,-40,60,30,20,0.30];
@@ -60,7 +64,7 @@ function updateDash(D,comp,f){
   // fond / fenêtre
   const c1=c(1);
   D.win.style.background=mixc('#F4F5F7','#F7F4F0',c1);
-  const rad=lerp(6,30,c1); D.win.style.borderRadius=D.root.querySelector('.d-clip').style.borderRadius=rad+'px';
+  const rad=lerp(6,20,c1);   // 20 px (30 faisait bulle) D.win.style.borderRadius=D.root.querySelector('.d-clip').style.borderRadius=rad+'px';
   D.win.style.boxShadow=shadow(c1)+`, 0 0 0 ${lerp(1,0,c1).toFixed(2)}px #C9CDD3`;
   // sidebar
   const c2=c(2);
@@ -75,26 +79,27 @@ function updateDash(D,comp,f){
     boxShadow:`0 ${lerp(6,0,c6)}px ${lerp(10,0,c6)}px rgba(0,0,0,${lerp(.45,0,c6).toFixed(3)}), inset 0 ${lerp(-3,0,c6)}px 0 rgba(0,0,0,${lerp(.25,0,c6).toFixed(3)})`});
   for(const sp of D.btn.querySelectorAll('.sw>span')) sp.style.lineHeight=bh+'px';
   // KPI
+  // v2 : grille ouverte (le fond de la fenêtre, un filet d'encre en haut), plus de carte
   D.kpis.forEach((k,i)=>{ const p=comp(4,i);
-    Object.assign(k.style,{background:mixc('#FFFFFF','#ECE6DF',p),borderRadius:lerp(4,22,p)+'px',boxShadow:`0 2px 4px rgba(0,0,0,${lerp(.12,0,p).toFixed(3)}), 0 0 0 ${lerp(1,0,p).toFixed(2)}px #D5D8DE`});
-    D.kchips[i].style.transform=`scale(${back(p*12,2,10).toFixed(3)})`; });
+    Object.assign(k.style,{background:mixc('#FFFFFF','#F7F4F0',p),borderRadius:lerp(4,0,p)+'px',boxShadow:`0 2px 4px rgba(0,0,0,${lerp(.12,0,p).toFixed(3)}), 0 0 0 ${lerp(1,0,p).toFixed(2)}px #D5D8DE, inset 0 ${p.toFixed(2)}px 0 rgba(21,20,19,${(.14*p).toFixed(3)})`});
+    D.kchips[i].style.transform=`scale(${back(p*12,2,10).toFixed(3)})`; D.kspk[i].style.opacity=clamp(p*1.4-0.4).toFixed(3); });
   // graphe
   const c5=c(5);
-  Object.assign(D.ch.style,{background:mixc('#FFFFFF','#ECE6DF',c5),borderRadius:lerp(4,24,c5)+'px',boxShadow:`0 2px 4px rgba(0,0,0,${lerp(.12,0,c5).toFixed(3)}), 0 0 0 ${lerp(1,0,c5).toFixed(2)}px #D5D8DE`});
+  Object.assign(D.ch.style,{background:mixc('#FFFFFF','#F7F4F0',c5),borderRadius:lerp(4,0,c5)+'px',boxShadow:`0 2px 4px rgba(0,0,0,${lerp(.12,0,c5).toFixed(3)}), 0 0 0 ${lerp(1,0,c5).toFixed(2)}px #D5D8DE, inset 0 ${c5.toFixed(2)}px 0 rgba(21,20,19,${(.14*c5).toFixed(3)})`});
   D.grids.forEach((g,i)=>{ const p=comp(5,i); g.style.transform=`scaleX(${(1-p).toFixed(3)})`; });
   D.glabs.forEach((g,i)=>{ const p=comp(5,i); g.style.transform=`translateX(${(-p*60).toFixed(1)}px)`; g.style.clipPath=`inset(0 ${(p*100).toFixed(1)}% 0 0)`; });
   let maxX=0,maxH=0;
   D.bars.forEach((b,i)=>{ const p=comp(5,i+1); const w=lerp(30,36,p), gap=lerp(16.5,12,p);
     const x=lerp(66,58,p)+i*(w+gap); const hh=lerp(HB[i],HT[i],p);
     const col=mixc('#2D6CDF','#151413',p);
-    Object.assign(b.style,{left:x+'px',width:w+'px',height:hh+'px',background:col,borderRadius:`${lerp(2,10,p)}px ${lerp(2,10,p)}px ${lerp(0,4,p)}px ${lerp(0,4,p)}px`});
+    Object.assign(b.style,{left:x+'px',width:w+'px',height:hh+'px',background:col,borderRadius:`${lerp(2,6,p)}px ${lerp(2,6,p)}px 0 0`});
     if(i==11){maxX=x+w/2;maxH=hh;}
     D.mlabs[i].style.left=(x+w/2-4)+'px';
   });
   const tp=comp(5,14); D.tip.style.left=(maxX-52)+'px'; D.tip.style.top=(372-maxH-44)+'px'; D.tip.style.transform=`scale(${back(tp*12,0,10).toFixed(3)})`; D.tip.style.transformOrigin='50% 100%';
   // visuel
   const c7=c(7);
-  Object.assign(D.img.style,{background:mixc('#D9DCE1','#ECE6DF',c7),borderRadius:lerp(4,24,c7)+'px',boxShadow:`0 0 0 ${lerp(1,0,c7).toFixed(2)}px #C4C8CF`});
+  Object.assign(D.img.style,{background:mixc('#D9DCE1','#ECE6DF',c7),borderRadius:lerp(4,20,c7)+'px',boxShadow:`0 0 0 ${lerp(1,0,c7).toFixed(2)}px #C4C8CF`});
   show(D.img3,false);
   const tt=comp(7,1); D.imgt.style.transform=`translateY(${((1-tt)*40).toFixed(1)}px)`; D.imgt.style.clipPath=`inset(-20px -20px ${((1-tt)*100).toFixed(1)}% -20px)`;
 }

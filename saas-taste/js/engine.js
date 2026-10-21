@@ -67,8 +67,13 @@ function preload(src){ const im=new Image(); im.src=src; PRELOAD.push(im); retur
 
 /* séquences rendues (Cycles, img/<dossier>/) : toutes les images préchargées, on dessine celle du numéro demandé,
    recadrée en « cover » comme un object-fit */
-function seqLoad(dir,prefix,n,ext='jpg',from=0){ const a=[]; for(let i=from;i<n;i++) a[i]=preload(`img/${dir}/${prefix}_${String(i).padStart(2,'0')}.${ext}`); return a; }
-function seqDraw(cv,frames,i,px=0.5,py=0.5,zoom=1){ const k=frames.length-1; let j=clamp(Math.round(i),0,k); while(!frames[j]&&j<k) j++; const im=frames[j];
+// skip : images rendues en double (la dernière du rendu Cycles est souvent répétée) ; elles sont sautées et la séquence
+// est étirée sur ses images uniques, pour qu'aucune image ne fige juste avant une coupe (là où la réf va le plus vite)
+function seqLoad(dir,prefix,n,ext='jpg',from=0,skip=[]){ const a=[]; for(let i=from;i<n;i++) a[i]=preload(`img/${dir}/${prefix}_${String(i).padStart(2,'0')}.${ext}`);
+  if(skip.length){ a.uniq=[]; for(let i=0;i<n;i++) if(!skip.includes(i)) a.uniq.push(i); } return a; }
+// l'indice réel de l'image i (0…n−1) d'une séquence
+function seqIdx(frames,i){ const k=frames.length-1; if(!frames.uniq) return clamp(Math.round(i),0,k); const U=frames.uniq.length; return frames.uniq[clamp(Math.round(clamp(i,0,k)*(U-1)/k),0,U-1)]; }
+function seqDraw(cv,frames,i,px=0.5,py=0.5,zoom=1){ const k=frames.length-1; let j=seqIdx(frames,i); while(!frames[j]&&j<k) j++; const im=frames[j];
   const W=cv.width,H=cv.height,iw=im.naturalWidth||im.width,ih=im.naturalHeight||im.height, s=Math.max(W/iw,H/ih)*zoom, sw=W/s, sh=H/s;
   cv.getContext('2d').drawImage(im,(iw-sw)*px,(ih-sh)*py,sw,sh,0,0,W,H); }
 

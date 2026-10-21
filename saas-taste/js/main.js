@@ -9,7 +9,7 @@ function renderFrame(f){
 }
 /* Recalage sur les coupes exactes de la réf (mesurées image par image) :
    [début, fin, décalage] — la scène rend f+décalage, ses cues sont avancés d'autant. */
-const REMAP={sTree:[300,346,0],sDash:[347,379,1],sHero:[380,417,1],sPills:[418,465,2],sPlan:[466,558,2],sPhone:[559,641,2],
+const REMAP={sW:[0,120,0],sLogo:[121,173,-1],sLand:[228,297,0],sTree:[298,346,2],sDash:[347,379,1],sHero:[380,417,1],sPills:[418,465,2],sPlan:[466,558,2],sPhone:[559,641,2],
   sTerm:[695,814,1],sMacro:[815,879,1],sChat:[880,951,0],sDone:[952,1077,2],sGrid:[1078,1129,2],sReport:[1130,1174,1],
   sAlerts:[1175,1249,1],sShip:[1250,1306,1],sMont:[1307,1377,1],sOutro:[1378,1559,2]};
 function applyRemap(){
@@ -33,10 +33,10 @@ async function init(){
   await Promise.all([...document.images,...PRELOAD].map(im=>im.complete&&im.naturalWidth?0:new Promise(r=>{ im.addEventListener('load',r,{once:true}); im.addEventListener('error',()=>{ console.error('image manquante : '+im.src); r(); },{once:true}); })));
   await Promise.all(ASYNC);
   await document.fonts.ready;
-  await Promise.all(['500 52px ID','600 52px ID','400 52px ID','italic 400 60px BE','italic 500 60px BE','20px JB','500 20px JB','700 30px AR','30px AR','30px "Noto Color Emoji"','800 40px AV','700 40px SY','600 40px UB','40px AN','40px DS','italic 40px DS'].map(s=>document.fonts.load(s).catch(()=>{})));
+  await Promise.all(['500 52px ID','600 52px ID','400 52px ID','italic 400 60px BE','italic 500 60px BE','20px JB','500 20px JB','20px FM','italic 20px FM','700 30px AR','30px AR','30px "Noto Color Emoji"','800 40px AV','700 40px SY','600 40px UB','40px AN','40px DS','italic 40px DS'].map(s=>document.fonts.load(s).catch(()=>{})));
   // mises en page qui dépendent des mesures de texte : scènes visibles le temps de mesurer
-  const meas=['sPills','sTerm','sOutro','sLogo','sW'].map(id=>$(id)); meas.forEach(s=>show(s,true));
-  pillsLayout(); termLayout(); outroLayout(); logoLayout(); wLayout(); prLayout();
+  const meas=['sPills','sTerm','sOutro','sLogo','sW','sLand','sMont'].map(id=>$(id)); meas.forEach(s=>show(s,true));
+  pillsLayout(); termLayout(); outroLayout(); logoLayout(); wLayout(); prLayout(); landFit(laD); landFit(moLD);
   meas.forEach(s=>show(s,false));
   CUES.sort((a,b)=>a.f-b.f);
   window.CUES=CUES; window.TOTAL=TOTAL; window.renderFrame=renderFrame; window.READY=true;

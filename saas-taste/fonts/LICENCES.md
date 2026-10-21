@@ -3,6 +3,7 @@ Toutes les polices de ce dossier sont sous SIL Open Font License 1.1 (redistribu
 - Inter Display — Rasmus Andersson (rsms.me/inter)
 - Besley — Owen Earl / indestructible type* (fonts.google.com/specimen/Besley)
 - JetBrains Mono — JetBrains (jetbrains.com/lp/mono)
+- Fragment Mono — Wei Huang / Mercury (fonts.google.com/specimen/Fragment+Mono), fichiers woff2 de @fontsource/fragment-mono 5.3.0
 - Liberation Sans — Red Hat / Liberation Fonts project (github.com/liberationfonts)
 - Archivo — Omnibus-Type (fonts.google.com/specimen/Archivo)
 - Syne — Bonjour Monde (fonts.google.com/specimen/Syne)

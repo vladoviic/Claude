@@ -5,6 +5,8 @@
 @font-face{font-family:'BE';src:url(fonts/Besley-Italic.ttf);font-style:italic;font-weight:400 900}
 @font-face{font-family:'JB';src:url(fonts/JetBrainsMono-Regular.ttf);font-weight:400}
 @font-face{font-family:'JB';src:url(fonts/JetBrainsMono-Medium.ttf);font-weight:500}
+@font-face{font-family:'FM';src:url(fonts/FragmentMono-Regular.woff2);font-style:normal}
+@font-face{font-family:'FM';src:url(fonts/FragmentMono-Italic.woff2);font-style:italic}
 @font-face{font-family:'AR';src:url(fonts/LiberationSans-Regular.ttf);font-weight:400}
 @font-face{font-family:'AR';src:url(fonts/LiberationSans-Bold.ttf);font-weight:700}
 /* sites recréés de l'ouverture */
@@ -122,12 +124,20 @@ em{font-family:'BE';font-style:italic;font-weight:500;letter-spacing:-0.01em}
 .ticon{position:absolute;top:0;width:150px;height:150px;border-radius:30px}
 
 /* terminal */
-.tt{font-family:'JB';font-weight:500;font-size:104px;color:#F2EEE8;letter-spacing:-0.02em;line-height:1;white-space:nowrap}
+.tt{font-family:'FM';font-weight:400;font-size:104px;color:#F2EEE8;letter-spacing:-0.03em;line-height:1;white-space:nowrap}
 .tsel{background:#EEE9E4;border-radius:6px;color:#151413;padding:0 6px}   /* la sélection de Vladan : encre inversée, pas le bleu du fondateur */
 .tsel2{box-shadow:inset 0 0 0 2px rgba(242,238,232,.3);border-radius:6px;color:#F2EEE8;padding:0 6px}
 .tpanel{position:absolute;border:2px solid #2C2C2C;border-radius:22px}
-.cline{position:absolute;font-family:'JB';font-size:26px;color:#BFB9B2;white-space:pre}
-.cline .k{color:#F3EFEA}.cline .s{color:#C9C2BA}.cline .c{color:#8A827A}.cline .n{color:rgba(191,185,178,.5)}
+.cline{position:absolute;font-family:'FM';font-size:28px;color:#A39C94;white-space:pre}
+/* coloration à l'encre : pas de couleurs d'IDE, des valeurs d'encre ; les chaînes penchent, les commentaires et « taste » sont en Besley */
+.cline .k{color:#F3EFEA}.cline .s{font-style:italic;color:#E2D9CE}.cline .n{color:rgba(191,185,178,.38)}
+.cline .c,.cline .t{line-height:0}
+/* le « : » d'arial: false : deux points ronds en vectoriel (pas d'arrondi au pixel), rapport écart/diamètre des boulons de la macro (258/70) */
+.cline .colon svg{width:.6em;height:1em;fill:currentColor;vertical-align:baseline;overflow:visible}
+.cline .c{font-family:'BE';font-style:italic;font-weight:400;font-size:1.14em;letter-spacing:0;color:#7E776F}
+.cline .t{font-family:'BE';font-style:italic;font-weight:500;font-size:1.16em;letter-spacing:-0.01em;color:#F3EFEA}
+.cline .sq{display:inline-block;width:.56em;height:.56em;border-radius:3px;background:#FF3D5E;margin-right:.32em;vertical-align:-.02em}
+.tpp{position:absolute;overflow:hidden}.tpp>span{position:absolute;left:0;top:0;white-space:nowrap}.tpBtn .tpp>span{width:100%}
 
 /* chat + produit */
 .chatp{position:absolute;left:0;top:0;width:600px;height:1080px;background:#F7F4F0;border-right:1px solid #E6E1DB}
