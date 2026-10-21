@@ -11,16 +11,16 @@ const RIB=(()=>{
   const fs=`precision highp float;
   uniform vec2 R; uniform float T;
   // nacre : un cycle lilas → pêche → rose → cyan pâle (pas de vert), comme les rubans de la réf
-  vec3 film(float h){ h=fract(h)*4.; vec3 a=vec3(.851,.800,.961), b=vec3(1.,.824,.722), c=vec3(.965,.788,.867), d=vec3(.769,.914,.953);
+  vec3 film(float h){ h=fract(h)*4.; vec3 a=vec3(.780,.690,.980), b=vec3(1.,.745,.580), c=vec3(.980,.660,.800), d=vec3(.600,.870,.960);
     if(h<1.) return mix(a,b,smoothstep(0.,1.,h)); if(h<2.) return mix(b,c,smoothstep(1.,2.,h)); if(h<3.) return mix(c,d,smoothstep(2.,3.,h)); return mix(d,a,smoothstep(3.,4.,h)); }
   void main(){
     vec2 uv=gl_FragCoord.xy/R; uv.y=1.-uv.y; float x=uv.x*R.x/R.y;
     vec3 col=vec3(0.); float A=0.;
-    for(int k=0;k<2;k++){ float fk=float(k);
-      float y0=.36+.30*fk, fr=1.0+.3*fk, ph=fk*2.1, sp=.045+.012*fk;
+    for(int k=0;k<3;k++){ float fk=float(k);
+      float y0=.30+.22*fk, fr=1.0+.3*fk, ph=fk*2.1, sp=.045+.012*fk;
       float yc=y0+.11*sin(x*fr+T*sp+ph)+.05*sin(x*fr*2.3-T*sp*.7+ph*1.7);
       float dy=.11*fr*cos(x*fr+T*sp+ph)+.05*fr*2.3*cos(x*fr*2.3-T*sp*.7+ph*1.7);   // pente de la ligne centrale
-      float w=.13+.06*sin(x*.9+fk*1.3+T*.02);                                       // largeur qui respire : le ruban vrille
+      float w=.19+.07*sin(x*.9+fk*1.3+T*.02);                                       // largeur qui respire : le ruban vrille
       float d=(uv.y-yc)/w, a=1.-smoothstep(.75,1.,abs(d));
       float twist=d*.35+dy*.45+x*.12+T*.004;
       vec3 c=film(twist+fk*.21); c=mix(c,vec3(1.),.35*pow(1.-abs(d),4.));           // reflet sur le pli

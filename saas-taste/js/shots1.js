@@ -283,7 +283,13 @@ function landThermal(stage,frame,seq,mark,dest,o){ const st=stage.getBoundingCli
   const fr=R(frame), ph=R(seq); x.fillStyle='#151413'; x.fillRect(...fr); x.drawImage(seq,...ph); x.fillStyle='#EEE9E4'; x.fillRect(ph[0],ph[1]+ph[3],ph[2],ph[3]*170/560);
   const m=R(mark); THERMAL.draw(null,Object.assign({spots:[[(m[0]+m[2]/2)/960,(m[1]+m[3]/2)/540,0.045,0.5]],wimg:1,lo:0.12,hi:0.9,gam:1.1,blur:5},o));
   dest.getContext('2d').drawImage(THERMAL.canvas,0,0,1920,1080); }
-function laThermal(f){ const on=THERMAL&&f>=228&&f<236; show(laTh,on); if(!on) return;
+// réf 222-235 : du code flotte sur l'image thermique ; ici les lignes de taste.ts, à l'encre en valeur moyenne (contexte, pas héros)
+const LA_CODE=[[118,92,'export const taste = {'],[1396,70,'taste.font'],[262,318,'font: "Inter Display",'],[150,574,'=> ●'],[1482,430,'accent: "#FF3D5E",'],
+  [1170,712,'ease: "out",'],[300,912,'arial: false,'],[1352,968,'stockPhotos: 0 }']];
+const laCode=el(LA.s,'','', 'position:absolute;inset:0;display:none;pointer-events:none;z-index:31');
+laCode.innerHTML=LA_CODE.map(([x,y,t])=>`<div class="m" style="position:absolute;left:${x}px;top:${y}px;font-size:22px;color:#151413;white-space:pre">${t}</div>`).join('');
+function laThermal(f){ const on=THERMAL&&f>=228&&f<236; show(laTh,on); show(laCode,false); if(!on) return;
+  show(laCode,true); laCode.style.opacity=(0.42*(1-clamp((f-231)/4))).toFixed(3); laCode.style.transform=`translateY(${(-(f-228)*4).toFixed(1)}px)`;
   landThermal(LA.s,laFrame,laSeq,laMark,laTh,{flat:LA_FLAT[Math.min(f-228,3)],t:f});
   // 232-235 : la chaleur sèche par un balayage dans le sens du trait (gauche → droite, bord doux de 30 %), pas un voile
   const w=f<232?-40:lerp(-30,110,(f-231.5)/4); laTh.style.webkitMaskImage=laTh.style.maskImage=f<232?'':`linear-gradient(100deg,transparent ${w.toFixed(1)}%,#000 ${(w+30).toFixed(1)}%)`; }
@@ -576,7 +582,7 @@ const clDash=buildDash(q1(clCard,'.clD'));
 // la photo de stock se fend le long des deux diagonales de la croix : quatre triangles qui glissent et s'effacent
 const CL_TRI=[['0 0,100% 0,50% 50%',0,-1],['100% 0,100% 100%,50% 50%',1,0],['100% 100%,0 100%,50% 50%',0,1],['0 100%,0 0,50% 50%',-1,0]];
 const clTri=CL_TRI.map(([poly,dx,dy])=>{ const c=clDash.ph1.cloneNode(true); c.style.clipPath=`polygon(${poly})`; c._d=[dx,dy]; clDash.ph1.parentNode.insertBefore(c,clDash.ph1.nextSibling); return c; }); show(clDash.ph1,false);
-CL.cam.style.transformOrigin='1500px 150px';   // la barre d'outils : la poussée finale va vers elle
+CL.cam.style.transformOrigin='1553px 133px';   // la barre d'outils : la poussée finale va vers elle
 const clInk=inkLayer(CL.s);
 // les centres des composants dans le dashboard (1360×800) : la vague y arrive depuis les deux marques
 const CL_C={0:i=>i<4?[150,150+i*52]:i<8?[380+(i-4)*350,186]:[366+(i-8)*46,730],1:()=>[680,400],2:i=>[130,150+i*52],3:i=>i?[420,127]:[560,77],4:i=>[460+i*350,245],
@@ -595,7 +601,7 @@ const clIcons=CL_IC.map(([k,x])=>{ const d=el(clBand,'','', `position:absolute;l
 el(clBand,'abs','Share','left:1640px;top:96px;height:170px;line-height:166px;padding:0 60px;border-radius:30px;background:#fff;box-shadow:0 0 0 3px #DDD6CE;font-size:84px');
 cue(642,'impact',{v:.5}); cue(645,'scratch',{v:.6,end:648}); cue(648,'scratch',{v:.6,end:652}); cue(653,'glide',{v:.5,end:659}); cue(668,'whoosh',{v:.45,peak:671,dur:4}); cue(676,'tick',{v:.25}); cue(690,'click',{v:.95}); cue(687,'whoosh',{v:.4,peak:694,dur:7});
 function shotClients(f){ const z=f>=672; show(clZoom,z); show(CL.cam,!z);
-  if(!z){ const y=60+40*(1-approach(f,642,4,0.3)); placeTL(clCard,260,y,1.0);
+  if(!z){ const y=96+40*(1-approach(f,642,4,0.3)); placeTL(clCard,40,y,1.22);
     CL.cam.style.transform=`scale(${((1+0.035*clamp((f-642)/26))*(1+0.058*accel(f,668,4,3))).toFixed(4)})`;   // lente poussée vers la barre d'outils pendant l'avant/après
     updateDash(clDash,(k,i)=>clFront(k,i,f),f);
     // le visuel v2 est le produit lui-même, qui tourne en direct dans la tuile (rendu du plateau, recadré en portrait)

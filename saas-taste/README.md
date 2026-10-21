@@ -18,6 +18,9 @@ les couleurs, les textes et les écrans.
 - **Le son** : synthétisé en code (`audio.py`), 135 BPM sur la grille de la réf, chaque bruitage calé
   sur l'image de son action, master à −14 LUFS.
 
+Les chiffres que chaque plan doit tenir (courbes, durées, couleurs, interdits, seuils de QA) sont dans
+`BRIEF.md`, au format de la méthode Motion Lab de Florence (@flxrnc).
+
 ## Lancer
 
 ```bash
@@ -31,6 +34,7 @@ node render.mjs --stills 70,440,735,1110,1500   # stills de contrôle → out/st
 node render.mjs                  # 1560 images → out/frames/ + out/cues.json (≈ 12 min, 4 workers)
 python3 audio.py                 # → out/audio.wav
 sh build.sh                      # → out/saas-taste.mp4 (H.264, son à −14 LUFS)
+python3 qa/lab.py                # mesures de labo du film exporté : flashs, tronçons morts, coupes et bruitages
 ```
 
 ## Où changer quoi

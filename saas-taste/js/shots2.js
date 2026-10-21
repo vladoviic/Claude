@@ -407,7 +407,9 @@ const GR_TILES=(()=>{ const r=rng(1078), a=[]; while(a.length<18){ const cx=4+Ma
 function grThermal(f){ const on=f<1087&&THERMAL&&doThermal(1077); show(grTh,!!on); if(!on) return; const c=grTh.getContext('2d'); c.clearRect(0,0,1920,1080);
   // l'image telle qu'elle était à l'écran à 1077 (zoom 1,23, dérive de 90 px) ; chaque tuile garde son morceau, décalé
   const Z=1+0.0026*88, pan=90, src=(X,Y)=>[(X-960-pan)/Z+960,(Y-540-pan*0.6)/Z+540-59];
-  GR_TILES.forEach(([cx,cy,dx,dy,o],i)=>{ const a=1-clamp((f-1078-o*4)/4); if(a<=0) return; const X=cx*120, Y=cy*120, s=src(X,Y), k=clamp((f-1077)/8);
+  // les tuiles posées là où la macro va s'ouvrir tiennent jusqu'à elle et lui passent la main (réf 1083-1086 : une tuile chaude reste)
+  GR_TILES.forEach(([cx,cy,dx,dy,o],i)=>{ const X=cx*120, Y=cy*120, mac=X+120>=660&&X+120<=1350&&Y+120>=150&&Y+120<=810;
+    const a=mac?1-clamp((f-1085)/2):1-clamp((f-1078-o*4)/4); if(a<=0) return; const s=src(X,Y), k=clamp((f-1077)/8);
     c.globalAlpha=a; c.drawImage(doTh,s[0],s[1],240/Z,240/Z,X+dx*k,Y+dy*k,240,240); }); c.globalAlpha=1; }
 function shotGrid(F){ const f=F-2; grThermal(f);
   // entrée : la grille sort du même flou clair que la page de chaleur (fondu enchaîné 1078-1082), sans recul ni glissement hérités
@@ -472,19 +474,28 @@ const alTh=canvas(AL.s,960,540,'left:-60px;top:-60px;width:2040px;height:1200px;
 const cR27=cueAt(1);
 // 47 spécimens, rangés par catégorie : la rature les traverse rangée par rangée
 const AL_KIND=[]; BORING.forEach(([t,n],k)=>{ for(let i=0;i<n;i++) AL_KIND.push(k); });
-const AL_SPEC=[k=>`<div class="ar" style="position:absolute;inset:0;background:#fff;color:#333;font-size:34px;line-height:72px;text-align:center">Aa</div>`,
-  k=>`<div style="position:absolute;inset:0;background:#2D6CDF;border-radius:4px"></div>`,
-  k=>`<div style="position:absolute;left:12px;top:10px;right:12px;bottom:18px;background:#fff;box-shadow:0 6px 10px rgba(0,0,0,.5)"></div>`,
-  k=>`<div style="position:absolute;inset:0;background:#D9DCE1"><svg width="40" height="32" viewBox="0 0 120 96" style="position:absolute;left:16px;top:20px"><path d="M8 84 L42 44 L66 70 L80 56 L112 84 Z" fill="#A9AEB6"/></svg></div>`,
-  k=>`<div class="ar" style="position:absolute;inset:0;background:#fff;color:#2D6CDF;font-size:15px;font-weight:700;line-height:72px;text-align:center">Synergy</div>`,
-  k=>`<div style="position:absolute;inset:0;background:#fff"><span style="position:absolute;left:24px;top:12px;width:24px;height:24px;border-radius:12px;background:#C9CDD3"></span><span class="ar" style="position:absolute;left:0;right:0;top:42px;text-align:center;font-size:13px;color:#777">User</span></div>`,
-  k=>`<div style="position:absolute;inset:0;background:#D9DCE1"><svg width="40" height="32" viewBox="0 0 120 96" style="position:absolute;left:16px;top:14px"><rect x="3" y="3" width="114" height="90" rx="6" fill="none" stroke="#A9AEB6" stroke-width="7"/><path d="M8 84 L42 44 L66 70 L80 56 L112 84 Z" fill="#A9AEB6"/></svg><span class="ar" style="position:absolute;left:3px;right:3px;top:50px;font-size:7px;color:#8A8F97;text-align:center;white-space:nowrap;overflow:hidden">handshake_v3.jpg</span></div>`];
-const alTiles=AL_KIND.map((k,n)=>{ const r=Math.floor(n/8), c=n%8; const d=el(AL.cam,'','', `position:absolute;width:72px;height:72px;margin:-36px 0 0 -36px;border-radius:10px;overflow:hidden;display:none`);
+// une seule famille d'icônes au trait, deux couleurs en tout : le bleu du fondateur (le problème) et le papier (réglé) ;
+// le spécimen ennuyeux tient en petit dans le triangle, le trait du stylo reste le seul rouge de l'image
+const AL_BL='#6C9BF2', alTri=g=>`<svg width="72" height="72" viewBox="0 0 72 72" style="position:absolute;inset:0;overflow:visible" fill="none" stroke="${AL_BL}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M36 9 L64 59 L8 59 Z" stroke-width="2.6"/>${g}</svg>`;
+const AL_SPEC=[k=>alTri(`<text x="36" y="51.5" text-anchor="middle" font-family="AR" font-size="16" fill="${AL_BL}" stroke="none">Aa</text>`),
+  k=>alTri(`<rect x="30" y="39" width="12" height="12" rx="2" fill="${AL_BL}" stroke="none"/>`),
+  k=>alTri(`<path d="M40 41 V52 H31" stroke-width="3.2" opacity=".45"/><rect x="28" y="37" width="12" height="11"/>`),
+  k=>alTri(`<path d="M26 52 L32.5 43.5 L37 48 L40 45 L46 52 Z"/>`),
+  k=>alTri(`<text x="36" y="51" text-anchor="middle" font-family="AR" font-weight="700" font-size="13" fill="${AL_BL}" stroke="none">Sy</text>`),
+  k=>alTri(`<circle cx="36" cy="40.5" r="3.6"/><path d="M29.5 53 C30 47.5 42 47.5 42.5 53"/>`),
+  k=>alTri(`<rect x="27" y="38" width="18" height="14" rx="1.5"/><path d="M28 51 L33 45.5 L36.5 49 L39.5 46 L44 51"/>`)];
+const alTiles=AL_KIND.map((k,n)=>{ const r=Math.floor(n/8), c=n%8; const d=el(AL.cam,'','', `position:absolute;width:72px;height:72px;margin:-36px 0 0 -36px;display:none`);
   // deux états : le problème (le contenu ennuyeux) et le problème réglé, un cercle au trait papier avec un « a » en Besley
   // (la réf passe ses triangles d'alerte en cercles : l'état réglé est plus calme que l'état fautif, l'œil va aux restants)
   d.innerHTML=`<div class="alo" style="position:absolute;inset:0">${AL_SPEC[k](k)}</div><div class="alf" style="position:absolute;inset:0;border-radius:36px;box-shadow:inset 0 0 0 1.5px rgba(243,239,234,.6);opacity:0"><em style="position:absolute;left:0;right:0;top:16px;text-align:center;font-size:30px;color:#F3EFEA">a</em></div>`;
   d._o=d.children[0]; d._f=d.children[1]; d._x=610+c*100; d._y=290+r*100; d._d=Math.hypot(d._x-960,d._y-540); d._k=k; return d; });
 const alMaxD=Math.max(...alTiles.map(t=>t._d));
+const AL_DOTS=[]; for(let r=0;r<6;r++) for(let c=0;c<18;c++){ const x=110+c*100, y=290+r*100; if(!alTiles.some(t=>t._x===x&&t._y===y)) AL_DOTS.push([x,y,Math.hypot(x-960,y-540)]); }
+const alDots=canvas(AL.cam,1920,1080,'left:0;top:0;width:1920px;height:1080px'); const alDMax=Math.max(...AL_DOTS.map(d=>d[2]));
+// les points s'allument avec la même vague que les tuiles (du centre vers les bords), se resserrent avec elles puis s'éteignent
+function alDotsDraw(f,zc){ const c=alDots.getContext('2d'); c.clearRect(0,0,1920,1080); if(f>=1232) return; const fade=1-clamp((f-1226)/4);
+  c.fillStyle='#F3EFEA'; for(const [x,y,d] of AL_DOTS){ const a=1175+11*(d/alDMax); const k=clamp((f-a)/3)*fade; if(k<=0) continue;
+    c.globalAlpha=0.26*k; c.beginPath(); c.arc(960+(x-960)*zc,540+(y-540)*zc,3.2*Math.max(zc,0.5),0,7); c.fill(); } c.globalAlpha=1; }
 const alCount=el(AL.s,'','', 'position:absolute;left:0;top:0;display:none');
 alCount.innerHTML=`<div class="alnum ar" style="font-size:96px;line-height:1;color:#2D6CDF;font-variant-numeric:tabular-nums">47</div><div class="m" style="font-size:24px;color:rgba(243,239,234,.55);margin-top:8px">boring issues left</div>`;
 const alNum=q1(alCount,'.alnum');
@@ -520,7 +531,8 @@ function shotAlerts(F){ const f=F-1; push(AL.cam,f,1175,0.0005);
     // au même rythme que le compteur : à 0, il ne reste plus une tuile bleue
     const cf=alFix(n,cross), k=clamp((f-cf)/3), fade=clamp((f-1229)/3), bz=8*(1-zc);
     t.style.transform=`scale(${(sIn*zc*(n===46?1-clamp((f-1210)/3):1)).toFixed(3)})`; t.style.filter=bz>0.3?`blur(${bz.toFixed(1)}px)`:''; t.style.opacity=(1-fade).toFixed(3);
-    t._o.style.opacity=(1-k).toFixed(3); t._f.style.opacity=k.toFixed(3); t.style.borderRadius=lerp(10,36,k).toFixed(1)+'px'; });
+    t._o.style.opacity=(1-k).toFixed(3); t._f.style.opacity=k.toFixed(3); });
+  alDotsDraw(f,zc);
   // le compteur part du « 47 » du rapport et descend d'une unité par tuile barrée ; à 0, il passe à l'encre fixée
   // pendant le fil (1210-1228), les tuiles qui restent partent avec lui : le compteur finit sur 0 à 1228 et y tient
   let left=47-cross.filter(c=>c<=ms).length; if(f>=1210){ const l0=47-cross.filter(c=>c<=(1210-1186)*PEN.ms).length, t=clamp((f-1210)/18); left=Math.round(lerp(l0,0,t*t*(3-2*t))); }
@@ -641,7 +653,7 @@ function shotMont(F){ const f=F-1; let cur=MOS[0]; for(const m of MOS) if(f>=m[1
   if(cur[0]===moL){ seqDraw(moLSeq,SEQ.land,a*1.0,0.5,0.58); seqDraw(moLXr,SEQ.landX,a*1.0,0.5,0.58); landLens(moLD,110,lerp(1040,1095,a/29),330,'');
     place(cur[0],960-3*a,540,sc); moLh.forEach(h=>h.style.transform=`translateX(${(-0.8*a).toFixed(1)}px)`);
     // la vague de chaleur : la même caméra thermique que la plongée (25, 60, 100 %), qui chauffe jusqu'au blanc avant les fragments
-    const hk=[0,.25,.6,1,1][clamp(f-1373,0,4)]; show(moTh,hk>0&&!!THERMAL); if(hk>0&&THERMAL){ landThermal(MO.s,moLD.parentNode.parentNode,moLSeq,q1(moLD,'.vmk'),moTh,{t:f,bias:f>=1377?0.18:0}); moTh.style.opacity=hk; }
+    const hk=[0,.25,.6,1,1][clamp(f-1373,0,4)]; show(moTh,hk>0&&!!THERMAL); if(hk>0&&THERMAL){ landThermal(MO.s,moLD.parentNode.parentNode,moLSeq,q1(moLD,'.vmk'),moTh,{t:f}); moTh.style.opacity=hk; }
     moLT.forEach((t,i)=>{ const p=approach(f,1350+i,8,0.2); t.style.translate=`0 ${((1-p)*24).toFixed(1)}px`; }); }
   // les fragments corrigés n'arrivent qu'au sommet de la vague de chaleur (1376) : ils ne se posent plus sur l'index de la landing
   fixFrags(moFix,f,1376);

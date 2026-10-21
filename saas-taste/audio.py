@@ -504,7 +504,9 @@ for i, n in enumerate([65, 69, 72, 76, 79]):
     verb.add(bell(n, 2.5, 0.5), FINAL + i * 2, gain=0.22, pan=-0.4 + i * 0.2)
 
 # ---------------------------------------------------------------- placement des bruitages
-for c in CUES:
+LAG = 1
+for c0 in CUES:
+    c = {kk: (vv + LAG if kk in ('f', 'end', 'peak') else vv) for kk, vv in c0.items()}
     f, k, v = c['f'], c['k'], c.get('v', 0.5)
     if k == 'tick':
         dry.add(sfx_tick(v), f, pan=0.1)
