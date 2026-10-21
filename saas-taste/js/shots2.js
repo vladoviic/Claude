@@ -70,6 +70,7 @@ function tePrevUpdate(f){
   // chaque rechargement : la pastille « live » s'allume, un filet de progression court sous la barre
   let lit=0, bar=0; for(const r of TP_RELOAD){ if(f>=r&&f<r+5) lit=Math.max(lit,1-(f-r)/5); if(f>=r&&f<r+3) bar=clamp((f-r+1)/3); }
   TP.dot.style.background=mixc('#4A4542','#F3EFEA',lit); TP.bar.style.width=(600*bar).toFixed(0)+'px';
+  TP.page.style.filter=`brightness(${(0.74+0.26*lit).toFixed(3)})`;
 }
 const teBlack=el(TE.s,'','', 'position:absolute;inset:0;background:#000;opacity:0;pointer-events:none');
 // le raccord : les deux points du « : » de « arial: false » deviennent les deux boulons de la macro (positions du rendu, image 0)
@@ -142,9 +143,10 @@ function shotTerm(F){ const f=F-1;
 }
 
 /* ---------- 20 · macro N&B en contre-jour (séquence Cycles) : le fond s'allume, puis le sujet ; recul qui accélère (réf, +1) ---------- */
-const MA=scene('sMacro',816,879,f=>shotMacro(f));
+const MA=scene('sMacro',816,879,f=>shotMacro(f)); MA.s.style.background='#000';
 const cR20=cueAt(1);
-const maSeq=canvas(MA.cam,1280,720,'left:0;top:0;width:1920px;height:1080px;filter:grayscale(1) brightness(.6) contrast(1.35)');
+// N&B contrasté mais lisible : le grain du noyer et le reflet des boulons restent (brightness .6 / contrast 1.35 bouchait le pied au noir)
+const maSeq=canvas(MA.cam,1280,720,'left:0;top:0;width:1920px;height:1080px;filter:grayscale(1) contrast(1.18) brightness(.86)');
 const maDots=MA_BOLT.map(()=>el(MA.s,'','', 'position:absolute;width:70px;height:70px;margin:-35px 0 0 -35px;border-radius:50%;background:#F3EFEA;mix-blend-mode:screen'));
 cR20(815,'riser',{v:.35,end:826}); cR20(864,'whoosh',{v:.6,peak:876,dur:12});
 // curseur en 3 segments (réf) : entrée rapide 826-832, glisse le long du pied en ralentissant jusqu'à 868, repart à gauche
@@ -167,6 +169,8 @@ const chTurn=q1(chRoot,'.pturn'), chView=chTurn.parentElement, chFab=q1(chRoot,'
 const chTurnR=canvas(chView,1100,800,'inset:0;width:100%;height:100%;display:none');
 const chPin=el(CH.s,'m','1','position:absolute;width:40px;height:40px;border-radius:20px 20px 20px 4px;color:#fff;font-size:18px;line-height:40px;text-align:center;box-shadow:0 0 0 3px #fff,0 8px 18px rgba(0,0,0,.25);display:none;z-index:6;transform-origin:4px 36px');
 const chKids=[...q1(chRoot,'.chatp').children];   // 0 logo · 1 bulle · 2 réflexion · 3 réponse · 4-5 paquets · 6 approbation · 7 correction · 8 suggestions…
+// qui est là : Léa et vladan (ajouté après chKids, en dernier : les index ci-dessus ne bougent pas)
+{ const pr=document.createElement('div'); pr.innerHTML=`<div style="position:absolute;right:28px;top:31px;display:flex;align-items:center"><span style="width:28px;height:28px;border-radius:14px;background:#151413;color:#F3EFEA;font:600 12px/28px ID;text-align:center;box-shadow:0 0 0 2px #F7F4F0">L</span><span style="width:28px;height:28px;border-radius:14px;background:#FF3D5E;color:#fff;font:600 12px/28px ID;text-align:center;margin-left:-8px;box-shadow:0 0 0 2px #F7F4F0">v</span><span class="m" style="margin-left:10px;font-size:12px;color:${VG}">Léa, vladan · here</span></div>`; q1(chRoot,'.chatp').appendChild(pr.firstElementChild); }
 const chHot=el(chRoot,'','', 'position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:32px;box-shadow:0 0 0 3px #F3EFEA,0 0 0 4px rgba(21,20,19,.35),0 6px 18px rgba(0,0,0,.25);display:none');
 const chTip=el(chRoot,'m','', 'position:absolute;height:34px;line-height:34px;padding:0 14px;border-radius:17px;background:#151413;color:#F3EFEA;font-size:13px;white-space:nowrap;display:none');
 const chInk=inkLayer(CH.s,{ground:'dark'});   // sur le tissu, l'encre est opaque (pas de multiply : rouge sur bleu resterait violet)
@@ -252,7 +256,9 @@ function shotChat(f){
   chKids[7].textContent=f>=926?'✓ changed · fabric polyester → velvet':'↻ fabric · polyester → …'.slice(0,Math.ceil((f-915)*2.5));
   // la vignette reste bleue tant que le front ne l'a pas atteinte
   chThumbs.forEach(t=>t.style.filter=f<930?'hue-rotate(-145deg) saturate(1.2)':'');
-  show(q1(chRoot,'.cres'),f>=926); q1(chRoot,'.cres').style.opacity=vl(f,926,4).toFixed(3);   // le fil se résout quand le velours a bu
+  // le fil se résout quand le velours a bu (display flex : show() le remettait en bloc, le texte se plaquait en haut)
+  q1(chRoot,'.cres').style.display=f>=926?'flex':'none'; q1(chRoot,'.cres').style.opacity=vl(f,926,4).toFixed(3);
+  q1(chRoot,'.copen').textContent=f>=947?'0 open':f>=926?'1 open':'2 open';
   // survol : le curseur du fondateur visite le boulon, l'assise, le dossier ; puis il approuve (946)
   const H=TURNHOT[i]||TURNHOT[String(Math.min(47,i))]; let hv=null; for(const h of CH_HOVER) if(f>=h[0]&&f<=h[1]) hv=h;
   const P=k=>{ if(!H||!H[k]) return [1090,560]; const px=(H[k][0]-0.5)*918, py=(H[k][1]-0.5)*668, c=Math.cos(V.r*Math.PI/180), sn=Math.sin(V.r*Math.PI/180);
@@ -288,11 +294,13 @@ doTPi.innerHTML=`<img src="img/turn/red_60.jpg" style="position:absolute;left:0;
   <div class="m dchr" style="position:absolute;left:120px;top:12px;width:560px;height:34px;border-radius:9px;background:#F3EFEA;font-size:16px;line-height:34px;padding-left:16px;color:rgba(21,20,19,.7)">velvetly.app / <b style="font-weight:500;color:#151413">home</b></div></div>
   <div class="dghost" style="position:absolute;left:150px;top:150px;width:420px;height:280px;background:#D9DCE1"><svg width="120" height="96" viewBox="0 0 120 96" style="position:absolute;left:150px;top:80px"><rect x="3" y="3" width="114" height="90" rx="6" fill="none" stroke="#A9AEB6" stroke-width="4"/><circle cx="84" cy="30" r="10" fill="#A9AEB6"/><path d="M8 84 L42 44 L66 70 L80 56 L112 84 Z" fill="#A9AEB6"/></svg><div class="ar" style="position:absolute;left:0;right:0;top:204px;text-align:center;font-size:16px;color:#8A8F97">stock_handshake_final_v3.jpg</div></div>`;
 const doHeatC=canvas(doTPi,1920,1021,'left:0;top:59px;width:1920px;height:1021px');
+const doTh=canvas(doTPi,1920,1021,'left:0;top:59px;width:1920px;height:1021px;display:none');
 const doDotsC=canvas(doTPi,1920,1080,'left:0;top:0;width:1920px;height:1080px');
 const doHud=el(doTPi,'','', 'position:absolute;right:28px;top:84px;display:flex;gap:8px');
 doHud.innerHTML=['HEATMAP · CLICKS','1,204 sessions · since hero v2'].map(t=>`<span class="m" style="font-size:15px;font-weight:500;letter-spacing:.04em;background:rgba(243,239,234,.9);box-shadow:0 0 0 1px rgba(21,20,19,.12);border-radius:8px;padding:8px 12px">${t}</span>`).join('');
 const doLeg=el(doTPi,'m','', 'position:absolute;left:28px;bottom:28px;display:flex;align-items:center;font-size:13px;color:rgba(21,20,19,.7)');
-doLeg.innerHTML=`<span style="margin-right:10px">low</span>${[5,9,14,20,28].map(a=>`<i style="display:block;width:34px;height:10px;background:rgba(21,20,19,${a/100})"></i>`).join('')}<span style="margin-left:10px">high</span>`;
+// la légende est la palette thermique elle-même (froid papier-lilas → rouge du stylo → blanc chaud)
+doLeg.innerHTML=`<span style="margin-right:10px">low</span><i style="display:block;width:190px;height:10px;border-radius:5px;background:linear-gradient(90deg,#EEEAF5,#D7D1F0 22%,#F3B9D0 42%,#FF7D93 58%,#FF3D5E 70%,#FF7F62 84%,#FFE2A6)"></i><span style="margin-left:10px">high</span>`;
 const doRing=el(doTPi,'','', 'position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;box-shadow:0 0 0 2px #151413');
 const doRingL=el(doTPi,'m','hero · 61% of clicks','position:absolute;font-size:22px;color:#151413;background:rgba(243,239,234,.9);padding:4px 10px;border-radius:6px');
 const DO_SEAT=[990,520], DO_BACK=[900,300], DO_GHOST=[360,290];
@@ -306,6 +314,11 @@ function doHeatDraw(kmax){ const g=doHeatC.getContext('2d'), im=g.createImageDat
     const r=p+1, dn=p+1920; if((r<1920*1021&&Math.min(DO_LVL[r],kmax)!==k)||(dn<1920*1021&&Math.min(DO_LVL[dn],kmax)!==k)) d[o+3]=77; }
   g.putImageData(im,0,0); }
 let doHeatK=-1;
+// la chaleur monte avec les sessions qui migrent vers le fauteuil (1011-1040) : l'assise et le dossier finissent blanc chaud
+const doHeroImg=q1(doTPi,'img');
+function doThermal(f){ if(!THERMAL) return false; const g=0.35+0.65*clamp((f-1011)/30);
+  THERMAL.draw(doHeroImg,{spots:DO_HSRC.map(([x,y,sg,w])=>[x/1920,y/1021,sg*1.1/1021,w*g*0.32]),wimg:0.72,inv:1,lo:0.12,hi:0.8,gam:1.15,bands:10,blur:4,t:f});
+  doTh.getContext('2d').drawImage(THERMAL.canvas,0,0,1920,1021); return true; }
 // 36 points de session : posés sur le fantôme de la photo de stock, ils migrent vers le fauteuil (1011-1040)
 const DO_DOTS=(()=>{ const r=rng(77), g=()=>{ const u=Math.max(1e-6,r()), v=r(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }; return Array.from({length:36},(_,i)=>{ const to=i<20?DO_SEAT:DO_BACK;
   return [DO_GHOST[0]+g()*60,DO_GHOST[1]+g()*45,to[0]+g()*45,to[1]+g()*35]; }); })();
@@ -316,12 +329,14 @@ const DO_ROWS=[38,66,90,110,126,260,540,820,950,966,984,1006,1034];
 const doGrid=el(DO.cam,'','', 'position:absolute;inset:0;display:none');
 const doLines=[...DO_COLS.map(x=>el(doGrid,'gline','', `left:${x-1}px;top:0;width:2px;height:1080px;transform-origin:50% 50%`)),...DO_ROWS.map(y=>el(doGrid,'gline','', `left:0;top:${y-1}px;width:1920px;height:2px;transform-origin:50% 50%`))];
 const doDots=[]; DO_COLS.forEach((x,i)=>DO_ROWS.forEach((y,j)=>{ const sz=lerp(21,5,clamp(Math.abs(y-540)/540)); doDots.push(el(doGrid,'gdot','', `left:${x}px;top:${y}px;width:${sz}px;height:${sz}px;margin:${-sz/2}px 0 0 ${-sz/2}px;border-radius:50%;box-shadow:none`)); }));
-const doBlocks=[0,1,2,3,4,5,6,7].map(()=>{ const b=el(doGrid,'','', 'position:absolute;width:235px;height:287px;overflow:hidden;display:none'); const im=el(b,'','', 'position:absolute;left:0;top:0;width:1920px;height:1021px;transform-origin:0 0'); im.innerHTML='<img src="img/turn/red_60.jpg" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 58%">'; b._im=im; return b; });
+const doBlocks=[0,1,2,3,4,5,6,7].map(()=>{ const b=el(doGrid,'','', 'position:absolute;width:235px;height:287px;overflow:hidden;display:none'); const im=el(b,'','', 'position:absolute;left:0;top:0;width:1920px;height:1021px;transform-origin:0 0'); b._c=canvas(im,1920,1021,'left:0;top:0;width:1920px;height:1021px'); b._im=im; return b; });
 const doMaskC=document.createElement('canvas'); doMaskC.width=960; doMaskC.height=540;
 cR22(952,'impact',{v:.55}); cR22(978,'whoosh',{v:.5,peak:989,dur:11}); cR22(989,'swish',{v:.4,peak:990,dur:5}); cR22(995,'shimmer',{v:.5,end:1003}); cR22(1003,'impact',{v:.45});
 cR22(1020,'pop',{v:.45,n:76}); cR22(1050,'click',{v:.95}); cR22(1052,'riser',{v:.5,end:1077}); for(let k=0;k<8;k++) cR22(1058+k*2.5,'tick',{v:.16});
 const fullT=s=>`translate(${(960-560*s).toFixed(1)}px,${(540-300*s).toFixed(1)}px) scale(${s.toFixed(4)})`;
 function shotDone(F){ const f=F-2;
+  // « Hero Approved » naît lilas et sèche au papier (le titre « Order Complete » de la réf naît en dégradé)
+  { const c=mixc('#CDB3F2','#F3EFEA',approach(f,952,9,0.2)); doTitle.style.color=c; qa(doTitle,'em').forEach(e=>e.style.color=c); }
   const card=f<989; show(doFrame,card); show(doFull,f>=989&&f<1003);
   // carte : entre à 0,95 en glissant de 50 px (952-966), tient en rampant (+0,12 %/i), puis poussée qui accélère ×1,19 (978-988)
   if(card){ const en=approach(f,952,14,0.2); const s=lerp(0.95,1,en)*(1+0.003*Math.max(0,f-966))*(1+0.19*accel(f,978,11,3));
@@ -337,7 +352,9 @@ function shotDone(F){ const f=F-2;
     if(f<1062){ const Z=z*zz; Object.assign(doHud.style,{right:(1920-(960+(1892-960)/Z)).toFixed(1)+'px',top:(540+(84-540)/Z).toFixed(1)+'px',transform:`scale(${(1/Z).toFixed(4)})`,transformOrigin:'100% 0'});
       Object.assign(doLeg.style,{left:(960+(28-960)/Z).toFixed(1)+'px',bottom:(1080-(540+(1052-540)/Z)).toFixed(1)+'px',transform:`scale(${(1/Z).toFixed(4)})`,transformOrigin:'0 100%'}); }
     qa(doTPi,'.dchr').forEach(e=>e.style.translate=`0 ${(-30*clamp((f-1018)/12)).toFixed(1)}px`);   // la barre d'adresse sort du cadre en entier, pas de liseré
-    const k=f<1002?0:Math.min(5,1+Math.floor((f-1002)/3.6)); if(k!==doHeatK){ doHeatDraw(k); doHeatK=k; }
+    // 1000 : la caméra thermique s'allume sur l'assise et gagne tout le cadre en 7 images (la réf : une lueur locale, puis plein cadre à 1006)
+    show(doHeatC,false); const th=f>=1000&&doThermal(f); show(doTh,th);
+    if(th){ const R=lerp(0,1900,1-Math.pow(1-clamp((f-1000)/7),2)); doTh.style.webkitMaskImage=doTh.style.maskImage=f<1007?`radial-gradient(circle at ${DO_SEAT[0]}px ${DO_SEAT[1]-59}px,#000 ${R.toFixed(0)}px,transparent ${(R+260).toFixed(0)}px)`:''; }
     q1(doTPi,'.dghost').style.opacity=(0.22*(1-clamp((f-1005)/6))).toFixed(3);
     const g=doDotsC.getContext('2d'); g.clearRect(0,0,1920,1080);
     DO_DOTS.forEach(([x0,y0,x1,y1],i)=>{ const t=vl(f,1011+i*0.6,8); const x=lerp(x0,x1,t), y=lerp(y0,y1,t);
@@ -345,7 +362,7 @@ function shotDone(F){ const f=F-2;
     const rg=vl(f,1024,6); show(doRing,f>=1024); show(doRingL,f>=1024); doRing.style.left=DO_SEAT[0]+'px'; doRing.style.top=DO_SEAT[1]+'px'; doRing.style.transform=`scale(${rg.toFixed(3)})`;
     doRingL.style.left=(DO_SEAT[0]+46)+'px'; doRingL.style.top=(DO_SEAT[1]-58)+'px'; doRingL.style.opacity=rg.toFixed(3);
     [doHud,doLeg].forEach(e=>e.style.opacity=f<1052?'1':'0');
-    const df=vl(f,1068,9); doTP.style.filter=df>0?`blur(${(20*df).toFixed(1)}px) brightness(${(1+0.3*df).toFixed(2)}) saturate(${(1-0.6*df).toFixed(2)})`:''; }
+    const df=vl(f,1068,9); doTP.style.filter=df>0?`blur(${(20*df).toFixed(1)}px) brightness(${(1+0.05*df).toFixed(2)})`:''; }
   // le bouton : apparaît à 0,91, texte accent 1 image, grandit de 10 % ; clic 1050 = 1 image à 0,82, brun chaud qui reste
   const bOn=f>=1020&&f<1072; show(doBtn,bOn); if(bOn){ const sc=lerp(0.91,1,approach(f,1020,14))*(f==1050?0.82/1:f==1051?0.97:1);
     place(doBtn,960,556,sc); doBtn.style.color='#F3EFEA'; doBtn.style.background=f>=1050&&f<1052?'#2E2B28':'#151413';
@@ -356,7 +373,8 @@ function shotDone(F){ const f=F-2;
     const key=Math.floor((f-1058)/2.5);
     doBlocks.forEach((b,i)=>{ const on=f>=1058&&f<1077&&i<3+Math.min(5,f-1058); show(b,on); if(!on) return; const r=rng(4000+key*13+i);
       const bx=r()*1685, by=r()*793, dx=20+r()*40, dy=20+r()*40, z=1.5+r()*1.5; b.style.left=bx+'px'; b.style.top=by+'px';
-      b._im.style.transform=`translate(${(-bx*z+dx).toFixed(1)}px,${(-by*z+dy+59).toFixed(1)}px) scale(${z.toFixed(3)})`; b.style.filter=doTP.style.filter; }); }
+      b._im.style.transform=`translate(${(-bx*z+dx).toFixed(1)}px,${(-by*z+dy+59).toFixed(1)}px) scale(${z.toFixed(3)})`; b.style.filter=doTP.style.filter;
+      const bc=b._c.getContext('2d'); bc.clearRect(0,0,1920,1021); bc.drawImage(doTh,0,0); }); }
 }
 
 /* ---------- 25 · Taste Check : le scan TROUVE (cinq écrans v1 jamais touchés : login, tables, e-mails, rapports, mobile) — 47 problèmes ---------- */
@@ -383,10 +401,18 @@ const grList=crop(el(grIn,'gcard','', 'left:0;top:360px;width:240px;height:240px
 const grListL=GR_LIST.map((t,i)=>el(grList,'abs m','',`left:18px;top:${24+i*40}px;font-size:22px;color:#151413`));
 const grThumb=crop(el(grIn,'gcard','', 'left:360px;top:0;width:120px;height:120px;background:#D9DCE1;display:none')); grThumb.innerHTML+=`<svg width="60" height="48" viewBox="0 0 120 96" style="position:absolute;left:30px;top:36px"><rect x="3" y="3" width="114" height="90" rx="6" fill="none" stroke="#A9AEB6" stroke-width="6"/><path d="M8 84 L42 44 L66 70 L80 56 L112 84 Z" fill="#A9AEB6"/></svg>`;
 cR25(1078,'drop2',{}); cR25(1078,'impact',{v:.6}); [1084,1087,1090,1093,1096,1099,1102].forEach(f=>cR25(f,'tick',{v:.3})); for(let k=0;k<9;k++) cR25(1093+k*2.6,'tick',{v:.14});
-function shotGrid(F){ const f=F-2;
+// 1078-1086 : l'image thermique se défait en tuiles posées sur la grille, qui glissent et s'éteignent une à une (réf 1076-1086)
+const grTh=canvas(GR.cam,1920,1080,'left:0;top:0;width:1920px;height:1080px;display:none');
+const GR_TILES=(()=>{ const r=rng(1078), a=[]; while(a.length<18){ const cx=4+Math.floor(r()*8), cy=1+Math.floor(r()*7); if(a.some(t=>t[0]===cx&&t[1]===cy)) continue; a.push([cx,cy,(r()-0.5)*60,(r()-0.5)*40,r()]); } return a; })();
+function grThermal(f){ const on=f<1087&&THERMAL&&doThermal(1077); show(grTh,!!on); if(!on) return; const c=grTh.getContext('2d'); c.clearRect(0,0,1920,1080);
+  // l'image telle qu'elle était à l'écran à 1077 (zoom 1,23, dérive de 90 px) ; chaque tuile garde son morceau, décalé
+  const Z=1+0.0026*88, pan=90, src=(X,Y)=>[(X-960-pan)/Z+960,(Y-540-pan*0.6)/Z+540-59];
+  GR_TILES.forEach(([cx,cy,dx,dy,o],i)=>{ const a=1-clamp((f-1078-o*4)/4); if(a<=0) return; const X=cx*120, Y=cy*120, s=src(X,Y), k=clamp((f-1077)/8);
+    c.globalAlpha=a; c.drawImage(doTh,s[0],s[1],240/Z,240/Z,X+dx*k,Y+dy*k,240,240); }); c.globalAlpha=1; }
+function shotGrid(F){ const f=F-2; grThermal(f);
   // entrée : la grille sort du même flou clair que la page de chaleur (fondu enchaîné 1078-1082), sans recul ni glissement hérités
   const z2=lerp(1.03,1,approach(f,1100,14)); GR.cam.style.transform=`scale(${(f>=1100?z2:1.03).toFixed(4)})`;
-  const dz=1-vl(f,1077,5); GR.cam.style.filter=dz>0.01?`blur(${(20*dz).toFixed(1)}px) brightness(${(1+0.3*dz).toFixed(2)}) saturate(${(1-0.6*dz).toFixed(2)})`:'';
+  const dz=1-vl(f,1077,5); GR.cam.style.filter=dz>0.01?`blur(${(20*dz).toFixed(1)}px) brightness(${(1+0.05*dz).toFixed(2)})`:'';
   const X=-313*(1-approach(f,1086,40,0.11)), Y=0;
   grIn.style.transform=`translate(${X.toFixed(1)}px,${Y.toFixed(1)}px)`;
   mblur(grIn,vel(t=>-313*(1-approach(t,1086,40,0.11)),f)*BLUR*0.6,0);
@@ -404,6 +430,11 @@ function shotGrid(F){ const f=F-2;
 /* ---------- 26 · le rapport SUGGÈRE : « vladan suggested 47 changes » ; le fondateur clique « Accept all » ---------- */
 const RE=scene('sReport',1131,1175,f=>shotReport(f));
 const cR26=cueAt(1);
+// derrière la carte, un champ thermique pâle qui dérive (la réf : un fond irisé qui bouge) ; flou et bas contraste : la carte reste le seul élément net
+const reTh=canvas(RE.cam,960,540,'left:-60px;top:-60px;width:2040px;height:1200px;filter:blur(38px);opacity:.62');
+function heatField(f,n,seed,bias,dark){ const r=rng(seed), S=[]; for(let i=0;i<n;i++){ const x0=r(), y0=r(), ax=0.08+r()*0.12, ay=0.06+r()*0.1, w=0.25+r()*0.35, ph=r()*6.28, sp=0.012+r()*0.018;
+    S.push([x0+ax*Math.sin(f*sp+ph),y0+ay*Math.cos(f*sp*1.3+ph),0.18+r()*0.16,w]); }
+  return THERMAL.draw(THERMAL.blank,{spots:S,wimg:0,bias,bands:7,blur:1,t:f,dark}); }
 const reCard=el(RE.cam,'rcard','', 'width:960px;height:420px'); reCard.innerHTML=`<div style="position:absolute;left:40px;top:34px;font-size:38px;letter-spacing:-0.02em">BrandReport <span class="m" style="font-size:16px;color:#F3EFEA;background:#151413;border-radius:8px;padding:4px 10px;margin-left:12px;vertical-align:6px">● velvetly.app</span></div>
   <div style="position:absolute;left:40px;top:96px;display:flex;align-items:baseline;gap:16px"><span class="ar r47" style="font-size:96px;color:#2D6CDF;line-height:1">47</span><span style="font-size:30px">boring issues</span></div>
   <div style="position:absolute;left:40px;top:200px;font-size:20px;color:#5C5650;display:flex;align-items:center;gap:10px"><span style="display:inline-block;width:26px;height:26px;border-radius:13px;background:#FF3D5E;color:#fff;font-size:15px;line-height:26px;text-align:center">v</span>vladan suggested 47 changes</div>
@@ -419,6 +450,7 @@ const reBtn=el(reCard,'abs','Accept all','left:auto;right:44px;top:316px;height:
 const reProg=q1(reCard,'.rprog');
 cR26(1130,'impact',{v:.5}); cR26(1161,'click',{v:1}); cR26(1162,'pop',{v:.5,n:84});
 function shotReport(F){ const f=F-1;
+  if(THERMAL){ heatField(f,6,1131,0.12,0); reTh.getContext('2d').drawImage(THERMAL.canvas,0,0); }
   RE.cam.style.transform=`scale(${(1+0.0025*(f-1131)).toFixed(4)})`;   // poussée à vitesse constante jusqu'à la coupe (l'ease-out figeait les 4 dernières images)
   // la carte monte (40 px, 10 images), le 47 se compte, les lignes et les barres par catégorie arrivent une à une
   const p=approach(f,1130,6); place(reCard,960,545+40*(1-vl(f,1131,10))); reCard.style.opacity=lerp(0.3,1,p).toFixed(3);
@@ -435,6 +467,8 @@ function shotReport(F){ const f=F-1;
 
 /* ---------- 27 · les 47 tuiles ennuyeuses barrées d'un seul trait, puis le trait tiré comme un fil dans la fente de la marque ---------- */
 const AL=scene('sAlerts',1176,1250,f=>shotAlerts(f),'dark'); AL.s.style.background='#151413';
+// à l'entrée, un champ thermique sombre (palette de nuit) que les alertes allument puis éteignent (réf 1175-1186)
+const alTh=canvas(AL.s,960,540,'left:-60px;top:-60px;width:2040px;height:1200px;filter:blur(30px);display:none'); AL.s.insertBefore(alTh,AL.cam);
 const cR27=cueAt(1);
 // 47 spécimens, rangés par catégorie : la rature les traverse rangée par rangée
 const AL_KIND=[]; BORING.forEach(([t,n],k)=>{ for(let i=0;i<n;i++) AL_KIND.push(k); });
@@ -446,7 +480,10 @@ const AL_SPEC=[k=>`<div class="ar" style="position:absolute;inset:0;background:#
   k=>`<div style="position:absolute;inset:0;background:#fff"><span style="position:absolute;left:24px;top:12px;width:24px;height:24px;border-radius:12px;background:#C9CDD3"></span><span class="ar" style="position:absolute;left:0;right:0;top:42px;text-align:center;font-size:13px;color:#777">User</span></div>`,
   k=>`<div style="position:absolute;inset:0;background:#D9DCE1"><svg width="40" height="32" viewBox="0 0 120 96" style="position:absolute;left:16px;top:14px"><rect x="3" y="3" width="114" height="90" rx="6" fill="none" stroke="#A9AEB6" stroke-width="7"/><path d="M8 84 L42 44 L66 70 L80 56 L112 84 Z" fill="#A9AEB6"/></svg><span class="ar" style="position:absolute;left:3px;right:3px;top:50px;font-size:7px;color:#8A8F97;text-align:center;white-space:nowrap;overflow:hidden">handshake_v3.jpg</span></div>`];
 const alTiles=AL_KIND.map((k,n)=>{ const r=Math.floor(n/8), c=n%8; const d=el(AL.cam,'','', `position:absolute;width:72px;height:72px;margin:-36px 0 0 -36px;border-radius:10px;overflow:hidden;display:none`);
-  d.innerHTML=AL_SPEC[k](k); d._x=610+c*100; d._y=290+r*100; d._d=Math.hypot(d._x-960,d._y-540); d._k=k; return d; });
+  // deux états : le problème (le contenu ennuyeux) et le problème réglé, un cercle au trait papier avec un « a » en Besley
+  // (la réf passe ses triangles d'alerte en cercles : l'état réglé est plus calme que l'état fautif, l'œil va aux restants)
+  d.innerHTML=`<div class="alo" style="position:absolute;inset:0">${AL_SPEC[k](k)}</div><div class="alf" style="position:absolute;inset:0;border-radius:36px;box-shadow:inset 0 0 0 1.5px rgba(243,239,234,.6);opacity:0"><em style="position:absolute;left:0;right:0;top:16px;text-align:center;font-size:30px;color:#F3EFEA">a</em></div>`;
+  d._o=d.children[0]; d._f=d.children[1]; d._x=610+c*100; d._y=290+r*100; d._d=Math.hypot(d._x-960,d._y-540); d._k=k; return d; });
 const alMaxD=Math.max(...alTiles.map(t=>t._d));
 const alCount=el(AL.s,'','', 'position:absolute;left:0;top:0;display:none');
 alCount.innerHTML=`<div class="alnum ar" style="font-size:96px;line-height:1;color:#2D6CDF;font-variant-numeric:tabular-nums">47</div><div class="m" style="font-size:24px;color:rgba(243,239,234,.55);margin-top:8px">boring issues left</div>`;
@@ -471,6 +508,7 @@ let AL_PATH=null; function alPath(){ if(AL_PATH) return AL_PATH; const st=penRes
 let AL_CROSS=null; function alCross(){ if(AL_CROSS) return AL_CROSS; const st=M8().flat(); AL_CROSS=alTiles.map(t=>{ for(const p of st) if(Math.abs(p[0]-t._x)<52&&Math.abs(p[1]-t._y)<56) return p[3]; return 1e9; }); return AL_CROSS; }
 cR27(1175,'hush',{}); cR27(1186,'scribble',{v:.7,end:1208}); cR27(1210,'reel',{v:.6,end:1228}); cR27(1232,'boom',{v:.8});
 function shotAlerts(F){ const f=F-1; push(AL.cam,f,1175,0.0005);
+  const tho=1-clamp((f-1178)/9); show(alTh,tho>0&&!!THERMAL); if(tho>0&&THERMAL){ heatField(f,7,1175,0.1,1); alTh.getContext('2d').drawImage(THERMAL.canvas,0,0); alTh.style.opacity=(0.85*tho).toFixed(3); }
   const ms=(f-1186)*PEN.ms, cross=alCross();
   // le champ est déjà allumé à 1175 (le centre), le reste se remplit jusqu'à 1184 ; à la fin la grille se resserre dans la marque
   // (facteurs de la réf : ×0,87, ×0,73, ×0,73, ×0,73, ×0,71, ×0,52 sur 1226-1231) au lieu de s'éteindre
@@ -478,12 +516,15 @@ function shotAlerts(F){ const f=F-1; push(AL.cam,f,1175,0.0005);
   alTiles.forEach((t,n)=>{ const a=1175+9*Math.max(0,(t._d/alMaxD-0.3)/0.7); const on=f>=a&&f<1232&&!(n===46&&f>=1213); show(t,on); if(!on) return;
     const sIn=a<=1175?1:clamp((twos(f,Math.floor(a))-a)/3); t.style.left=(960+(t._x-960)*zc)+'px'; t.style.top=(540+(t._y-540)*zc)+'px';
     // les tuiles tiennent pendant que le fil passe : il ne pend jamais seul sur le noir
-    const cf=1186+cross[n]/PEN.ms, k=clamp((f-cf)/3), fade=clamp((f-1229)/3), bz=8*(1-zc);
-    t.style.transform=`scale(${(sIn*zc*(n===46?1-clamp((f-1210)/3):1)).toFixed(3)})`; t.style.filter=((k>0?`grayscale(${k.toFixed(2)}) `:'')+(bz>0.3?`blur(${bz.toFixed(1)}px)`:'')).trim(); t.style.opacity=((1-0.68*k)*(1-fade)).toFixed(3); });
+    // passé sous le trait, une tuile se règle en 3 images ; celles que le trait n'a pas touchées se règlent pendant le fil (1210-1228),
+    // au même rythme que le compteur : à 0, il ne reste plus une tuile bleue
+    const cf=alFix(n,cross), k=clamp((f-cf)/3), fade=clamp((f-1229)/3), bz=8*(1-zc);
+    t.style.transform=`scale(${(sIn*zc*(n===46?1-clamp((f-1210)/3):1)).toFixed(3)})`; t.style.filter=bz>0.3?`blur(${bz.toFixed(1)}px)`:''; t.style.opacity=(1-fade).toFixed(3);
+    t._o.style.opacity=(1-k).toFixed(3); t._f.style.opacity=k.toFixed(3); t.style.borderRadius=lerp(10,36,k).toFixed(1)+'px'; });
   // le compteur part du « 47 » du rapport et descend d'une unité par tuile barrée ; à 0, il passe à l'encre fixée
   // pendant le fil (1210-1228), les tuiles qui restent partent avec lui : le compteur finit sur 0 à 1228 et y tient
   let left=47-cross.filter(c=>c<=ms).length; if(f>=1210){ const l0=47-cross.filter(c=>c<=(1210-1186)*PEN.ms).length, t=clamp((f-1210)/18); left=Math.round(lerp(l0,0,t*t*(3-2*t))); }
-  show(alCount,f>=1175&&f<1232); const mv=vl(f,1176,8); placeTL(alCount,lerp(800,120,mv),lerp(450,860,mv));
+  show(alCount,f>=1175&&f<1232); placeTL(alCount,120,860); alCount.style.opacity=vl(f,1175,4).toFixed(3);   // à sa place dès le début : il ne passe plus sur les tuiles
   alNum.textContent=Math.max(0,left); if(left<=0&&f>=1210){ alNum.style.color='#F3EFEA'; alNum.style.fontFamily='ID'; } else { alNum.style.color='#2D6CDF'; alNum.style.fontFamily=''; }
   const ix=inkClear(alInk);
   if(f>=1186&&f<1210) penDraw(ix,M8(),f,1186,{size:13.5,ground:'dark'});
@@ -503,6 +544,8 @@ function shotAlerts(F){ const f=F-1; push(AL.cam,f,1175,0.0005);
   AL.cam.style.scale=(1+0.04*accel(f,1243,7,2.2)).toFixed(4);
 }
 const AL_Z=[1,.87,.635,.464,.338,.240,.125];
+function alFix(n,cross){ const cf=1186+cross[n]/PEN.ms; if(cf<=1210) return cf;
+  const rest=alTiles.map((_,i)=>i).filter(i=>1186+cross[i]/PEN.ms>1210), r=rest.indexOf(n)/Math.max(1,rest.length-1), e=r*r*(3-2*r); return 1209+17*e; }
 function alZ(f){ if(f<=1225) return 1; if(f>=1231) return AL_Z[6]; const i=Math.floor(f-1225); return lerp(AL_Z[i],AL_Z[i+1],f-1225-i); }
 
 /* ---------- 28 · la fenêtre de la pièce : le ciel glisse sous le bouton déjà en place, « Ship it » se tape ; le fondateur clique (1295) ---------- */
@@ -518,10 +561,10 @@ const shSky=el(SH.cam,'','', 'position:absolute;left:-60px;top:-60px;width:2040p
 const shSkyI=document.createElement('img'); shSkyI.src=shSkyC.toDataURL(); shSkyI.style.cssText='position:absolute;inset:0;width:100%;height:100%'; shSky.appendChild(shSkyI);
 // la fenêtre d'acier noir vue à 262 : meneaux à x=640/1280, traverse à y=360 ; le dossier du fauteuil rouge entre dans le coin bas-droit (10 %)
 const shWin=el(SH.cam,'','', 'position:absolute;inset:0;pointer-events:none');
-shWin.innerHTML=`<div style="position:absolute;left:0;top:0;right:0;height:26px;background:#151413"></div><div style="position:absolute;left:0;bottom:0;right:0;height:26px;background:#151413"></div>
-  <div style="position:absolute;left:0;top:0;bottom:0;width:26px;background:#151413"></div><div style="position:absolute;right:0;top:0;bottom:0;width:26px;background:#151413"></div>
-  <div style="position:absolute;left:631px;top:0;bottom:0;width:18px;background:#151413;box-shadow:inset 1px 0 0 #1E1C1B"></div><div style="position:absolute;left:1271px;top:0;bottom:0;width:18px;background:#151413;box-shadow:inset 1px 0 0 #1E1C1B"></div>
-  <div style="position:absolute;left:0;right:0;top:351px;height:18px;background:#151413;box-shadow:inset 0 1px 0 #1E1C1B"></div>
+shWin.innerHTML=`<div style="position:absolute;left:0;top:0;right:0;height:16px;background:#6E645C"></div><div style="position:absolute;left:0;bottom:0;right:0;height:16px;background:#6E645C"></div>
+  <div style="position:absolute;left:0;top:0;bottom:0;width:16px;background:#6E645C"></div><div style="position:absolute;right:0;top:0;bottom:0;width:16px;background:#6E645C"></div>
+  <div style="position:absolute;left:635px;top:0;bottom:0;width:10px;background:#6E645C"></div><div style="position:absolute;left:1275px;top:0;bottom:0;width:10px;background:#6E645C"></div>
+  <div style="position:absolute;left:0;right:0;top:355px;height:10px;background:#6E645C"></div>
   <div style="position:absolute;left:-60px;right:-60px;top:1080px;height:900px;background:linear-gradient(180deg,#8E7F73 0,#7B6D63 220px,#665a52 900px)"></div>
   <div style="position:absolute;left:-60px;right:-60px;top:1080px;height:16px;background:#B7A799;box-shadow:0 1px 0 #CDBFB1 inset,0 10px 24px rgba(40,30,25,.35)"></div>`;
 // le fauteuil détouré (img/ship_chair.png, tiré de red_60), à contre-jour devant le mur ; il monte avec la pièce quand la caméra descend
@@ -552,7 +595,8 @@ function shotShip(F){ const f=F-1; SH.cam.style.transform=`scale(${(1+0.03*clamp
   // la tache commence sous le rail bas de la fenêtre (jamais par-dessus) ; l'arbre dehors suit le ciel, en retard
   shPatch.style.clipPath=`inset(${Math.max(0,(1080+y*0.35)-(1100+y*0.42)+2).toFixed(0)}px 0 0 0)`;
   shPane.style.transform=`translateY(${(y*0.35).toFixed(1)}px)`; shTree.style.transform=`translate(${(-10*clamp((f-1250)/56)).toFixed(1)}px,${(y*0.6).toFixed(1)}px)`;
-  const n=clamp(f-1250,0,7); shBtn.innerHTML='Ship it'.slice(0,n)+(f<1262||Math.floor(f/8)%2?'<span style="display:inline-block;width:3px;height:40px;background:#F3EFEA;vertical-align:-6px;margin-left:3px"></span>':'');
+  // un bouton n'a pas de caret : le libellé est déjà là (comme « Publish » dans la réf)
+  shBtn.textContent='Ship it';
   // le clic tombe à 1293, comme dans la réf
   const pr=f>=1293&&f<1295; place(shBtn,960,540,pr?0.94:1); shBtn.style.background='#151413';
   const rg=clamp((f-1293)/10); show(shRing,f>=1293&&f<1304); const R=120*rg; Object.assign(shRing.style,{width:2*R+'px',height:2*R+'px',left:(960-R)+'px',top:(540-R)+'px',opacity:(1-rg).toFixed(2)});
@@ -575,6 +619,7 @@ const tplReport0=()=>`<div class="full" style="background:#F7F4F0;color:#151413"
   <div style="position:absolute;right:80px;bottom:70px;height:64px;line-height:64px;padding:0 30px;border-radius:12px;background:#151413;color:#F3EFEA;font-size:26px">Ship it</div></div>`;
 const moDa=el(MO.cam); const moDaD=framed(moDa,tplReport0(),1368,912,1240,730,'#F7F4F0'); const moBars=[...q1(moDaD,'.mbars').children];
 const moL=el(MO.cam); const moLD=framed(moL,tplVLanding(),1368,912,1240,730,VINK);
+const moTh=canvas(MO.s,1920,1080,'left:0;top:0;width:1920px;height:1080px;z-index:30;display:none;pointer-events:none');
 const moLSeq=q1(moLD,'.vseq'), moLXr=q1(moLD,'.vxr'), moLh=qa(moLD,'.lnh'), moLT=qa(moLD,'.vix'), moStat=q1(moPD,'.mst'), moStat2=q1(moPD,'.mst2');
 const MOS=[[moP,1307],[moR,1325],[moDa,1336],[moL,1349]];
 cR29(1307,'impact',{v:.7}); cR29(1325,'impact',{v:.6}); cR29(1336,'impact',{v:.6}); cR29(1349,'impact',{v:.7}); [1312,1314,1315].forEach(f=>cR29(f,'tick',{v:.2})); cR29(1372,'shimmer',{v:.45,end:1378});
@@ -595,9 +640,11 @@ function shotMont(F){ const f=F-1; let cur=MOS[0]; for(const m of MOS) if(f>=m[1
   // la reprise : la même landing, loupe déjà ouverte sur le fauteuil
   if(cur[0]===moL){ seqDraw(moLSeq,SEQ.land,a*1.0,0.5,0.58); seqDraw(moLXr,SEQ.landX,a*1.0,0.5,0.58); landLens(moLD,110,lerp(1040,1095,a/29),330,'');
     place(cur[0],960-3*a,540,sc); moLh.forEach(h=>h.style.transform=`translateX(${(-0.8*a).toFixed(1)}px)`);
-    const hk=[0,.25,.6,1,1][clamp(f-1373,0,4)]; cur[0].style.filter=hk>0?`sepia(${hk}) saturate(${(1+3*hk).toFixed(2)}) hue-rotate(${(-28*hk).toFixed(1)}deg) contrast(${(1+0.25*hk).toFixed(2)}) brightness(${(1+0.18*hk).toFixed(2)})`:'';
+    // la vague de chaleur : la même caméra thermique que la plongée (25, 60, 100 %), qui chauffe jusqu'au blanc avant les fragments
+    const hk=[0,.25,.6,1,1][clamp(f-1373,0,4)]; show(moTh,hk>0&&!!THERMAL); if(hk>0&&THERMAL){ landThermal(MO.s,moLD.parentNode.parentNode,moLSeq,q1(moLD,'.vmk'),moTh,{t:f,bias:f>=1377?0.18:0}); moTh.style.opacity=hk; }
     moLT.forEach((t,i)=>{ const p=approach(f,1350+i,8,0.2); t.style.translate=`0 ${((1-p)*24).toFixed(1)}px`; }); }
-  fixFrags(moFix,f,1366);
+  // les fragments corrigés n'arrivent qu'au sommet de la vague de chaleur (1376) : ils ne se posent plus sur l'index de la landing
+  fixFrags(moFix,f,1376);
 }
 
 /* ---------- 31-32 · fragments corrigés → anneau → marque → « vladan » + « Made in code. Marked up by hand. » → la carte de fin : le brief était un e-mail à Vladan ---------- */
@@ -644,7 +691,7 @@ function ouLineGeom(f){ const sp=12, pad=30; const TW=OUW.map((_,i)=>OUL.ws.slic
   const h=vl(f,1489,10); const S=lerp(1,200/48,h); const x0=lerp(960-tw/2,144,h), y0=lerp(540-26,120,h); return {tw,S,x0,y0,sp,pad,h}; }
 function shotOutro(F){ const f=F-2; push(OU.cam,f,1378,f<1489?0.0008:0);
   const OS=f>=1520?1+0.015*(1-Math.pow(1-clamp((f-1520)/39),2)):1; if(f>=1520) OU.cam.style.transform=`scale(${OS.toFixed(4)})`;   // l'affiche respire : 1,5 % de poussée, pas un arrêt sur image
-  fixFrags(ouFix,f,1366);
+  fixFrags(ouFix,f,1376);
   // anneau de glyphes à l'encre (1385-1391), le point à l'encre puis rouge à l'arrivée de la marque (1398)
   const k=lerp(1,0.7,approach(f,1387,6)); ouGl.forEach((d,i)=>{ const on=f>=1385&&f<1392; show(d,on); if(!on) return; const g=d._g; place(d,960+g[1]*k,540+g[2]*k); });
   const dOn=f>=1390&&f<1398; show(ouDot,dOn); if(dOn){ const S=f<1394?lerp(90,120,(f-1390)/4):lerp(120,81,approach(f,1394,4)); Object.assign(ouDot.style,{width:S+'px',height:S+'px',background:f<1396?mixc('#CDB9F2','#FF8FA3',clamp((f-1390)/6)):'#FF3D5E'}); place(ouDot,960,540); }
@@ -660,7 +707,8 @@ function shotOutro(F){ const f=F-2; push(OU.cam,f,1378,f<1489?0.0008:0);
   const pw=G.tw+2*G.pad; const pOn=f>=1448&&f<1490; show(ouPill,pOn); if(pOn){ Object.assign(ouPill.style,{width:pw+'px',left:(960-pw/2)+'px',top:'497px'});
     ouRect.setAttribute('width',Math.max(0,pw-3.5)); ouRect.setAttribute('height',86-3.5); ouRect.setAttribute('stroke-dasharray','1'); ouRect.setAttribute('stroke-dashoffset',(-clamp((f-1486)/3)).toFixed(3)); }
   let cx=G.x0; const morph=f>=1515;
-  ouWords.forEach((d,i)=>{ show(d,i<=k2); if(i>k2) return; placeTL(d,cx,G.y0,G.S); cx+=(OUL.ws[i]+G.sp)*G.S;
+  ouRect.setAttribute('stroke',mixc('#FF9A4D','#151413',approach(f,1448,8,0.2)));   // la pilule naît orangée, comme celle de la réf
+  ouWords.forEach((d,i)=>{ show(d,i<=k2); if(i>k2) return; placeTL(d,cx,G.y0,G.S); cx+=(OUL.ws[i]+G.sp)*G.S; d.style.color=mixc('#FF9A4D','#151413',approach(f,OUW[i][0],6,0.25));
     if(i==2){ // « taste. » passe de l'Arial du fondateur au Besley, lettre à lettre (1515-1520)
       const n=morph?clamp(f-1514,0,6):0; d.innerHTML=[...'taste.'].map((c,j)=>`<span style="opacity:${j<n?0:1}">${c}</span>`).join(''); } });
   show(ouTasteB,morph); if(morph){ const x=G.x0+(OUL.ws[0]+OUL.ws[1]+2*G.sp)*G.S, n=clamp(f-1514,0,6); ouTasteB.firstChild.style.fontSize=(48*G.S*1.07*0.97)+'px';

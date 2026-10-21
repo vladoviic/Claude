@@ -99,7 +99,8 @@ function shotW(f){ push(W1.cam,f,0,0.0009);
   GLY.forEach((g,i)=>{ const d=wGly[i]; const on=f>=g.born&&f<53; show(d,on); if(!on) return; let [x,y]=gpos(g,f);
     if(!g.big){ const r=rng(90+i*7+(f>=51?2:f>=45?1:0)); x=x*grow+(f>=45?(r()-0.5)*40:0); y=y*grow+(f>=45?(r()-0.5)*30:0); }
     const rot=i>=2&&i%2==1&&gch(g,f)!=='*'; d.textContent=rot?['/','|','\\','-'][(Math.floor(f/2)+i)%4]:gch(g,f);
-    d.style.color=mixc(GBORN,GINK,approach(f,g.born,8));   // les glyphes naissent bleu pâle et sèchent à l'encre
+    // les glyphes naissent en couleur (bleu pâle, orangé, lilas, comme la réf) et sèchent à l'encre
+    d.style.color=mixc(['#C6D8F7','#FFB27A','#CDB3F2'][i%3],GINK,approach(f,g.born,8));
     place(d,960+x,540+y,g.born===0?1:back(f,g.born-1,4)); });
   wFr.forEach((d,i)=>{ const st=53+d._d; const on=f>=st&&f<(d._read?86:(i<5?64:62)); show(d,on); if(!on) return;
     d.textContent=d._ty?d._t.slice(0,Math.max(3,(f-st+1)*2)):d._t; d.style.color=mixc(GBORN,'#2D6CDF',approach(f,st,4)); placeTL(d,d._x+(f-53)*0.6,d._y,back(f,st-1,4)); });
@@ -109,8 +110,12 @@ function shotW(f){ push(W1.cam,f,0,0.0009);
   // entrée : quatre sites à 62, le cinquième à 64 ; chaque teinte sèche à son tour (carte i à 70 + i)
   wB.forEach((d,i)=>{ if(f<(i==4?64:62)){ show(d,false); return; } show(d,true); const [x,y,w,h]=d._r, [cx,cy,cw]=BCL[i];
     const pc=wSnap(f), dr=approach(f,62,27,0.08);
-    const s0=1+0.0012*(f-62), X=lerp(x+w/2+BDR[i][0]*dr,960+cx,pc), Y=lerp(y+h/2+BDR[i][1]*dr,540+cy,pc), S=lerp(s0,cw/w,pc);
-    d.style.zIndex=(shuf?((i*3+shuf)%5):i)+2;   // +2 : au-dessus du mot « boring. » (z 1)
+    // le collage ne tient jamais : toutes les 3 images (le battement de la réf), chaque carte saute de cadrage (zoom et recentrage
+    // de son contenu), bouge de quelques pixels et passe devant ou derrière ; ça s'arrête au serrage (96)
+    const bt=f<96?Math.floor((f-62)/3):-1, rb=rng(620+bt*17+i*5), jx=bt>=0?(rb()-0.5)*28:0, jy=bt>=0?(rb()-0.5)*20:0, js=bt>=0?1+(rb()-0.5)*0.04:1;
+    if(d.firstElementChild){ const zc=bt>=0?1+0.08*((bt+i)%3):1; d.firstElementChild.style.transformOrigin=`${(20+rb()*60).toFixed(0)}% ${(20+rb()*60).toFixed(0)}%`; d.firstElementChild.style.transform=zc>1?`scale(${zc.toFixed(3)})`:''; }
+    const s0=(1+0.0012*(f-62))*js, X=lerp(x+w/2+BDR[i][0]*dr+jx,960+cx,pc), Y=lerp(y+h/2+BDR[i][1]*dr+jy,540+cy,pc), S=lerp(s0,cw/w,pc);
+    d.style.zIndex=(shuf?((i*3+shuf)%5):bt>=0?((i+bt*2)%5):i)+2;   // +2 : au-dessus du mot « boring. » (z 1)
     mblur(d,f>=96&&f<98?vel(t=>lerp(x+w/2,960+cx,wSnap(t)),f)*BLUR*0.6:0,f>=96&&f<98?vel(t=>lerp(y+h/2,540+cy,wSnap(t)),f)*BLUR*0.6:0);
     d.style.transform=`translate(${(X-w*S/2).toFixed(1)}px,${(Y-h*S/2).toFixed(1)}px) scale(${S.toFixed(4)})`;
     d.style.boxShadow=pc>0?`0 ${(20*pc).toFixed(0)}px ${(50*pc).toFixed(0)}px -20px rgba(40,30,30,${(.35*pc).toFixed(2)})`:''; d.style.borderRadius=(10*pc)+'px';
@@ -176,7 +181,8 @@ function shotLogo(f){ push(L1.cam,f,140,0.0007);
   const ix=inkClear(lgInk); const crisp=f>=128; lgSlash.style.opacity=crisp?1:0;
   if(!crisp){ lgInk.style.mixBlendMode='normal'; slashThread(ix,1,'#EEE9E4',undefined,S/132); }
   // le disque naît encre fraîche (rose pâle) et sèche au rouge, comme le mot « vladan »
-  lgG3.style.background=mixc('#FFC2CD','#FF3D5E',approach(f,120,8,0.2));
+  // tant qu'elle est humide, l'encre a un reflet (le disque de la réf est en dégradé) ; il s'éteint en séchant
+  { const dry=approach(f,120,8,0.2); lgG3.style.background=`radial-gradient(circle at 34% 28%,rgba(255,255,255,${(0.42*(1-dry)).toFixed(3)}),rgba(255,255,255,0) 62%),${mixc('#FFC2CD','#FF3D5E',dry)}`; }
   // le geste d'origine, fantôme graphite à 7 % : main libre → marque nette
   // le fantôme gris de la barre se lisait comme une trace sale : retiré (le calque reste vide)
   inkClear(lgGhost);
@@ -193,7 +199,7 @@ prSite.innerHTML=`<div style="position:absolute;left:0;right:0;top:0;height:60px
   <div class="m" style="position:absolute;left:420px;top:14px;width:560px;height:32px;border-radius:9px;background:#F7F4F0;font-size:14px;line-height:32px;text-align:center;color:#5C5650;white-space:nowrap">velvetly.app · room planner for furniture brands</div>
   <div class="m" style="position:absolute;right:16px;top:12px;height:36px;line-height:36px;padding:0 14px;border-radius:9px;background:#151413;color:#F3EFEA;font-size:14px">● Comment mode</div></div>
   <div class="prD" style="position:absolute;left:20px;top:70px;width:1360px;height:800px;transform-origin:0 0"></div>
-  <div style="position:absolute;inset:60px 0 0 0;background:rgba(21,20,19,.06)"></div>`;
+  <div style="position:absolute;inset:60px 0 0 0;background:rgba(238,233,228,.42)"></div>`;
 const prDash=buildDash(q1(prSite,'.prD'));
 // le repère du commentaire, planté sur la photo de poignée de main
 const prPin=el(P1.cam,'','', 'position:absolute;left:1494px;top:536px;width:46px;height:46px;border-radius:23px 23px 23px 4px;background:#2D6CDF;color:#fff;font:700 21px/46px AR;text-align:center;box-shadow:0 0 0 3px #fff,0 8px 18px rgba(0,0,0,.25)'); prPin.textContent='L';
@@ -267,13 +273,27 @@ cue(234,'impact',{v:.5}); cue(244,'tick',{v:.25}); cue(256,'tick',{v:.25}); cue(
 // la loupe X-ray : elle s'ouvre sur la lampe et le pouf (246, rayon 0 → 110 en 6 images), longe le canapé et finit sur le fauteuil,
 // qui seul garde son velours
 function laLensAt(f){ const t=ease3(clamp((f-246)/42)); return [lerp(420,1095,t),lerp(330,330,t)]; }
+// 228-235 : l'aplat d'encre se développe en image thermique de la landing (le rouge du stylo est le 0,70 de la palette),
+// qui recule en accélérant comme la carte thermique de la réf, puis refroidit vers la photo ; le carré de la marque reste chaud le dernier
+const laTh=document.createElement('canvas'); laTh.width=1920; laTh.height=1080; laTh.style.cssText='position:absolute;left:0;top:0;width:1920px;height:1080px;z-index:30;display:none;pointer-events:none'; LA.s.appendChild(laTh);
+const LA_FLAT=[1,.55,.2,0];
+// l'image thermique d'une landing à l'écran (sa carte, sa photo, sa bande papier, sa marque chaude), dans le canvas dest
+function landThermal(stage,frame,seq,mark,dest,o){ const st=stage.getBoundingClientRect(), k=st.width/W, R=e=>{ const r=e.getBoundingClientRect(); return [(r.left-st.left)/k/2,(r.top-st.top)/k/2,(r.right-r.left)/k/2,(r.bottom-r.top)/k/2]; };
+  const x=THERMAL.srcCtx; x.fillStyle='#EFE5DC'; x.fillRect(0,0,960,540);
+  const fr=R(frame), ph=R(seq); x.fillStyle='#151413'; x.fillRect(...fr); x.drawImage(seq,...ph); x.fillStyle='#EEE9E4'; x.fillRect(ph[0],ph[1]+ph[3],ph[2],ph[3]*170/560);
+  const m=R(mark); THERMAL.draw(null,Object.assign({spots:[[(m[0]+m[2]/2)/960,(m[1]+m[3]/2)/540,0.045,0.5]],wimg:1,lo:0.12,hi:0.9,gam:1.1,blur:5},o));
+  dest.getContext('2d').drawImage(THERMAL.canvas,0,0,1920,1080); }
+function laThermal(f){ const on=THERMAL&&f>=228&&f<236; show(laTh,on); if(!on) return;
+  landThermal(LA.s,laFrame,laSeq,laMark,laTh,{flat:LA_FLAT[Math.min(f-228,3)],t:f});
+  // 232-235 : la chaleur sèche par un balayage dans le sens du trait (gauche → droite, bord doux de 30 %), pas un voile
+  const w=f<232?-40:lerp(-30,110,(f-231.5)/4); laTh.style.webkitMaskImage=laTh.style.maskImage=f<232?'':`linear-gradient(100deg,transparent ${w.toFixed(1)}%,#000 ${(w+30).toFixed(1)}%)`; }
 function shotLand(f){
-  // 228-233 : l'encre de la plongée sèche à travers les fibres du papier ; la dernière qui reste est le carré de la landing
   const fl=Math.max(f,234);
   // réf : recul qui ralentit (235-273), accélération dans la coupe (274-280), puis petit écran qui se pose (281+)
   let sc,x=960,y=540;
   // la landing apparaît déjà en mouvement : recul dès 231, pendant le fondu (≈ −3,5 %/image, comme la réf), au lieu de tenir jusqu'à 235
-  if(f<231) sc=1.12; else if(f<274) sc=lerp(1.12,0.81,approach(f,231,43,0.09));
+  // 228-230 : la carte thermique recule (−6,5 %/image) ; puis la landing continue de reculer en ralentissant
+  if(f<231) sc=[1.36,1.27,1.19][clamp(f-228,0,2)]; else if(f<274) sc=lerp(1.12,0.81,approach(f,231,43,0.09));
   else if(f<281){ const a=accel(f,274,6.6,2.6); sc=lerp(0.81,0.70,a); x=960+40*a; }   // sortie à la vitesse de la réf (−3 / −4,3 %/image), nette
   else { const p=approach(f,281,14,0.25); sc=lerp(0.683,0.632,p); x=1588-720*sc+lerp(16,0,p); y=548; }
   const gone=f>=294?approach(f,294,5):0;
@@ -284,10 +304,8 @@ function shotLand(f){
   const kb=0.5-0.5*Math.cos(Math.PI*clamp((f-238)/52)), ktr=`translateX(${(-40*kb).toFixed(1)}px) scale(${(1+0.08*kb).toFixed(4)})`; laSeq.style.transformOrigin='50% 55%'; laSeq.style.transform=ktr;
   if(f>=246){ seqDraw(laXr,SEQ.landX,fl-234); const [lx,ly]=laLensAt(f); landLens(laD,110*vl(f,246,6),lx,ly,ktr); } else landLens(laD,0,700,300,ktr);
   qa(laD,'.vmk svg path').forEach(p=>p.style.strokeDashoffset=(1-vl(f,234,4)).toFixed(3));
-  if(INK&&f<234){ show(INK.canvas,true); LA.s.appendChild(INK.canvas); const r=laMark.getBoundingClientRect(), st=LA.s.getBoundingClientRect(), k=st.width/W;
-    const cx=((r.left+r.right)/2-st.left)/k, cy=((r.top+r.bottom)/2-st.top)/k, hw=(r.right-r.left)/2/k, hh=(r.bottom-r.top)/2/k;
-    const d=0.5-0.5*Math.cos(Math.PI*clamp((f-227.6)/5.8)); INK.draw({O:[960,540],Z:1,mode:1,dry:d,sig:70*Math.pow(2.5/70,d),rect:[cx,cy,hw,hh],rr:hw*0.52}); }
-  else if(INK&&INK.canvas.parentNode===LA.s) show(INK.canvas,false);
+  if(INK&&INK.canvas.parentNode===LA.s) show(INK.canvas,false);
+  laThermal(f);
   // boutons d'abord en blocs de couleur qui changent toutes les 4 images, puis le logo (244) et les boutons (256)
   // (les couleurs d'origine sont gardées : remettre style.color à '' effaçait le texte clair de « Book a demo »)
   laPills.forEach((pl,i)=>{ const ready=f>=(i==0?244:256); if(pl._c===undefined){ pl._c=pl.style.color; pl._b=pl.style.background; }
@@ -306,9 +324,17 @@ const TREE=[[300,'▾ Taste Files',150,0,'title'],[305,'Brand.ts',380,1,'file'],
 // chaque nom arrive en faisant ce qu'il dit : NoMoreArial change de police lettre à lettre, OneAccent sèche à l'encre,
 // EaseOut arrive sur la courbe vladan (+ son tracé) ; les autres se posent à l'encre
 const glyphs=t=>[...t].map(c=>`<span class="g">${c}</span>`).join('');
+// une vraie icône de document (coin plié, masque CSS à la couleur du nom ; un SVG en ligne dupliquait l'arbre dans Chromium) ;
+// les carrés vides se lisaient comme des glyphes manquants
+const TR_DOC=`<span class="fi"></span>`;
+// la hiérarchie de la réf : chaque nom naît en couleur (bleu pâle → rose) et sèche à l'encre ; dès que le suivant arrive,
+// il passe au gris : l'œil suit toujours le dernier
+function trColor(i,f){ const d=trEls[i], a=f-d._f, nf=i+1<TREE.length?TREE[i+1][0]:1e9, m=(p,q,t)=>p.map((v,k)=>lerp(v,q[k],t));
+  const c=a<2?m(hex('#9CC9F5'),hex('#F2A7C3'),clamp(a/2)):m(hex('#F2A7C3'),hex('#151413'),clamp((a-2)/4)), o=m(c,hex('#B8B0A8'),clamp((f-nf)/6));
+  return `rgb(${o.map(Math.round).join(',')})`; }
 const trEls=TREE.map(([f0,t,x,row,kind])=>{ const d=el(TR.cam,'titem'); d._k=kind; d._x=x; d._row=row; d._f=f0; d._t=t;
   d.innerHTML=kind==='title'?`<span style="font-family:JB;margin-right:16px">▾</span>Taste Files`:kind==='dir'?`<span class="chev" style="font-family:JB;display:inline-block;margin-right:16px">›</span>${t}`
-    :kind==='last'?`<span class="fi"></span><em style="font-size:72px">Taste</em>.tsx`:`<span class="fi"></span>${/NoMoreArial|EaseOut/.test(t)?glyphs(t):t}`;
+    :kind==='last'?`${TR_DOC}<em style="font-size:72px">Taste</em>.tsx`:`${TR_DOC}${/NoMoreArial|EaseOut/.test(t)?glyphs(t):t}`;
   Object.assign(d.style,{fontSize:kind==='title'?'84px':'72px',color:'#151413'}); if(kind==='title') d.style.color='#3A3633'; return d; });
 const trEase=el(TR.cam,'abs','', 'display:flex;align-items:center;gap:18px'); 
 trEase.innerHTML=`<svg width="120" height="44" viewBox="0 0 120 44"><path d="M2 42 ${Array.from({length:41},(_,i)=>`L${(2+i*2.9).toFixed(1)} ${(42-40*vladan(i/40)).toFixed(1)}`).join(' ')}" fill="none" stroke="#151413" stroke-width="1.75" stroke-linecap="round"/></svg><span class="m" style="font-size:22px;color:#151413">ease: vladan</span>`;
@@ -327,8 +353,8 @@ function shotTree(f){
     placeTL(d,d._x,ty+d._row*LH+(d._row?14:0));
     const a=f-d._f;
     if(/NoMoreArial/.test(d._t)) qa(d,'.g').forEach((g,i)=>{ g.style.fontFamily=a>=4+i?'ID':'AR'; });
-    else if(/OneAccent/.test(d._t)) d.style.color=a<3?'rgba(21,20,19,.25)':mixc('#C5C0BB','#151413',clamp((a-3)/4));
-    else if(/EaseOut/.test(d._t)) qa(d,'.g').forEach((g,i)=>{ const dx=[18,10,5,2,1,0][Math.min(5,Math.max(0,a-i))]; g.style.display='inline-block'; g.style.transform=`translateX(${dx}px)`; g.style.opacity=a>=i?1:0; });
+    if(d._k!=='title') d.style.color=trColor(trEls.indexOf(d),f);
+    if(/EaseOut/.test(d._t)) qa(d,'.g').forEach((g,i)=>{ const dx=[18,10,5,2,1,0][Math.min(5,Math.max(0,a-i))]; g.style.display='inline-block'; g.style.transform=`translateX(${dx}px)`; g.style.opacity=a>=i?1:0; });
     if(d._k==='dir'){ const ch=q1(d,'.chev'); ch.style.transform=`rotate(${(90*approach(f,317,4)).toFixed(1)}deg)`; } });
   const eo=trEls[6]; show(trEase,f>=325); if(f>=325){ placeTL(trEase,eo._x+eo.offsetWidth+40,ty+6*LH+14+14); trEase.style.opacity=vl(f,325,4).toFixed(3); }
   trLines.forEach(l=>{ const on=f>=TREE[l._a][0]; show(l,on); if(!on) return; const last=Math.max(...TREE.filter(t=>t[3]>=l._a&&t[3]<=l._b&&f>=t[0]).map(t=>t[3]));
@@ -395,7 +421,9 @@ function shotHero(F){ const f=F-1, i=clamp(f-380,0,38);
 const cR11=cueAt(2);
 const PI=scene('sPills',420,467,f=>shotPills(f));
 const piL=el(PI.cam,'pill','Lemme give it'), piR=el(PI.cam,'pill acc','<em>taste</em>'), piI=el(PI.cam,'picn','');
-const piMelt=el(PI.cam,'','', 'position:absolute;left:0;top:467px;height:146px;border-radius:73px;background:#FFC2CD;filter:blur(14px);display:none');
+// la fonte : une traînée horizontale (queue transparente, corps orangé, tête rose-lilas), floutée dans le sens du mouvement,
+// qui devient la première barre du planning (réf 460-466 : un trait de vitesse, pas une tache ronde)
+const piMelt=el(PI.cam,'','', 'position:absolute;left:0;top:500px;height:80px;border-radius:40px;background:linear-gradient(90deg,rgba(255,154,77,0) 0%,rgba(255,154,77,.9) 38%,#FF9A8A 70%,#D9C2F5 100%);display:none');
 // ce que vend Vladan, dans la fente de l'icône : marque (Aa), interface (panneaux), mouvement ; puis la fente se remplit d'encre avec la barre de la marque
 const PI_ICO=[c=>`<svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>`,
   c=>`<svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>`,
@@ -422,19 +450,19 @@ function shotPills(F){ const f=F-2;   // numéros de la réf (REMAP +2)
   show(piL,f>=424); piL.style.opacity=approach(f,424,3).toFixed(3); place(piL,xl,540); piL.style.color=piL.style.borderColor=mixc('#FF9A4D','#151413',clamp((f-424)/6));
   show(piR,f>=430); place(piR,xr,540,back(f,430,6)); piR.style.color=mixc('#FF9A4D','#151413',clamp((f-430)/6));
   [[piL,xl-L.wl/2],[piI,xi-45],[piR,xr-L.wr/2]].forEach(([e,left])=>{ const k=front-left; e.style.webkitMaskImage=e.style.maskImage=melt?`linear-gradient(90deg,transparent ${k.toFixed(0)}px,#000 ${(k+60).toFixed(0)}px)`:''; });
-  show(piMelt,melt); if(melt){ piMelt.style.left=x0+'px'; piMelt.style.width=Math.max(146,front-x0+40)+'px'; }
+  show(piMelt,melt); if(melt){ piMelt.style.left=x0+'px'; piMelt.style.width=Math.max(146,front-x0+40)+'px'; mblur(piMelt,22,3); }
 }
 
 /* ---------- 12-13 · barres floues → « Delivery & Install Status » → une seule poussée sur les 3 recadrages ---------- */
 const cR12=cueAt(2);
 const PL=scene('sPlan',468,560,f=>shotPlan(f));
 const plRoot=el(PL.cam,'','', 'position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0'); plRoot.innerHTML=tplPlan();
-const plChips=qa(plRoot,'.pchip'), plDays=qa(plRoot,'.day'), plDn=qa(plRoot,'.dname'), plCols=qa(plRoot,'.col'), plSide=q1(plRoot,'.side'), plTitle=[q1(plRoot,'.ptitle'),q1(plRoot,'.psub')], plX=qa(plRoot,'.plx');
+const plMinor=qa(plRoot,'.pminor'), plChips=qa(plRoot,'.pchip'), plDays=qa(plRoot,'.day'), plDn=qa(plRoot,'.dname'), plCols=qa(plRoot,'.col'), plSide=q1(plRoot,'.side'), plTitle=[q1(plRoot,'.ptitle'),q1(plRoot,'.psub')], plX=qa(plRoot,'.plx');
 // vague 1 : grosses barres floues (≈140 px), qui poussent vers la droite puis se rattrapent et s'éteignent (réf 466-480)
 // barres floues nées dans des teintes du bleu du fondateur, qui sèchent en teintes d'encre (488-500)
 const PL_BLUE=['#C6D8F7','#A9C4F2','#D9E5FA','#B8CEF4','#CBDCF8','#9DBBEF'], PL_INK=[.06,.10,.16,.08,.12,.10];
 // dix barres, deux toutes les deux images ; elles naissent dans le rose-orangé de la coulée des pilules et bleuissent (466-476)
-const PL_BARS=[[466,467],[466,180],[470,720],[472,300],[474,610],[474,850],[476,410],[478,560],[480,250],[482,930]].map(([st,y],i)=>{ const c=PL_BLUE[i%6]; const d=el(PL.cam,'','', `position:absolute;top:${y}px;height:${138+(i%3)*4}px;border-radius:70px;background:${c};filter:blur(14px);display:none`); const r=rng(810+i); d._st=st; d._i=i; d._x=i==0?600:80+r()*900; d._g=25+r()*65; d._c=100+r()*70; return d; });
+const PL_BARS=Array.from({length:20},(_,i)=>[466+2*Math.floor(i/2),(()=>{ const r=rng(900+i); return 130+r()*820; })()]).map(([st,y],i)=>{ const c=PL_BLUE[i%6]; const r=rng(810+i), hh=30+r()*28; const d=el(PL.cam,'','', `position:absolute;top:${y}px;height:${hh.toFixed(0)}px;border-radius:${(hh/2).toFixed(0)}px;display:none`); d._st=st; d._i=i; d._x=i==0?600:60+r()*1100; d._g=30+r()*70; d._c=100+r()*70; return d; });
 plChips.forEach((c,i)=>{ c._st=504+i*1.3; c._x0=parseFloat(c.style.left); c._y0=parseFloat(c.style.top); });
 const plInk=inkLayer(plRoot);
 // M4 : le S d'inversion relie « Ship » (lundi) et « Taste Check » (vendredi) ; chacun part sur un lobe du S (523-529)
@@ -443,6 +471,7 @@ const M4=()=>penPlace('G04',[PL_SHIP._x0+150,PL_SHIP._y0+20,PL_TC._x0+40,PL_TC._
 cR12(514,'scratch',{v:.8,end:521}); cR12(523,'glide',{v:.4,end:529});
 for(let k=0;k<7;k++) cR12(494+k*2.4,'tick',{v:.2}); PL_BARS.forEach(b=>cR12(b._st,'swish',{v:.18,peak:b._st+3,dur:6}));
 cR12(532,'impact',{v:.45}); cR12(541,'swish',{v:.35,peak:542,dur:5}); cR12(550,'swish',{v:.35,peak:551,dur:5}); cR12(555,'whoosh',{v:.4,peak:559,dur:5});
+const m3=(p,q,t)=>p.map((v,k)=>lerp(v,q[k],t));
 function shotPlan(F){ const f=F-2;   // numéros de la réf (REMAP +2)
   // zooms 532-558 : UNE poussée qui ralentit à travers les 3 coupes ; la puce grandit à la fin (raccord téléphone)
   let zs=1, zx=960, zy=540; if(f>=532){ const Z=[[532,760,470],[541,1280,560],[550,960,770]]; let z=Z[0]; for(const q of Z) if(f>=q[0]) z=q;
@@ -453,12 +482,16 @@ function shotPlan(F){ const f=F-2;   // numéros de la réf (REMAP +2)
   plRoot.firstChild.style.background=mixc('#EEE9E4','#F6F2EE',approach(f,490,16));
   // elles vivent 26 images (fondu à partir de 16) et dérivent ensemble de 10 px/image : l'écran n'est jamais vide avant le calendrier
   PL_BARS.forEach(b=>{ const a=f-b._st; const on=a>=0&&a<26&&f<532; show(b,on); if(!on) return; const grow=Math.min(a,5)*b._g, j=b._i%6;
-    const born=mixc('#FF9A8A',PL_BLUE[j],clamp((f-466)/10)), dr=vladan(clamp((f-488)/12));
-    b.style.background=dr>0?`rgba(${hex(PL_BLUE[j]).map(v=>Math.round(lerp(v,21,dr))).join(',')},${lerp(1,PL_INK[j]*4,dr).toFixed(3)})`:born;
-    b.style.left=(b._x+10*(f-466))+'px'; b.style.width=(180+grow)+'px'; b.style.opacity=(1-clamp((a-16)/10)).toFixed(3); });
+    // une traînée : queue transparente, corps, tête plus claire ; née rose-orangé, bleuit, puis sèche à l'encre ; flou de vitesse horizontal
+    const dr=vladan(clamp((f-488)/12)), cb=hex(PL_BLUE[j]), c0=m3(m3(hex('#FF9A8A'),hex('#C9A6F2'),(b._i%3)/2),cb,clamp((f-466)/10)), c=m3(c0,[21,20,19],dr), al=lerp(1,PL_INK[j]*4,dr);
+    const C=(k,a)=>`rgba(${k.map(Math.round).join(',')},${a.toFixed(3)})`;
+    b.style.background=`linear-gradient(90deg,${C(c,0)} 0%,${C(c,al*0.85)} 45%,${C(m3(c,[255,255,255],0.35),al)} 100%)`;
+    b.style.left=(b._x+10*(f-466))+'px'; b.style.width=(180+grow)+'px'; b.style.opacity=(1-clamp((a-16)/10)).toFixed(3); mblur(b,14,2.5); });
   plChips.forEach((c,i)=>{ const blob=f>=486+(i%6)*1.4, sharp=approach(f,c._st,3,0.3);
     c.style.visibility=blob?'visible':'hidden'; c.style.transform=f>=555&&i==3?`scaleY(${(1+0.4*accel(f,555,4,2)).toFixed(3)})`:''; if(i==3) c.style.transformOrigin='50% 0';
-    c.style.filter=sharp<1?`blur(${(14*(1-sharp)).toFixed(1)}px)`:''; c.firstChild.style.opacity=c.lastChild.style.opacity=sharp.toFixed(2); });
+    c.style.filter=sharp<1?`blur(${(14*(1-sharp)).toFixed(1)}px)`:''; [...c.children].forEach(e=>e.style.opacity=sharp.toFixed(2)); });
+  // les tâches secondaires arrivent après les principales, déjà en retrait
+  plMinor.forEach((c,i)=>{ const p=approach(f,508+i*1.5,6,0.25); c.style.opacity=p.toFixed(3); c.style.visibility=p>0?'visible':'hidden'; });
   // l'inversion : « Taste Check » prend le lobe du haut vers lundi, « Ship » le lobe du bas vers vendredi ; l'encre de chaque lobe se rétracte derrière sa puce
   const sw=vl(f,523,6); const sx=PL_TC._x0-PL_SHIP._x0, sy=PL_TC._y0-PL_SHIP._y0;
   [[PL_TC,-1,-140],[PL_SHIP,1,140]].forEach(([c,dir,bow])=>{ const u=sw; const dx=-dir*sx*u*-1, dy=dir*sy*u*-1;
@@ -479,11 +512,15 @@ function shotPlan(F){ const f=F-2;   // numéros de la réf (REMAP +2)
 const cR14=cueAt(2);
 const PH=scene('sPhone',561,641,f=>shotPhone(f));
 // le téléphone : anneau de métal, île, boutons, reflet du verre qui glisse, ombre de contact ; l'app velvetly AR démarre comme une caméra
+// les rubans de soie nacrée passent derrière le téléphone (575-627), clairs et peu saturés : le fond reste en retrait
+const phRib=canvas(PH.cam,960,540,'left:0;top:0;width:1920px;height:1080px;display:none');
 const phShadow=el(PH.cam,'','', 'position:absolute;left:820px;top:952px;width:280px;height:18px;border-radius:50%;background:radial-gradient(closest-side,rgba(40,30,30,.45),rgba(40,30,30,0))');
 const phone=el(PH.cam,'phone'); el(phone,'ring'); [[-6,210,60],[-6,290,60],[408,250,96]].forEach(([x,y,h])=>el(phone,'pbtn','', `left:${x}px;top:${y}px;height:${h}px`));
 const phScr=el(phone,'scr');
 const phSeq=canvas(phScr,612,1260,'left:0;top:0;width:384px;height:816px');
 el(phScr,'','', 'position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35) 0%,rgba(0,0,0,0) 22%,rgba(0,0,0,0) 48%,rgba(10,9,8,.86) 78%)');
+// l'écran naît holographique et sèche vers l'image de la caméra (réf 559-571)
+const phHolo=el(phScr,'','', 'position:absolute;inset:0;background:linear-gradient(150deg,#BFE6F4 0%,#E6CBF3 34%,#FFD6BC 62%,#C9F0E4 100%);pointer-events:none');
 el(phScr,'island');
 el(phScr,'glass',`${VMARK(18)}<span style="margin-left:8px">velvetly AR</span>`,'position:absolute;left:22px;top:58px;height:38px;line-height:38px;padding:0 14px;border-radius:12px;color:#fff;font-size:15px;display:flex;align-items:center');
 el(phScr,'abs','Living room','left:24px;top:108px;font-size:46px;color:#fff;letter-spacing:-0.04em');
@@ -513,6 +550,8 @@ function shotPhone(F){ const f=F-2;   // numéros de la réf (REMAP +2)
   // démarrage d'une caméra AR : la mise au point cherche (22 → 0 → 4 → 0 px) et l'exposition se pose (+0,6 IL → 0), en 6 images
   const b=f<561?22:f<563?lerp(22,0,(f-561)/2):f<565?lerp(0,4,(f-563)/2):f<567?lerp(4,0,(f-565)/2):0, ev=0.6*(1-vl(f,561,6));
   phSeq.style.filter=(b>0.05?`blur(${b.toFixed(1)}px) `:'')+(ev>0.01?`brightness(${Math.pow(2,ev).toFixed(3)})`:'');
+  phHolo.style.opacity=(1-vl(f,562,9)).toFixed(3); phHolo.style.backgroundPosition=`${(f-559)*6}px 0`;
+  { const ro=Math.min(vl(f,573,8),1-vl(f,620,8)); show(phRib,ro>0&&!!RIB); if(ro>0&&RIB){ phRib.getContext('2d').clearRect(0,0,960,540); phRib.getContext('2d').drawImage(RIB.draw(f*0.9),0,0); phRib.style.opacity=ro.toFixed(3); } }
   phNum.textContent=Math.round(lerp(92,98,clamp((f-573)/30)))+'%';
   // se pose sur 0:42 (comme la carte de 1318) avant « Fits perfectly »
   const secs=Math.round(lerp(179,42,vladan(clamp((f-580)/21)))); phTime.textContent=`${Math.floor(secs/60)}:${String(secs%60).padStart(2,'0')}`;
@@ -543,7 +582,8 @@ const clInk=inkLayer(CL.s);
 const CL_C={0:i=>i<4?[150,150+i*52]:i<8?[380+(i-4)*350,186]:[366+(i-8)*46,730],1:()=>[680,400],2:i=>[130,150+i*52],3:i=>i?[420,127]:[560,77],4:i=>[460+i*350,245],
   5:i=>i===0?[400,370]:i<=12?[366+(i-1)*46,650]:[900,500],6:()=>[1235,75],7:()=>[1150,555]};
 let CL_S=[560,77], CL_X=[1150,555];
-function clFront(k,i,f){ const c=(CL_C[k]||(()=>[680,400]))(i); const t=Math.min(659+Math.hypot(c[0]-CL_S[0],c[1]-CL_S[1])/300, 661+Math.hypot(c[0]-CL_X[0],c[1]-CL_X[1])/300);
+// la vague part de 653 (et non 659) : le v2 tient ~15 images avant la poussée vers la barre d'outils, au lieu de 10
+function clFront(k,i,f){ const c=(CL_C[k]||(()=>[680,400]))(i); const t=Math.min(653+Math.hypot(c[0]-CL_S[0],c[1]-CL_S[1])/300, 655+Math.hypot(c[0]-CL_X[0],c[1]-CL_X[1])/300);
   return vladan(clamp((f-t)/4)); }
 const M5a=()=>{ const r=clRect(clDash.usr); return penPlace('G05',[r[0]-4,r[1]+(r[3]-r[1])*0.55,r[2]+6,0]); };
 const M5b=()=>{ const r=clRect(clDash.img); return penPlace('G06',[r[0]+8,r[1]+8,r[2]-8,r[3]-8],{mode:'stretch'}); };
@@ -553,7 +593,7 @@ const clBand=el(clZoom,'','', 'position:absolute;left:-40px;right:-200px;top:300
 const CL_IC=[['branch',560],['activity',830],['terminal',1100],['code',1370]];
 const clIcons=CL_IC.map(([k,x])=>{ const d=el(clBand,'','', `position:absolute;left:${x}px;top:95px;width:170px;height:170px;border-radius:34px`); el(d,'',lu(k,120,'#151413',1.6),'position:absolute;inset:25px'); return d; });
 el(clBand,'abs','Share','left:1640px;top:96px;height:170px;line-height:166px;padding:0 60px;border-radius:30px;background:#fff;box-shadow:0 0 0 3px #DDD6CE;font-size:84px');
-cue(642,'impact',{v:.5}); cue(646,'scratch',{v:.6,end:650}); cue(651,'scratch',{v:.6,end:656}); cue(659,'glide',{v:.5,end:665}); cue(668,'whoosh',{v:.45,peak:671,dur:4}); cue(676,'tick',{v:.25}); cue(690,'click',{v:.95}); cue(687,'whoosh',{v:.4,peak:694,dur:7});
+cue(642,'impact',{v:.5}); cue(645,'scratch',{v:.6,end:648}); cue(648,'scratch',{v:.6,end:652}); cue(653,'glide',{v:.5,end:659}); cue(668,'whoosh',{v:.45,peak:671,dur:4}); cue(676,'tick',{v:.25}); cue(690,'click',{v:.95}); cue(687,'whoosh',{v:.4,peak:694,dur:7});
 function shotClients(f){ const z=f>=672; show(clZoom,z); show(CL.cam,!z);
   if(!z){ const y=60+40*(1-approach(f,642,4,0.3)); placeTL(clCard,260,y,1.0);
     CL.cam.style.transform=`scale(${((1+0.035*clamp((f-642)/26))*(1+0.058*accel(f,668,4,3))).toFixed(4)})`;   // lente poussée vers la barre d'outils pendant l'avant/après
@@ -565,8 +605,9 @@ function shotClients(f){ const z=f>=672; show(clZoom,z); show(CL.cam,!z);
     sa.children[1].style.transform=''; sa.children[1].style.clipPath=`inset(0 ${(100*(1-pg)).toFixed(1)}% 0 0)`;
     const pi=clFront(7,0,f); clTri.forEach(t=>{ t.style.translate=`${(t._d[0]*14*pi).toFixed(1)}px ${(t._d[1]*14*pi).toFixed(1)}px`; t.style.opacity=(1-pi).toFixed(3); });
     const ix=inkClear(clInk);
-    if(f>=646&&f<663){ const r=clamp((f-659)/3); penDraw(ix,M5a(),f,646,{size:4.5,u0:r}); }
-    if(f>=651&&f<665){ const r=clamp((f-661)/3); penDraw(ix,M5b(),f,651,{size:6,u0:0,u1:1-r}); }
+    // les deux marques, tracées 1,6× plus vite (le geste reste le même)
+    if(f>=645&&f<657){ const r=clamp((f-653)/3); penDraw(ix,M5a(),645+(f-645)*1.6,645,{size:4.5,u0:r}); }
+    if(f>=648&&f<659){ const r=clamp((f-655)/3); penDraw(ix,M5b(),648+(f-648)*1.6,648,{size:6,u0:0,u1:1-r}); }
     cursor(0,0,0,false); return; }
   // la poussée continue à travers la coupe et ralentit (672-680), on tient (680-686), puis panoramique qui accélère vers la gauche (687-694)
   const zp=approach(f,672,8,0.25), pan=-60*accel(f,686,8,2.8);

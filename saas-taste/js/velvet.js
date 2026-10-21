@@ -115,6 +115,11 @@ const PLAN_X0=330, PLAN_COL=212;
 // [libellé, livrable, colonne, durée, y, voix du fondateur]
 const PLAN_CHIPS=[['Ship','v1 → prod',0,1,462,1],['Type system','Typography.ts',1,1,642,0],['Colour & tokens','OneAccent.tsx',2,1,372,0],['Motion pass','EaseOut.tsx',3,1,732,0],
   ['Taste Check','audit · 47 items',4,1,552,0],['Kickoff','brief.md',0,1,732,0],['Hand-off','Figma + code',4,1,822,0]];
+// la densité de la réf, sans son bariolage : des teintes de matière (lin, sauge, argile, ardoise, avoine), une par pilier,
+// et des tâches secondaires plus pâles (pas de filet d'encre, texte gris) : l'œil reste sur les sept tâches principales
+const PLAN_TINT=[['#EFE7DA','#8C7A5E'],['#DEE3D4','#6E7B5C'],['#EED8CB','#A0634B'],['#DCE1E6','#5E6B78'],['#F1EADF','#151413'],['#EFE7DA','#8C7A5E'],['#DEE3D4','#6E7B5C']];
+const PLAN_DUR=['2h','6h','4h','5h','3h','1h','2h'];
+const PLAN_MINOR=[['Assets','renders ×12',1,462],['Copy pass','EN · FR',3,462],['Icon set','24 icons',2,552],['QA','Safari · iOS',2,732],['Review','Léa · 30 min',1,822]];
 function tplPlan(){ const days=[19,20,21,22,23,24,25], dn=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   const sl=(t,i,on)=>`<div class="sitem" style="top:${i}px;${on?'color:#F3EFEA':''}"><span style="display:inline-block;width:14px;height:14px;border-radius:4px;border:1.5px solid ${on?'#F3EFEA':'rgba(243,239,234,.35)'};${on?'background:#F3EFEA;':''}margin-right:14px;vertical-align:-1px"></span>${t}</div>`;
   let h=`<div class="plan"><div class="side"><div style="position:absolute;left:30px;top:34px;font-size:26px;font-weight:600;letter-spacing:-0.04em;color:#F3EFEA"><span style="display:inline-block;width:24px;height:24px;border-radius:12px;background:#F3EFEA;vertical-align:-3px;margin-right:10px"></span>vladan</div>
@@ -131,7 +136,8 @@ function tplPlan(){ const days=[19,20,21,22,23,24,25], dn=['Mon','Tue','Wed','Th
     <div class="m plx" style="position:absolute;left:${PLAN_X0+PLAN_COL+60}px;top:146px;height:28px;line-height:28px;padding:0 14px;border-radius:14px;background:${VINK};color:#fff;font-size:12px">Today</div>
     <div class="plx" style="position:absolute;left:1830px;top:50px;width:1px;height:1030px;background:#E4DDD5"></div>`;
   days.forEach((d,i)=>{ const x=PLAN_X0+i*PLAN_COL; h+=`<div class="day" style="left:${x}px;top:182px;${i>=5?'color:#B3ABA4':''}">${d}</div><div class="dname" style="left:${x+86}px;top:222px">${dn[i]}${i>=5?' <span style="font-size:22px;color:#B3ABA4">off</span>':''}</div><div class="col" style="left:${x-14}px"></div>`; });
-  PLAN_CHIPS.forEach(([t,dl,c,span,y,fd],i)=>{ h+=`<div class="pchip${fd?' fd':''}" data-i="${i}" style="left:${PLAN_X0+c*PLAN_COL-6}px;top:${y}px;width:${span*PLAN_COL-20}px"><b>${t}</b><i>${dl}</i></div>`; });
+  PLAN_MINOR.forEach(([t,dl,c,y])=>{ h+=`<div class="pminor" style="left:${PLAN_X0+c*PLAN_COL-6}px;top:${y}px;width:${PLAN_COL-20}px"><b>${t}</b><i>${dl}</i></div>`; });
+  PLAN_CHIPS.forEach(([t,dl,c,span,y,fd],i)=>{ const [bg,bar]=PLAN_TINT[i]; h+=`<div class="pchip${fd?' fd':''}" data-i="${i}" style="left:${PLAN_X0+c*PLAN_COL-6}px;top:${y}px;width:${span*PLAN_COL-20}px;background:${bg};--bar:${bar}"><b>${t}</b><i>${dl}</i><span class="pdur">${PLAN_DUR[i]}</span><span class="pav">v</span></div>`; });
   h+=`<div class="plx"><div class="m" style="position:absolute;left:1842px;top:56px;font-size:11px;color:${VG};white-space:normal;width:70px;line-height:1.5">SCREENS</div>
     ${['chair','sofa','pouf','lamp'].map((k,i)=>`<div style="position:absolute;left:1842px;top:${96+i*92}px;width:70px;height:80px;border-radius:10px;overflow:hidden">${vimg('tile_'+k,'inset:0;width:100%;height:100%','50% 60%')}</div>`).join('')}</div>`;
   return h+'</div>'; }
@@ -139,13 +145,13 @@ function tplPlan(){ const days=[19,20,21,22,23,24,25], dn=['Mon','Tue','Wed','Th
 // « Thought for N years » : l'année de début de Vladan (page « Prises au stylo ») ; sinon « a while »
 let VL_YEARS=null;
 function tplVChat(){ return `<div class="full" style="background:#F3EFEA">
-  <div class="chatp"><div style="position:absolute;left:32px;top:30px;display:flex;align-items:center;gap:12px">${VLOGO('#151413',22)}<span style="font-size:20px">Comments</span><span class="m" style="font-size:13px;color:${VG}">2 open · Lounge Chair</span></div>
+  <div class="chatp"><div style="position:absolute;left:32px;top:30px;display:flex;align-items:center;gap:12px">${VLOGO('#151413',22)}<span style="font-size:20px">Comments</span><span class="m copen" style="font-size:13px;color:${VG}">2 open</span></div>
     <div class="cthr" style="position:absolute;left:24px;right:24px;top:96px;height:132px;border-radius:16px;background:#fff;box-shadow:0 0 0 1px #E6E1DB">
       <div style="position:absolute;left:18px;top:16px;display:flex;align-items:center;gap:10px"><span style="display:inline-block;width:34px;height:34px;border-radius:17px;background:#2D6CDF;color:#fff;font:700 15px/34px AR;text-align:center;vertical-align:middle">L</span><span style="font-size:17px">Léa</span><span class="m" style="font-size:12px;color:${VG}">2 min</span></div>
       <span class="m" style="position:absolute;right:16px;top:20px;width:26px;height:26px;border-radius:13px 13px 13px 3px;background:#2D6CDF;color:#fff;font-size:13px;line-height:26px;text-align:center">1</span>
       <div class="ar" style="position:absolute;left:18px;top:64px;font-size:25px;color:#151413">Add a 3D hero. Less blue, please.</div></div>
     <div class="m cthink" style="position:absolute;left:32px;top:242px;font-size:14px;color:#8E877F">pinned on the seat · hero</div>
-    <div class="cres" style="position:absolute;left:24px;right:24px;top:270px;height:62px;border-radius:14px;background:#F8F5F1;box-shadow:0 0 0 1px #E6E1DB;display:flex;align-items:center;gap:10px;padding-left:16px;font-size:16px"><span style="display:inline-block;width:26px;height:26px;border-radius:13px;background:#FF3D5E;color:#fff;font:700 11px/26px AR;text-align:center;vertical-align:middle">v</span><b style="font-weight:500">vladan</b><span class="m" style="font-size:14px;color:#5C5650">✓ resolved · velvet, one accent</span></div>
+    <div class="cres" style="position:absolute;left:24px;right:24px;top:270px;height:62px;border-radius:14px;background:#F8F5F1;box-shadow:0 0 0 1px #E6E1DB;display:flex;align-items:center;gap:10px;padding-left:16px;font-size:16px"><span style="display:inline-block;width:26px;height:26px;border-radius:13px;background:#FF3D5E;color:#fff;font:600 11px/26px ID;text-align:center;vertical-align:middle">v</span><b style="font-weight:500">vladan</b><span class="m" style="font-size:14px;color:#5C5650;margin-left:4px">✓ resolved · velvet, one accent</span></div>
     <div class="m" style="position:absolute;left:32px;top:352px;font-size:13px;color:${VG}"><span style="display:inline-block;width:24px;height:24px;border-radius:12px;background:#2D6CDF;color:#fff;font:700 10px/24px AR;text-align:center;vertical-align:middle">L</span>&nbsp; Léa · 1 min</div>
     <div class="m" style="position:absolute;left:32px;top:378px;font-size:13px;color:${VG}"> </div>
     <div style="position:absolute;left:24px;right:24px;top:398px;height:150px;border-radius:16px;background:#fff;box-shadow:0 0 0 1px #E6E1DB">

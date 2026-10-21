@@ -85,7 +85,7 @@ em{font-family:'BE';font-style:italic;font-weight:500;letter-spacing:-0.01em}
 
 /* arborescence */
 .titem{position:absolute;left:0;top:0;font-size:52px;font-weight:400;color:#B3ABA4;white-space:nowrap;letter-spacing:-0.01em}
-.titem .fi{display:inline-block;width:28px;height:34px;border:3px solid currentColor;border-radius:5px;margin-right:14px;vertical-align:-4px;opacity:.7}
+.titem .fi{display:inline-block;width:.54em;height:.65em;margin-right:.26em;vertical-align:-.04em;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 34'%3E%3Cpath d='M4 3h13l7 7v21H4z M17 3v7h7' fill='none' stroke='%23000' stroke-width='2.4' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 34'%3E%3Cpath d='M4 3h13l7 7v21H4z M17 3v7h7' fill='none' stroke='%23000' stroke-width='2.4' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat}
 .tline{position:absolute;width:1.5px;background:#CFC6BC}
 
 /* pills */
@@ -101,10 +101,14 @@ em{font-family:'BE';font-style:italic;font-weight:500;letter-spacing:-0.01em}
 .plan .day{position:absolute;font-size:64px;letter-spacing:-0.04em;font-weight:500}
 .plan .dname{position:absolute;font-family:'JB';font-size:15px;color:var(--grey)}
 .plan .col{position:absolute;top:300px;width:1px;height:780px;background:#E4DDD5}
-.pchip{position:absolute;height:72px;border-radius:10px;padding:9px 14px 0 17px;white-space:nowrap;overflow:hidden;background:#F6F2EE;box-shadow:inset 0 0 0 1px rgba(21,20,19,.12),inset 3px 0 0 #151413;color:#151413}
+.pchip{position:absolute;height:72px;border-radius:10px;padding:9px 14px 0 17px;white-space:nowrap;overflow:hidden;background:#F6F2EE;box-shadow:inset 0 0 0 1px rgba(21,20,19,.10),inset 3px 0 0 var(--bar,#151413);color:#151413}
+.pchip .pdur{position:absolute;right:12px;top:14px;font-family:'JB';font-size:12px;color:rgba(21,20,19,.45)}
+.pchip .pav{position:absolute;right:10px;bottom:8px;width:18px;height:18px;border-radius:9px;background:#151413;color:#F3EFEA;font-size:11px;line-height:18px;text-align:center;font-weight:600}
+.pminor{position:absolute;height:72px;border-radius:10px;padding:9px 14px 0 17px;white-space:nowrap;overflow:hidden;background:rgba(246,242,238,.7);box-shadow:inset 0 0 0 1px rgba(21,20,19,.07);color:rgba(21,20,19,.42)}
+.pminor b{display:block;font-size:22px;font-weight:400;line-height:30px}.pminor i{display:block;font-family:'JB';font-style:normal;font-size:13px;margin-top:4px}
 .pchip.fd{box-shadow:inset 0 0 0 2px #2D6CDF,inset 5px 0 0 #2D6CDF}
 .pchip b{display:block;font-size:24px;font-weight:500;letter-spacing:-0.01em;line-height:30px}
-.pchip i{display:block;font-family:'JB';font-style:normal;font-size:16px;opacity:.55;margin-top:4px}
+.pchip i{display:block;font-family:'JB';font-style:normal;font-size:13px;opacity:.55;margin-top:6px}
 .streak{position:absolute;height:52px;border-radius:14px}
 
 /* téléphone */
