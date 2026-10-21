@@ -16,17 +16,18 @@ const RIB=(()=>{
   void main(){
     vec2 uv=gl_FragCoord.xy/R; uv.y=1.-uv.y; float x=uv.x*R.x/R.y;
     vec3 col=vec3(0.); float A=0.;
-    for(int k=0;k<3;k++){ float fk=float(k);
-      float y0=.30+.22*fk, fr=1.0+.3*fk, ph=fk*2.1, sp=.045+.012*fk;
+    for(int k=0;k<2;k++){ float fk=float(k);
+      float y0=.34+.30*fk, fr=1.0+.3*fk, ph=fk*2.1, sp=.045+.012*fk;
       float yc=y0+.11*sin(x*fr+T*sp+ph)+.05*sin(x*fr*2.3-T*sp*.7+ph*1.7);
       float dy=.11*fr*cos(x*fr+T*sp+ph)+.05*fr*2.3*cos(x*fr*2.3-T*sp*.7+ph*1.7);   // pente de la ligne centrale
-      float w=.19+.07*sin(x*.9+fk*1.3+T*.02);                                       // largeur qui respire : le ruban vrille
+      float w=.24+.08*sin(x*.9+fk*1.3+T*.02);                                       // largeur qui respire : le ruban vrille
       float d=(uv.y-yc)/w, a=1.-smoothstep(.75,1.,abs(d));
       float twist=d*.35+dy*.45+x*.12+T*.004;
       vec3 c=film(twist+fk*.21); c=mix(c,vec3(1.),.35*pow(1.-abs(d),4.));           // reflet sur le pli
-      c*=1.-.06*abs(d);                                                             // le bord tourne vers l'ombre
+      c*=1.-.04*abs(d);
+      float fold=smoothstep(.15,.75,abs(dy))+.35*smoothstep(.55,1.,abs(d)); c=mix(vec3(.985,.975,.97),c,clamp(.30+.6*fold,0.,1.));                                                             // le bord tourne vers l'ombre
       // composition prémultipliée : pas de liseré gris au bord des rubans
-      float ak=a*.92; col+=c*ak*(1.-A); A+=ak*(1.-A);
+      float ak=a*.88; col+=c*ak*(1.-A); A+=ak*(1.-A);
     }
     gl_FragColor=vec4(A>0.?col/A:col,A);
   }`;

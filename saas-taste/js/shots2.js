@@ -387,7 +387,7 @@ const grLines=[]; for(let i=0;i<=18;i++) grLines.push(el(grIn,'gline','', `left:
 for(const y of [120,240,360,480,600,720,840,930,990]) for(let i=0;i<=18;i++){ const sz=y<200||y>900?14:8; el(grIn,'gdot','', `left:${i*120}px;top:${y}px;width:${sz}px;height:${sz}px;margin:${-sz/2}px 0 0 ${-sz/2}px;border-radius:50%`); }
 // cartes posées sur la grille, avec des repères de coupe aux coins
 const crop=c=>{ ['0 0','100% 0','0 100%','100% 100%'].forEach((pos,k)=>el(c,'','', `position:absolute;${k%2?'right':'left'}:-10px;${k>1?'bottom':'top'}:-10px;width:18px;height:18px;border-${k>1?'bottom':'top'}:1.5px solid rgba(21,20,19,.35);border-${k%2?'right':'left'}:1.5px solid rgba(21,20,19,.35)`)); c.style.overflow='visible'; return c; };
-const grMacroTile=crop(el(grIn,'gcard','', 'left:960px;top:120px;width:720px;height:720px;display:none;filter:grayscale(1) brightness(.62) contrast(1.35)'));
+const grMacroTile=crop(el(grIn,'gcard','', 'left:960px;top:120px;width:720px;height:720px;display:none;filter:grayscale(1) brightness(.92) contrast(1.3)'));
 const grMacro=canvas(grMacroTile,720,720,'inset:0;width:100%;height:100%');
 const grThumb2=crop(el(grIn,'gcard','', 'left:1680px;top:600px;width:240px;height:240px;display:none;filter:grayscale(1) brightness(.62) contrast(1.3)')); const grMacro2=canvas(grThumb2,240,240,'inset:0;width:100%;height:100%');
 const grStat=crop(el(grIn,'gcard','', 'left:240px;top:120px;width:480px;height:240px;display:none'));
@@ -434,8 +434,8 @@ const RE=scene('sReport',1131,1175,f=>shotReport(f));
 const cR26=cueAt(1);
 // derrière la carte, un champ thermique pâle qui dérive (la réf : un fond irisé qui bouge) ; flou et bas contraste : la carte reste le seul élément net
 const reTh=canvas(RE.cam,960,540,'left:-60px;top:-60px;width:2040px;height:1200px;filter:blur(38px);opacity:.62');
-function heatField(f,n,seed,bias,dark){ const r=rng(seed), S=[]; for(let i=0;i<n;i++){ const x0=r(), y0=r(), ax=0.08+r()*0.12, ay=0.06+r()*0.1, w=0.25+r()*0.35, ph=r()*6.28, sp=0.012+r()*0.018;
-    S.push([x0+ax*Math.sin(f*sp+ph),y0+ay*Math.cos(f*sp*1.3+ph),0.18+r()*0.16,w]); }
+function heatField(f,n,seed,bias,dark,gain=1){ const r=rng(seed), S=[]; for(let i=0;i<n;i++){ const x0=r(), y0=r(), ax=0.08+r()*0.12, ay=0.06+r()*0.1, w=0.25+r()*0.35, ph=r()*6.28, sp=0.012+r()*0.018;
+    S.push([x0+ax*Math.sin(f*sp+ph),y0+ay*Math.cos(f*sp*1.3+ph),0.18+r()*0.16,w*gain]); }
   return THERMAL.draw(THERMAL.blank,{spots:S,wimg:0,bias,bands:7,blur:1,t:f,dark}); }
 const reCard=el(RE.cam,'rcard','', 'width:960px;height:420px'); reCard.innerHTML=`<div style="position:absolute;left:40px;top:34px;font-size:38px;letter-spacing:-0.02em">BrandReport <span class="m" style="font-size:16px;color:#F3EFEA;background:#151413;border-radius:8px;padding:4px 10px;margin-left:12px;vertical-align:6px">● velvetly.app</span></div>
   <div style="position:absolute;left:40px;top:96px;display:flex;align-items:baseline;gap:16px"><span class="ar r47" style="font-size:96px;color:#2D6CDF;line-height:1">47</span><span style="font-size:30px">boring issues</span></div>
@@ -452,10 +452,10 @@ const reBtn=el(reCard,'abs','Accept all','left:auto;right:44px;top:316px;height:
 const reProg=q1(reCard,'.rprog');
 cR26(1130,'impact',{v:.5}); cR26(1161,'click',{v:1}); cR26(1162,'pop',{v:.5,n:84});
 function shotReport(F){ const f=F-1;
-  if(THERMAL){ heatField(f,6,1131,0.12,0); reTh.getContext('2d').drawImage(THERMAL.canvas,0,0); }
+  if(THERMAL){ heatField(f,6,1131,0,0,0.45); reTh.getContext('2d').drawImage(THERMAL.canvas,0,0); }
   RE.cam.style.transform=`scale(${(1+0.0025*(f-1131)).toFixed(4)})`;   // poussée à vitesse constante jusqu'à la coupe (l'ease-out figeait les 4 dernières images)
   // la carte monte (40 px, 10 images), le 47 se compte, les lignes et les barres par catégorie arrivent une à une
-  const p=approach(f,1130,6); place(reCard,960,545+40*(1-vl(f,1131,10))); reCard.style.opacity=lerp(0.3,1,p).toFixed(3);
+  const p=approach(f,1130,6); place(reCard,960,545+40*(1-vl(f,1131,10)),0.86); reCard.style.opacity=lerp(0.3,1,p).toFixed(3);
   reNum.textContent='47';   // pas de compte à partir de 0 : dans ce film, 0 veut dire « réglé »
   reRows.forEach((r,i)=>{ const a=vl(f,1137+i*3,4); r.style.opacity=a.toFixed(2); r.style.transform=`translateY(${(8*(1-a)).toFixed(1)}px)`; });
   reBars.forEach((r,i)=>{ const a=vl(f,1139+i*2,5); r.style.opacity=Math.min(1,a*2).toFixed(2); r.lastChild.style.transform=`scaleX(${a.toFixed(3)})`; });
@@ -596,6 +596,7 @@ const shTree=el(SH.cam,'','', 'position:absolute;left:1180px;top:240px;width:760
 SH.cam.insertBefore(shTree,shWin);
 // les vitres : plus fraîches en haut, plus chaudes en bas (elles suivent la fenêtre)
 const shPane=el(SH.cam,'','', 'position:absolute;left:0;top:0;width:1920px;height:1080px;pointer-events:none;opacity:.5;background:linear-gradient(#F3EAE3,#F7E3D0)'); SH.cam.insertBefore(shPane,shTree);
+[shWin,shChair,shChairSh,shPatch,shTree,shShaft].forEach(e=>e.style.display='none');
 const shBtn=el(SH.s,'bbtn',''); shBtn.style.zIndex=5; shBtn.style.width='228px'; shBtn.style.padding='0'; shBtn.style.textAlign='center'; shBtn.style.borderRadius='14px';
 const shRing=el(SH.s,'','', 'position:absolute;left:960px;top:540px;width:0;height:0;border-radius:50%;box-shadow:0 0 0 1px #151413;z-index:4');
 cR28(1250,'impact',{v:.5}); cR28(1293,'beep',{v:.6}); cR28(1298,'riser',{v:.55,end:1306});
@@ -637,11 +638,13 @@ const moLSeq=q1(moLD,'.vseq'), moLXr=q1(moLD,'.vxr'), moLh=qa(moLD,'.lnh'), moLT
 const MOS=[[moP,1307],[moR,1325],[moDa,1336],[moL,1349]];
 cR29(1307,'impact',{v:.7}); cR29(1325,'impact',{v:.6}); cR29(1336,'impact',{v:.6}); cR29(1349,'impact',{v:.7}); [1312,1314,1315].forEach(f=>cR29(f,'tick',{v:.2})); cR29(1372,'shimmer',{v:.45,end:1378});
 // les fragments corrigés reviennent à la place exacte de leurs jumeaux ennuyeux (5, lisibles, 30 px), à cheval sur la fin du montage
-const OU_FIX=[[4,'/* done. it sits. */'],[10,'/* nothing is !important */'],[13,'cursor: you;'],[5,'<h1>Morning, Léa.</h1>'],[12,'ease: vladan;']];
-const moFix=OU_FIX.map(([i,t])=>{ const d=el(MO.s,'abs frag','','font-size:30px;z-index:20;display:none'); d.textContent=t; d._i=i; return d; });
+const OU_FIX=[[4,'/* done. it sits. */'],[10,'/* nothing is !important */'],[13,'cursor: you;'],[5,'<h1>Morning, Léa.</h1>'],[12,'ease: vladan;'],
+  [0,'font-family: "Inter Display";',1],[1,'color: #151413;',1],[2,'box-shadow: none;',1],[3,'border-radius: 20px;',1],[6,'copy: written.',1],[7,'img: room_04.jpg',1],
+  [8,'.btn { ink }',1],[9,'font-size: 46px;',1],[11,'z-index: auto;',1],[14,'text-align: left;',1],[15,'Plan with taste. ■',1]];
+const moFix=OU_FIX.map(([i,t,sm])=>{ const d=el(MO.s,'abs frag','',`font-size:${sm?20:30}px;z-index:20;display:none`); d.textContent=t; d._i=i; d._sm=sm; return d; });
 // les fragments ne figent plus puis ne sautent plus : ils se rassemblent vers le centre en accélérant (1379-1390), jusqu'au point
 function fixFrags(list,f,f0){ const G=1-0.92*accel(f,1379,11,2.2); list.forEach(d=>{ const on=f>=f0&&f<1390; show(d,on); if(!on) return; const src=wFr[d._i];
-  placeTL(d,960+(src._x-960)*G,540+(src._y-540)*G,G); d.style.color=mixc('#FFC2CD','#151413',clamp((f-f0)/6)); d.style.opacity=(1-clamp((f-1387)/3)).toFixed(2); }); }
+  placeTL(d,960+(src._x-960)*G,540+(src._y-540)*G,G); d.style.color=mixc(d._sm?'#FFB27A':'#FFC2CD','#151413',clamp((f-f0)/(d._sm?9:6))); d.style.opacity=(1-clamp((f-1387)/3)).toFixed(2); }); }
 function shotMont(F){ const f=F-1; let cur=MOS[0]; for(const m of MOS) if(f>=m[1]) cur=m;
   MOS.forEach(m=>show(m[0],m===cur)); const a=f-cur[1];
   let sc=1; if(cur[0]===moP) sc=1+0.035*approach(f,1307,18,0.12); else if(cur[0]===moR) sc=1+0.0007*a; else if(cur[0]===moDa) sc=1+0.0016*a; else sc=1-0.03*accel(f,1366,12,2);
@@ -663,7 +666,7 @@ function shotMont(F){ const f=F-1; let cur=MOS[0]; for(const m of MOS) if(f>=m[1
 /* ---------- 31-32 · fragments corrigés → anneau → marque → « vladan » + « Made in code. Marked up by hand. » → la carte de fin : le brief était un e-mail à Vladan ---------- */
 const OU=scene('sOutro',1380,1559,f=>shotOutro(f));
 const cR31=cueAt(2);
-const ouFix=OU_FIX.map(([i,t])=>{ const d=el(OU.s,'abs frag','','font-size:30px;z-index:20;display:none'); d.textContent=t; d._i=i; return d; });   // textContent : « <h1> » reste du code
+const ouFix=OU_FIX.map(([i,t,sm])=>{ const d=el(OU.s,'abs frag','',`font-size:${sm?20:30}px;z-index:20;display:none`); d.textContent=t; d._i=i; d._sm=sm; return d; });   // textContent : « <h1> » reste du code
 const ouGl=gset(16,77,420,190).map(g=>{ const d=el(OU.cam,'abs c glyph'); d._g=g; d.textContent=g[0]; d.style.color=GINK; return d; });
 const ouDot=el(OU.cam,'abs','', 'border-radius:50%');
 const ouMark=el(OU.cam,'abs','', 'width:81px;height:81px'); ouMark.innerHTML=MARK_SVG;

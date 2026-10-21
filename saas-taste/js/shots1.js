@@ -145,7 +145,8 @@ const W_Z=[1,.85,.80,.74,.64,.55,.40,.284], wZ=f=>f<=113?1:f>=120?W_Z[7]:lerp(W_
 // le serrage : 15 % du chemin à 95 (les cartes rampent), 70 % à 96, posé à 97 (le temps fort)
 function wSnap(f){ return f<89?0:f<95?0.15*Math.pow((f-89)/6,1.6):f<96?lerp(0.15,0.70,f-95):f<97?lerp(0.70,1,f-96):1; }
 // la caméra de la pile : après le serrage elle continue de se resserrer (−1,4 %/image) en dérivant, puis la contraction finale
-function wCam(f){ const n=clamp(f,97,113)-97; return {z:Math.pow(0.986,n)*wZ(f),dx:4*n,dy:-3*n}; }
+const wAmk=f=>f<97?1:1+0.35*(1-clamp((f-113)/7));
+function wCam(f){ const n=clamp(f,97,113)-97; return {z:Math.pow(0.986,n)*wZ(f)*wAmk(f),dx:4*n,dy:-3*n}; }
 function wMap(p,f){ const m=wCam(f); return [960+(p[0]-960+m.dx)*m.z,540+(p[1]-540+m.dy)*m.z]; }
 function gather(f){ if(f<97){ wCol.style.transform=''; return; } const m=wCam(f); wCol.style.transformOrigin='960px 540px';
   wCol.style.transform=`scale(${m.z.toFixed(4)}) translate(${m.dx.toFixed(1)}px,${m.dy.toFixed(1)}px)`; }
@@ -199,7 +200,8 @@ prSite.innerHTML=`<div style="position:absolute;left:0;right:0;top:0;height:60px
   <div class="m" style="position:absolute;left:420px;top:14px;width:560px;height:32px;border-radius:9px;background:#F7F4F0;font-size:14px;line-height:32px;text-align:center;color:#5C5650;white-space:nowrap">velvetly.app · room planner for furniture brands</div>
   <div class="m" style="position:absolute;right:16px;top:12px;height:36px;line-height:36px;padding:0 14px;border-radius:9px;background:#151413;color:#F3EFEA;font-size:14px">● Comment mode</div></div>
   <div class="prD" style="position:absolute;left:20px;top:70px;width:1360px;height:800px;transform-origin:0 0"></div>
-  <div style="position:absolute;inset:60px 0 0 0;background:rgba(238,233,228,.42)"></div>`;
+  <div style="position:absolute;inset:60px 0 0 0;background:rgba(238,233,228,.66)"></div>`;
+q1(prSite,'.prD').style.filter='blur(2.5px)';
 const prDash=buildDash(q1(prSite,'.prD'));
 // le repère du commentaire, planté sur la photo de poignée de main
 const prPin=el(P1.cam,'','', 'position:absolute;left:1494px;top:536px;width:46px;height:46px;border-radius:23px 23px 23px 4px;background:#2D6CDF;color:#fff;font:700 21px/46px AR;text-align:center;box-shadow:0 0 0 3px #fff,0 8px 18px rgba(0,0,0,.25)'); prPin.textContent='L';
@@ -276,10 +278,10 @@ function laLensAt(f){ const t=ease3(clamp((f-246)/42)); return [lerp(420,1095,t)
 // 228-235 : l'aplat d'encre se développe en image thermique de la landing (le rouge du stylo est le 0,70 de la palette),
 // qui recule en accélérant comme la carte thermique de la réf, puis refroidit vers la photo ; le carré de la marque reste chaud le dernier
 const laTh=document.createElement('canvas'); laTh.width=1920; laTh.height=1080; laTh.style.cssText='position:absolute;left:0;top:0;width:1920px;height:1080px;z-index:30;display:none;pointer-events:none'; LA.s.appendChild(laTh);
-const LA_FLAT=[1,.55,.2,0];
+const LA_FLAT=[.55,.2,0,0];
 // l'image thermique d'une landing à l'écran (sa carte, sa photo, sa bande papier, sa marque chaude), dans le canvas dest
 function landThermal(stage,frame,seq,mark,dest,o){ const st=stage.getBoundingClientRect(), k=st.width/W, R=e=>{ const r=e.getBoundingClientRect(); return [(r.left-st.left)/k/2,(r.top-st.top)/k/2,(r.right-r.left)/k/2,(r.bottom-r.top)/k/2]; };
-  const x=THERMAL.srcCtx; x.fillStyle='#EFE5DC'; x.fillRect(0,0,960,540);
+  const x=THERMAL.srcCtx; x.fillStyle='#2A2624'; x.fillRect(0,0,960,540);
   const fr=R(frame), ph=R(seq); x.fillStyle='#151413'; x.fillRect(...fr); x.drawImage(seq,...ph); x.fillStyle='#EEE9E4'; x.fillRect(ph[0],ph[1]+ph[3],ph[2],ph[3]*170/560);
   const m=R(mark); THERMAL.draw(null,Object.assign({spots:[[(m[0]+m[2]/2)/960,(m[1]+m[3]/2)/540,0.045,0.5]],wimg:1,lo:0.12,hi:0.9,gam:1.1,blur:5},o));
   dest.getContext('2d').drawImage(THERMAL.canvas,0,0,1920,1080); }
@@ -299,8 +301,8 @@ function shotLand(f){
   let sc,x=960,y=540;
   // la landing apparaît déjà en mouvement : recul dès 231, pendant le fondu (≈ −3,5 %/image, comme la réf), au lieu de tenir jusqu'à 235
   // 228-230 : la carte thermique recule (−6,5 %/image) ; puis la landing continue de reculer en ralentissant
-  if(f<231) sc=[1.36,1.27,1.19][clamp(f-228,0,2)]; else if(f<274) sc=lerp(1.12,0.81,approach(f,231,43,0.09));
-  else if(f<281){ const a=accel(f,274,6.6,2.6); sc=lerp(0.81,0.70,a); x=960+40*a; }   // sortie à la vitesse de la réf (−3 / −4,3 %/image), nette
+  if(f<231) sc=[1.5,1.42,1.36][clamp(f-228,0,2)]; else if(f<274) sc=lerp(1.3,0.94,approach(f,231,43,0.09));
+  else if(f<281){ const a=accel(f,274,6.6,2.6); sc=lerp(0.94,0.80,a); x=960+40*a; }   // sortie à la vitesse de la réf (−3 / −4,3 %/image), nette
   else { const p=approach(f,281,14,0.25); sc=lerp(0.683,0.632,p); x=1588-720*sc+lerp(16,0,p); y=548; }
   const gone=f>=294?approach(f,294,5):0;
   place(laFrame,x,y,sc); laFrame.style.filter=gone>0?`blur(${(10*gone).toFixed(1)}px) brightness(${(1+0.35*gone).toFixed(2)})`:''; laFrame.style.opacity=(1-0.85*clamp((f-297)/3)).toFixed(3);
@@ -392,7 +394,7 @@ function shotDash(F){ const f=F-1;   // numéros de la réf (REMAP +1)
 /* ---------- 10 · le salon en vol plongeant (séquence Cycles) : tracé, point et plan au sol accrochés à l'image ---------- */
 const cR10=cueAt(1);
 const HE=scene('sHero',381,419,f=>shotHero(f));
-const heSeq=canvas(HE.cam,1280,720,'left:0;top:0;width:1920px;height:1080px');
+const heSeq=canvas(HE.cam,1280,720,'left:0;top:0;width:1920px;height:1080px;filter:brightness(1.14) contrast(1.04)');
 const heSvg=el(HE.cam,'',`<svg width="1920" height="1080" viewBox="0 0 1920 1080"><g class="hplan" fill="none" stroke="#F3EFEA" stroke-width="1.5"></g><g class="htick" stroke="#F3EFEA" stroke-width="1.5" fill="none"></g>
   <path class="hers" fill="none" stroke="rgba(21,20,19,.35)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="filter:blur(8px)"/><path class="her" fill="none" stroke="#151413" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
   <circle class="hp1" r="14" fill="none" stroke="#F3EFEA" stroke-width="2"/><circle class="hp2" r="14" fill="none" stroke="#F3EFEA" stroke-width="2"/>
@@ -429,7 +431,7 @@ const PI=scene('sPills',420,467,f=>shotPills(f));
 const piL=el(PI.cam,'pill','Lemme give it'), piR=el(PI.cam,'pill acc','<em>taste</em>'), piI=el(PI.cam,'picn','');
 // la fonte : une traînée horizontale (queue transparente, corps orangé, tête rose-lilas), floutée dans le sens du mouvement,
 // qui devient la première barre du planning (réf 460-466 : un trait de vitesse, pas une tache ronde)
-const piMelt=el(PI.cam,'','', 'position:absolute;left:0;top:500px;height:80px;border-radius:40px;background:linear-gradient(90deg,rgba(255,154,77,0) 0%,rgba(255,154,77,.9) 38%,#FF9A8A 70%,#D9C2F5 100%);display:none');
+const piMelt=el(PI.cam,'','', 'position:absolute;left:0;top:480px;height:120px;border-radius:60px;background:linear-gradient(90deg,rgba(255,154,77,0) 0%,rgba(255,154,77,.9) 38%,#FF9A8A 70%,#D9C2F5 100%);display:none');
 // ce que vend Vladan, dans la fente de l'icône : marque (Aa), interface (panneaux), mouvement ; puis la fente se remplit d'encre avec la barre de la marque
 const PI_ICO=[c=>`<svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>`,
   c=>`<svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>`,
@@ -466,10 +468,10 @@ const plRoot=el(PL.cam,'','', 'position:absolute;left:0;top:0;width:1920px;heigh
 const plMinor=qa(plRoot,'.pminor'), plChips=qa(plRoot,'.pchip'), plDays=qa(plRoot,'.day'), plDn=qa(plRoot,'.dname'), plCols=qa(plRoot,'.col'), plSide=q1(plRoot,'.side'), plTitle=[q1(plRoot,'.ptitle'),q1(plRoot,'.psub')], plX=qa(plRoot,'.plx');
 // vague 1 : grosses barres floues (≈140 px), qui poussent vers la droite puis se rattrapent et s'éteignent (réf 466-480)
 // barres floues nées dans des teintes du bleu du fondateur, qui sèchent en teintes d'encre (488-500)
-const PL_BLUE=['#E4D3BE','#CFD8C2','#E6C3B2','#C9D2DC','#EADFCB','#D6CDBF'], PL_INK=[.06,.10,.16,.08,.12,.10];
+const PL_BLUE=['#FFC9A8','#F3B9D0','#FFB27A','#D9C2F5','#FF9A8A','#E6C3B2'], PL_INK=[.06,.10,.16,.08,.12,.10];
 // dix barres, deux toutes les deux images ; elles naissent dans le rose-orangé de la coulée des pilules et bleuissent (466-476)
-const PL_BARS=Array.from({length:20},(_,i)=>[466+2*Math.floor(i/2),(()=>{ const r=rng(900+i); return 130+r()*820; })()]).map(([st,y],i)=>{ const c=PL_BLUE[i%6]; const r=rng(810+i), hh=30+r()*28; const d=el(PL.cam,'','', `position:absolute;top:${y}px;height:${hh.toFixed(0)}px;border-radius:${(hh/2).toFixed(0)}px;display:none`); d._st=st; d._i=i; d._x=i==0?600:60+r()*1100; d._g=30+r()*70; d._c=100+r()*70; return d; });
-plChips.forEach((c,i)=>{ c._st=504+i*1.3; c._x0=parseFloat(c.style.left); c._y0=parseFloat(c.style.top); });
+const PL_BARS=Array.from({length:12},(_,i)=>[466+2*Math.floor(i/2),(()=>{ const r=rng(900+i); return 130+r()*820; })()]).map(([st,y],i)=>{ const c=PL_BLUE[i%6]; const r=rng(810+i), hh=70+r()*60; const d=el(PL.cam,'','', `position:absolute;top:${y}px;height:${hh.toFixed(0)}px;border-radius:${(hh/2).toFixed(0)}px;display:none`); d._st=st; d._i=i; d._x=i==0?600:60+r()*1100; d._g=30+r()*70; d._c=100+r()*70; return d; });
+plChips.forEach((c,i)=>{ c._st=496+i*1.3; c._x0=parseFloat(c.style.left); c._y0=parseFloat(c.style.top); });
 const plInk=inkLayer(plRoot);
 // M4 : le S d'inversion relie « Ship » (lundi) et « Taste Check » (vendredi) ; chacun part sur un lobe du S (523-529)
 const PL_SHIP=plChips[0], PL_TC=plChips[4];
@@ -484,6 +486,8 @@ function shotPlan(F){ const f=F-2;   // numéros de la réf (REMAP +2)
     zs=2.15*(1+0.032*approach(f,532,27,0.09)); zx=z[1]; zy=z[2]; }
   plRoot.style.transform=`translate(${(960-zx*zs).toFixed(1)}px,${(540-zy*zs).toFixed(1)}px) scale(${zs})`;
   // caméra : recul qui ralentit (499-516), puis parfaitement immobile jusqu'à la coupe
+  plChips.forEach(c=>c.classList.remove('phero')); if(f>=532){ const sb=PL.s.getBoundingClientRect(), kk=sb.width/W; let best=null, bd=1e9;
+    plChips.forEach(c=>{ const r=c.getBoundingClientRect(), d=Math.hypot((r.left+r.width/2-sb.left)/kk-960,(r.top+r.height/2-sb.top)/kk-540); if(d<bd){ bd=d; best=c; } }); if(best) best.classList.add('phero'); }
   PL.cam.style.transform=f<532?`scale(${(1.04-0.04*approach(f,499,17,0.1)).toFixed(4)})`:'';
   plRoot.firstChild.style.background=mixc('#EEE9E4','#F6F2EE',approach(f,490,16));
   // elles vivent 26 images (fondu à partir de 16) et dérivent ensemble de 10 px/image : l'écran n'est jamais vide avant le calendrier
@@ -492,10 +496,10 @@ function shotPlan(F){ const f=F-2;   // numéros de la réf (REMAP +2)
     const dr=vladan(clamp((f-488)/12)), cb=hex(PL_BLUE[j]), c0=m3(m3(hex('#FF9A8A'),hex('#C9A6F2'),(b._i%3)/2),cb,clamp((f-466)/10)), c=m3(c0,[21,20,19],dr), al=lerp(1,PL_INK[j]*4,dr);
     const C=(k,a)=>`rgba(${k.map(Math.round).join(',')},${a.toFixed(3)})`;
     b.style.background=`linear-gradient(90deg,${C(c,0)} 0%,${C(c,al*0.85)} 45%,${C(m3(c,[255,255,255],0.35),al)} 100%)`;
-    b.style.left=(b._x+10*(f-466))+'px'; b.style.width=(180+grow)+'px'; b.style.opacity=(1-clamp((a-16)/10)).toFixed(3); mblur(b,14,2.5); });
+    b.style.left=(b._x+10*(f-466))+'px'; b.style.width=(180+grow)+'px'; b.style.opacity=(1-clamp((a-16)/10)).toFixed(3); mblur(b,34,7); });
   plChips.forEach((c,i)=>{ const blob=f>=486+(i%6)*1.4, sharp=approach(f,c._st,3,0.3);
     c.style.visibility=blob?'visible':'hidden'; c.style.transform=f>=555&&i==3?`scaleY(${(1+0.4*accel(f,555,4,2)).toFixed(3)})`:''; if(i==3) c.style.transformOrigin='50% 0';
-    c.style.filter=sharp<1?`blur(${(14*(1-sharp)).toFixed(1)}px)`:''; [...c.children].forEach(e=>e.style.opacity=sharp.toFixed(2)); });
+    c.style.filter=sharp<1?`blur(${(14*(1-sharp)).toFixed(1)}px) saturate(${(1+2.2*(1-sharp)).toFixed(2)})`:''; [...c.children].forEach(e=>e.style.opacity=sharp.toFixed(2)); });
   // les tâches secondaires arrivent après les principales, déjà en retrait
   plMinor.forEach((c,i)=>{ const p=approach(f,508+i*1.5,6,0.25); c.style.opacity=p.toFixed(3); c.style.visibility=p>0?'visible':'hidden'; });
   // l'inversion : « Taste Check » prend le lobe du haut vers lundi, « Ship » le lobe du bas vers vendredi ; l'encre de chaque lobe se rétracte derrière sa puce
@@ -547,7 +551,7 @@ function shotPhone(F){ const f=F-2;   // numéros de la réf (REMAP +2)
   // dépli en hauteur (478 → 861 px), puis la caméra s'approche (×0,9 → ×1,28, décélération) en tournant de 4° : le téléphone vit
   // entrée de la réf : ×1,4 en 7 images (+20 → +3 %/image, ease-out), puis lente approche ; sortie : il se lève et recule en accélérant (637-641)
   const pt=clamp((f-559)/82), pin=1-Math.pow(1-clamp((f-559)/7),2), ex=accel(f,636,5.5,2.4);
-  const ps=(f<566?lerp(0.72,1.0,pin):lerp(1.0,1.16,1-Math.pow(1-clamp((f-566)/75),2)))*(1-0.05*ex), ry=lerp(-2.5,1.5,pt);   // 1,16 : ~60 px de marge, le téléphone ne touche jamais le cadre
+  const ps=(f<566?lerp(0.9,1.0,pin):lerp(1.0,1.16,1-Math.pow(1-clamp((f-566)/75),2)))*(1-0.05*ex), ry=lerp(-2.5,1.5,pt);   // 1,16 : ~60 px de marge, le téléphone ne touche jamais le cadre
   // tenu à la main : ±6 px, ±0,5° de roulis, ~0,3 Hz (deux fréquences, déterministe)
   const hx=10*Math.sin(f*0.063+1.1)*0.75+2.5*Math.sin(f*0.17), hy=8*Math.sin(f*0.051+2.3)*0.8+2*Math.sin(f*0.21+0.4)-22*ex, hr=0.8*Math.sin(f*0.058+0.7);
   phone.style.transform=`translate(${(960+hx).toFixed(2)}px,${(540+hy).toFixed(2)}px) translate(-50%,-50%) rotate(${hr.toFixed(3)}deg) perspective(2400px) rotateY(${ry.toFixed(2)}deg) scale(${ps.toFixed(4)}) scaleY(${lerp(0.555,1,pin).toFixed(4)})`;
@@ -595,6 +599,7 @@ const M5a=()=>{ const r=clRect(clDash.usr); return penPlace('G05',[r[0]-4,r[1]+(
 const M5b=()=>{ const r=clRect(clDash.img); return penPlace('G06',[r[0]+8,r[1]+8,r[2]-8,r[3]-8],{mode:'stretch'}); };
 function clRect(e){ const r=e.getBoundingClientRect(), st=CL.s.getBoundingClientRect(), k=st.width/W; return [(r.left-st.left)/k,(r.top-st.top)/k,(r.right-st.left)/k,(r.bottom-st.top)/k]; }
 const clZoom=el(CL.s,'','', 'position:absolute;inset:0;display:none;background:#F6F2EE');
+const clBelow=el(clZoom,'','', 'position:absolute;left:0;top:0;width:1400px;height:880px;transform-origin:0 0;filter:blur(7px);opacity:.45');
 const clBand=el(clZoom,'','', 'position:absolute;left:-40px;right:-200px;top:300px;height:360px;background:#ECE8E3;box-shadow:0 1px 0 #DDD6CE;transform-origin:50% 50%');
 const CL_IC=[['branch',560],['activity',830],['terminal',1100],['code',1370]];
 const clIcons=CL_IC.map(([k,x])=>{ const d=el(clBand,'','', `position:absolute;left:${x}px;top:95px;width:170px;height:170px;border-radius:34px`); el(d,'',lu(k,120,'#151413',1.6),'position:absolute;inset:25px'); return d; });
@@ -617,9 +622,13 @@ function shotClients(f){ const z=f>=672; show(clZoom,z); show(CL.cam,!z);
     cursor(0,0,0,false); return; }
   // la poussée continue à travers la coupe et ralentit (672-680), on tient (680-686), puis panoramique qui accélère vers la gauche (687-694)
   const zp=approach(f,672,8,0.25), pan=-60*accel(f,686,8,2.8);
-  clBand.style.transform=`translate(${(pan-(f-672)*0.3).toFixed(1)}px,${(30*(1-zp)).toFixed(1)}px) scale(${(1.06-0.06*zp).toFixed(4)})`;
+  clBand.style.transform=`translate(${(pan-(f-672)*0.3).toFixed(1)}px,${(30*(1-zp)).toFixed(1)}px) scale(${(1.3*(1.06-0.06*zp)).toFixed(4)})`; clBand.style.transformOrigin='2300px 180px';
+  // copie figée dans l'état v2 (toute la vague passée) : l'image reste une fonction de f, quel que soit l'ordre de rendu
+  if(!clBelow.firstChild){ updateDash(clDash,()=>1,671); const c=clCard.cloneNode(true); c.style.transform=''; c.style.boxShadow='none'; clBelow.appendChild(c); }
+  clBelow.style.transform=`translate(${(-2866+pan-(f-672)*0.3).toFixed(1)}px,${(384+30*(1-zp)).toFixed(1)}px) scale(3.2)`;
   mblur(clBand,f>=689?vel(t=>-60*accel(t,686,8,2.8),f)*BLUR:0,0);
   const hov=f>=680; clIcons[2].style.background=hov?(f>=688&&f<691?'#DDD6CE':'#E4DFD9'):'transparent';
   // le curseur du fondateur clique le terminal (690) : c'est lui qui ouvre le terminal du plan suivant
-  const cf=f, cp=clamp((cf-672)/10); cursor(lerp(760,1100+85-40,cp)+pan,lerp(820,300+180,cp),f>=688&&f<691?1:0,true,3);
+  const cf=f, cp=clamp((cf-672)/10), ib=clIcons[2].getBoundingClientRect(), zb=CL.s.getBoundingClientRect(), kz=zb.width/W;
+  cursor(lerp(760,(ib.left+ib.width*0.6-zb.left)/kz,cp),lerp(820,(ib.top+ib.height*0.62-zb.top)/kz,cp),f>=688&&f<691?1:0,true,3);
 }
