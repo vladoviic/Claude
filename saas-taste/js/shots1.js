@@ -179,11 +179,24 @@ function shotLogo(f){ push(L1.cam,f,140,0.0007);
 
 /* ---------- 5-6 · le brief du fondateur : il survole « Envoyer » sans cliquer ; le stylo biffe « Arial, », la caméra plonge dans l'encre ---------- */
 const P1=scene('sPrompt',174,227,f=>shotPrompt(f));
+// une revue de design, pas un chat : le site v1 du fondateur en mode commentaire, Léa épingle son brief dessus
+const prSite=el(P1.cam,'','', 'position:absolute;left:250px;top:86px;width:1400px;height:880px;border-radius:18px;overflow:hidden;background:#F7F4F0;box-shadow:0 50px 100px -40px rgba(40,30,30,.45)');
+prSite.innerHTML=`<div style="position:absolute;left:0;right:0;top:0;height:60px;background:#ECE8E3;box-shadow:0 1px 0 #DDD6CE">
+  ${[0,1,2].map(i=>`<span style="position:absolute;left:${22+i*22}px;top:24px;width:12px;height:12px;border-radius:6px;background:#CFC8C0"></span>`).join('')}
+  <div class="m" style="position:absolute;left:420px;top:14px;width:560px;height:32px;border-radius:9px;background:#F7F4F0;font-size:14px;line-height:32px;text-align:center;color:#5C5650;white-space:nowrap">velvetly.app · room planner for furniture brands</div>
+  <div class="m" style="position:absolute;right:16px;top:12px;height:36px;line-height:36px;padding:0 14px;border-radius:9px;background:#151413;color:#F3EFEA;font-size:14px">● Comment mode</div></div>
+  <div class="prD" style="position:absolute;left:20px;top:70px;width:1360px;height:800px;transform-origin:0 0"></div>
+  <div style="position:absolute;inset:60px 0 0 0;background:rgba(21,20,19,.06)"></div>`;
+const prDash=buildDash(q1(prSite,'.prD'));
+// le repère du commentaire, planté sur la photo de poignée de main
+const prPin=el(P1.cam,'','', 'position:absolute;left:1494px;top:536px;width:46px;height:46px;border-radius:23px 23px 23px 4px;background:#2D6CDF;color:#fff;font:700 21px/46px AR;text-align:center;box-shadow:0 0 0 3px #fff,0 8px 18px rgba(0,0,0,.25)'); prPin.textContent='L';
 const prBox=el(P1.cam,'pbox','', 'left:450px;top:396px');
+el(prBox,'','', 'position:absolute;left:36px;top:30px;width:44px;height:44px;border-radius:22px;background:#2D6CDF;color:#fff;font:700 20px/44px AR;text-align:center').textContent='L';
+el(prBox,'','Léa <span class="m" style="font-size:15px;color:#8E877F;margin-left:10px">velvetly · founder · now</span>','position:absolute;left:94px;top:38px;font-size:23px;color:#151413');
 const prText=el(prBox,'ptext ar'); const prSend=el(prBox,'psend','<svg viewBox="0 0 72 72" width="72" height="72"><path d="M36 50 V22 M24 33 L36 21 L48 33" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>');
-el(prBox,'picon','+','left:40px;bottom:26px');
-el(prBox,'pctx m','⌁ velvetly.app · room planner for furniture brands','left:96px;bottom:24px');
-el(prBox,'pmodel','vladan <svg viewBox="0 0 18 18" width="18" height="18"><path d="M4 7 L9 12 L14 7" stroke="#5C5650" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>','right:36px;bottom:22px');
+el(prBox,'picon m','@&nbsp;&nbsp;☺&nbsp;&nbsp;⧉','left:40px;bottom:30px;font-size:22px;color:#A39C94;letter-spacing:.02em');
+// Léa a déjà mentionné Vladan : la mention « @vladan » s'envolera dans le champ TO de l'e-mail, à la fin
+el(prBox,'pmodel pmention','@vladan','right:124px;bottom:34px');
 const prInk=inkLayer(P1.cam);   // l'encre vit dans la caméra : elle colle au texte
 const PROMPT='Make my SaaS less boring. It’s blue, it’s Arial, and there’s a stock handshake.';
 // frappe : 36 caractères à 174, « handshake. » après 5 images de honte (le fondateur efface un « k » et le retape)
@@ -193,7 +206,7 @@ for(let i=0;i<PR_INC.length;i++) if(PR_INC[i]) cue(175+i,'key',{v:.2+Math.abs(PR
 // autour de la carte (443-1476 × 371-675, marge 40 px), jamais sur son texte
 const prGly=gset(12,33,860,430,(x,y)=>!(Math.abs(x)<560&&y>-215&&y<170)).map(g=>{ const d=el(P1.cam,'abs c glyph'); d._g=g; return d; });
 cue(207,'scratch',{v:.8,end:212}); cue(212,'rub',{v:.7,peak:226,dur:16});
-let PR_ARIAL=[0,0,0,0], PR_XH=15.6;
+let PR_ARIAL=[0,0,0,0], PR_XH=15.6; const PR_BOXH=330;
 function prLayout(){ show(P1.s,true); prText.innerHTML=prSeg(PROMPT.length); const sp=prText.querySelector('.ari'), r=sp.getBoundingClientRect(), st=P1.s.getBoundingClientRect(), k=st.width/W;
   PR_ARIAL=[(r.left-st.left)/k,(r.top-st.top)/k,(r.right-st.left)/k,(r.bottom-st.top)/k]; show(P1.s,false); }
 // le brief en segments : « blue » dans le bleu du fondateur, « Arial, » repérable pour le trait
@@ -209,6 +222,7 @@ function prCam(f){ const base=1+0.0008*(f-174), ty=-23*approach(f,174,20);
   return {k,t}; }
 const M3=()=>penPlace('G03',[PR_ARIAL[0]-6,PR_ARIAL[3]-PR_XH*0.5-7,PR_ARIAL[2]+10,0]);
 function shotPrompt(f){
+  updateDash(prDash,()=>0,f);   // le site tel qu'il est : la v1 du fondateur
   const {k,t}=prCam(f); P1.cam.style.transformOrigin='0 0'; P1.cam.style.translate=''; P1.cam.style.transform=`translate(${t[0].toFixed(2)}px,${t[1].toFixed(2)}px) scale(${k.toFixed(5)})`;
   const n=Math.min(PROMPT.length,PR_N[clamp(f-174,0,PR_N.length-1)]); const done=n>=PROMPT.length;
   const blink=f>=189&&f<194?Math.floor((f-189)/1)%2==0:(!done||Math.floor(f/7)%2==0);
@@ -217,7 +231,7 @@ function shotPrompt(f){
   // la main survole Envoyer sans rien presser : le bouton ne change pas (sinon on lit un envoi, et la fin dit qu'il n'est jamais parti)
   const hov=f>=204;
   const cf=twos(f,199), cp=clamp((cf-199)/5);
-  const sx=450+1020-30-36, sy=396+30+36;   // centre du bouton dans la caméra
+  const sx=450+1020-30-36, sy=396+PR_BOXH-26-36;   // centre du bouton (en bas à droite, comme dans un fil de commentaires)
   const px=lerp(1290,sx-4,cp), py=lerp(640,sy+4,cp), scr=[t[0]+px*k,t[1]+py*k];
   cursor(scr[0],scr[1],0,f>=199,f>219?Math.min(k,60):1,hov?'hand':'arrow');
   prGly.forEach((d,i)=>{ const st=204+i; const on=f>=st&&f<224; show(d,on); if(!on) return; const g=d._g; const drift=1+(f-st)*0.012;

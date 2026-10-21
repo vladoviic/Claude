@@ -104,6 +104,7 @@ const CH=scene('sChat',880,953,f=>shotChat(f));
 const chRoot=el(CH.cam,'','', 'position:absolute;inset:0'); chRoot.innerHTML=tplVChat();
 const chTurn=q1(chRoot,'.pturn'), chView=chTurn.parentElement, chFab=q1(chRoot,'.sfab'), chFix=q1(chRoot,'.cfix'), chThumbs=qa(chRoot,'.cthumb'), chApprove=q1(chRoot,'.capprove'), chThink=q1(chRoot,'.cthink');
 const chTurnR=canvas(chView,1100,800,'inset:0;width:100%;height:100%;display:none');
+const chPin=el(CH.s,'m','1','position:absolute;width:40px;height:40px;border-radius:20px 20px 20px 4px;color:#fff;font-size:18px;line-height:40px;text-align:center;box-shadow:0 0 0 3px #fff,0 8px 18px rgba(0,0,0,.25);display:none;z-index:6;transform-origin:4px 36px');
 const chKids=[...q1(chRoot,'.chatp').children];   // 0 logo · 1 bulle · 2 réflexion · 3 réponse · 4-5 paquets · 6 approbation · 7 correction · 8 suggestions…
 const chHot=el(chRoot,'','', 'position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:32px;box-shadow:0 0 0 3px #F3EFEA,0 0 0 4px rgba(21,20,19,.35),0 6px 18px rgba(0,0,0,.25);display:none');
 const chTip=el(chRoot,'m','', 'position:absolute;height:34px;line-height:34px;padding:0 14px;border-radius:17px;background:#151413;color:#F3EFEA;font-size:13px;white-space:nowrap;display:none');
@@ -181,17 +182,20 @@ function shotChat(f){
     // le stylo barre chaque ligne en rouge (924-926, 926-928) : c'est lui qui applique le changement, pas le fondateur
     if(f>=924+k*2){ const b=e.getBoundingClientRect(), st=CH.s.getBoundingClientRect(), kk=st.width/W; const L=(b.left-st.left)/kk, R=(b.right-st.left)/kk, Y=((b.top+b.bottom)/2-st.top)/kk;
       penDraw(ix,penPlace('G03',[L-6,Y-2,R+10,Y+2],{mode:'stretch'}),f,924+k*2,{size:3.2,ground:'dark'}); } });
-  const ca=q1(chRoot,'.chapp'); ca.innerHTML=done?'✓ applied by <span style="display:inline-block;width:20px;height:20px;border-radius:10px;background:#FF3D5E;color:#fff;font-size:12px;line-height:20px;text-align:center;margin:0 4px">v</span>vladan':'Approve';
+  const ca=q1(chRoot,'.chapp'); ca.innerHTML=done?'✓ applied by <span style="display:inline-block;width:20px;height:20px;border-radius:10px;background:#FF3D5E;color:#fff;font-size:12px;line-height:20px;text-align:center;margin:0 4px">v</span>vladan':'Resolve';
   if(ca._b===undefined){ ca._b=ca.style.background; ca._c=ca.style.color; ca._p=ca.style.paddingLeft; }   // garder les couleurs d'origine (les remettre à '' les effacerait)
   ca.style.background=done?'transparent':ca._b; ca.style.color=done?'#151413':ca._c; ca.style.paddingLeft=done?'0':ca._p; show(q1(chRoot,'.crej'),!done);
-  chKids[7].textContent=f>=926?'✓ fabric · polyester → velvet':'↻ fabric · polyester → …'.slice(0,Math.ceil((f-915)*2.5));
+  chKids[7].textContent=f>=926?'✓ changed · fabric polyester → velvet':'↻ fabric · polyester → …'.slice(0,Math.ceil((f-915)*2.5));
   // la vignette reste bleue tant que le front ne l'a pas atteinte
   chThumbs.forEach(t=>t.style.filter=f<930?'hue-rotate(-145deg) saturate(1.2)':'');
-  chThink.textContent=VL_YEARS?`Thought for ${VL_YEARS} years ›`:'Thought for a while ›';
+  show(q1(chRoot,'.cres'),f>=926); q1(chRoot,'.cres').style.opacity=vl(f,926,4).toFixed(3);   // le fil se résout quand le velours a bu
   // survol : le curseur du fondateur visite le boulon, l'assise, le dossier ; puis il approuve (946)
   const H=TURNHOT[i]||TURNHOT[String(Math.min(47,i))]; let hv=null; for(const h of CH_HOVER) if(f>=h[0]&&f<=h[1]) hv=h;
   const P=k=>{ if(!H||!H[k]) return [1090,560]; const px=(H[k][0]-0.5)*918, py=(H[k][1]-0.5)*668, c=Math.cos(V.r*Math.PI/180), sn=Math.sin(V.r*Math.PI/180);
     return [630+459+V.x+V.s*(px*c-py*sn), 196+334+V.y+V.s*(px*sn+py*c)]; };
+  // le repère du commentaire n° 1 suit l'assise du fauteuil qui tourne ; il passe en ✓ (encre) quand le fil est résolu
+  { const on=f>=881&&f<938; show(chPin,on); if(on){ const [px,py]=P('seat'); const ok=f>=926; chPin.style.left=(px-14)+'px'; chPin.style.top=(py-58)+'px';
+      chPin.style.background=ok?'#151413':'#2D6CDF'; chPin.textContent=ok?'✓':'1'; chPin.style.transform=`scale(${(f<884?back(f,881,4):1).toFixed(3)})`; chPin.style.opacity=(1-clamp((f-932)/6)).toFixed(2); } }
   show(chHot,!!hv); show(chTip,!!hv);
   if(hv){ const [hx,hy]=P(hv[2]); chHot.style.left=hx+'px'; chHot.style.top=hy+'px'; chHot.style.transform=`scale(${back(f,hv[0],4).toFixed(3)})`;
     chTip.textContent=hv[3]; chTip.style.left=(hx+44)+'px'; chTip.style.top=(hy-60)+'px'; chTip.style.opacity=approach(f,hv[0],3).toFixed(2); }
@@ -541,7 +545,7 @@ ouCard.innerHTML=`<div class="oto" style="position:absolute;left:44px;top:0;righ
     <div class="ar obrief" style="font-size:28px;line-height:1.45;color:#6E6862"></div>
     <div style="margin-top:14px;padding-left:14px;border-left:2px solid #D6CFC7;font-size:24px;color:#8E877F">Brand, UI and motion for SaaS.</div></div>
   <div style="position:absolute;left:40px;bottom:30px;width:48px;height:48px;border-radius:24px;box-shadow:inset 0 0 0 1.5px #CFC8C0;color:#8E877F;font-size:30px;line-height:46px;text-align:center">+</div>
-  <div class="omodel" style="position:absolute;right:130px;bottom:38px;font:500 26px 'ID';color:#5C5650;display:flex;gap:8px;align-items:center"><span class="omw">vladan</span><svg class="omc" viewBox="0 0 18 18" width="18" height="18"><path d="M4 7 L9 12 L14 7" stroke="#5C5650" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+  <div class="omodel" style="position:absolute;right:124px;bottom:34px;font:500 24px 'ID';color:#151413;background:#ECE6DF;border-radius:10px;padding:6px 12px;display:flex;align-items:center;overflow:hidden;white-space:nowrap"><span class="omc">@</span><span class="omw">vladan</span></div>
   <div class="osend" style="position:absolute;right:30px;bottom:24px;width:72px;height:72px;border-radius:36px;background:#151413"><svg viewBox="0 0 72 72" width="72" height="72"><path d="M36 50 V22 M24 33 L36 21 L48 33" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
 const ouTo=q1(ouCard,'.oto'), ouToA=q1(ouCard,'.otoa'), ouBody=q1(ouCard,'.obody'), ouBrief=q1(ouCard,'.obrief'), ouModel=q1(ouCard,'.omodel'), ouMW=q1(ouCard,'.omw'), ouMC=q1(ouCard,'.omc'), ouSend=q1(ouCard,'.osend');
 ouBrief.innerHTML=prSeg(PROMPT.length);
@@ -584,7 +588,7 @@ function shotOutro(F){ const f=F-2; push(OU.cam,f,1378,f<1489?0.0008:0);
   const cOn=f>=1492; show(ouCard,cOn);
   if(cOn){ const r=vl(f,1492,6); ouCard.style.translate=`0 ${(18*(1-r)).toFixed(1)}px`; ouCard.style.opacity=r.toFixed(3);
     const hh=226*vl(f,1496,4); ouTo.style.height=hh+'px'; ouBody.style.top=(44+hh*(212/226))+'px';
-    const fl=clamp((f-1499)/6), fe=vladan(fl); ouMC.style.opacity=(1-clamp((f-1499)/2)).toFixed(2); ouMW.style.visibility=f>=1499?'hidden':'visible'; ouModel.style.width=f>=1499?lerp(110,0,clamp((f-1499)/3))+'px':'';
+    const fl=clamp((f-1499)/6), fe=vladan(fl); ouMC.style.opacity=(1-clamp((f-1499)/2)).toFixed(2); ouMW.style.visibility=f>=1499?'hidden':'visible'; { const q=clamp((f-1499)/3); ouModel.style.width=f>=1499?lerp(84,0,q)+'px':''; ouModel.style.padding=f>=1499?`6px ${lerp(12,0,q).toFixed(1)}px`:''; ouModel.style.opacity=f>=1499?(1-q).toFixed(2):''; }
     const cr=ouCard.getBoundingClientRect(), st=OU.s.getBoundingClientRect(), kk=st.width/W;
     show(ouFly,f>=1499&&f<1505); if(f>=1499&&f<1505){ const sx=144+1500-130-110, sy=440+OU_CH-38-26, tx=144+44+150, ty=440+16+5; const cx=1480, cy=430, m=1-fe; const x=m*m*sx+2*m*fe*cx+fe*fe*tx, y=m*m*sy+2*m*fe*cy+fe*fe*ty;   // remonte le bord droit puis file dans TO : jamais au-dessus du texte
       placeTL(ouFly,x,y,lerp(1,92/26,fe)); }

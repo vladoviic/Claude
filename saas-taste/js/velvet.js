@@ -118,21 +118,22 @@ function tplPlan(){ const days=[19,20,21,22,23,24,25], dn=['Mon','Tue','Wed','Th
 // « Thought for N years » : l'année de début de Vladan (page « Prises au stylo ») ; sinon « a while »
 let VL_YEARS=null;
 function tplVChat(){ return `<div class="full" style="background:#F3EFEA">
-  <div class="chatp"><div style="position:absolute;left:32px;top:30px">${VLOGO('#151413',22)}<span class="m" style="font-size:13px;color:${VG};margin-left:12px">studio</span></div>
-    <div class="bubble" style="top:104px;background:#151413;color:#F3EFEA">Add a 3D hero. Less blue, please.</div>
-    <div class="m cthink" style="position:absolute;left:32px;top:190px;font-size:26px;color:#8E877F">Thought for a while ›</div>
-    <div class="ctext" style="top:240px">Real-time 3D lounge chair, soft window light, one accent.</div>
-    <div class="citem" style="top:326px">▾ Installed 2 packages</div><div class="citem" style="top:356px;color:#A39C94">&nbsp;&nbsp;three · velvet-shader</div>
-    <div style="position:absolute;left:32px;right:32px;top:398px;height:150px;border-radius:16px;background:#fff;box-shadow:0 0 0 1px #E6E1DB">
-      <div style="position:absolute;left:20px;top:18px;font-size:17px">Approval required</div><div class="m" style="position:absolute;left:20px;top:44px;font-size:12px;color:${VG}">These will be removed for good</div>
+  <div class="chatp"><div style="position:absolute;left:32px;top:30px;display:flex;align-items:center;gap:12px">${VLOGO('#151413',22)}<span style="font-size:20px">Comments</span><span class="m" style="font-size:13px;color:${VG}">2 open · Lounge Chair</span></div>
+    <div class="cthr" style="position:absolute;left:24px;right:24px;top:96px;height:132px;border-radius:16px;background:#fff;box-shadow:0 0 0 1px #E6E1DB">
+      <div style="position:absolute;left:18px;top:16px;display:flex;align-items:center;gap:10px"><span style="display:inline-block;width:34px;height:34px;border-radius:17px;background:#2D6CDF;color:#fff;font:700 15px/34px AR;text-align:center;vertical-align:middle">L</span><span style="font-size:17px">Léa</span><span class="m" style="font-size:12px;color:${VG}">2 min</span></div>
+      <span class="m" style="position:absolute;right:16px;top:20px;width:26px;height:26px;border-radius:13px 13px 13px 3px;background:#2D6CDF;color:#fff;font-size:13px;line-height:26px;text-align:center">1</span>
+      <div class="ar" style="position:absolute;left:18px;top:64px;font-size:25px;color:#151413">Add a 3D hero. Less blue, please.</div></div>
+    <div class="m cthink" style="position:absolute;left:32px;top:242px;font-size:14px;color:#8E877F">pinned on the seat · hero</div>
+    <div class="cres" style="position:absolute;left:24px;right:24px;top:270px;height:62px;border-radius:14px;background:#F8F5F1;box-shadow:0 0 0 1px #E6E1DB;display:flex;align-items:center;gap:10px;padding-left:16px;font-size:16px"><span style="display:inline-block;width:26px;height:26px;border-radius:13px;background:#FF3D5E;color:#fff;font:700 11px/26px AR;text-align:center;vertical-align:middle">v</span><b style="font-weight:500">vladan</b><span class="m" style="font-size:14px;color:#5C5650">✓ resolved · velvet, one accent</span></div>
+    <div class="m" style="position:absolute;left:32px;top:352px;font-size:13px;color:${VG}"><span style="display:inline-block;width:24px;height:24px;border-radius:12px;background:#2D6CDF;color:#fff;font:700 10px/24px AR;text-align:center;vertical-align:middle">L</span>&nbsp; Léa · 1 min</div>
+    <div class="m" style="position:absolute;left:32px;top:378px;font-size:13px;color:${VG}"> </div>
+    <div style="position:absolute;left:24px;right:24px;top:398px;height:150px;border-radius:16px;background:#fff;box-shadow:0 0 0 1px #E6E1DB">
+      <div class="ar" style="position:absolute;left:20px;top:18px;font-size:18px">Remove these for good:</div><div class="m" style="position:absolute;left:20px;top:44px;font-size:12px;color:${VG}">velvetly.app · whole site</div>
       <div class="m crm" style="position:absolute;left:20px;top:70px;font-size:22px;color:#151413">– font-family: Arial;</div><div class="m crm" style="position:absolute;left:20px;top:102px;font-size:22px;color:#151413">– #2D6CDF</div>
-      <div class="m chapp" style="position:absolute;left:20px;bottom:-56px;white-space:nowrap;height:38px;line-height:38px;padding:0 18px;border-radius:19px;background:var(--ink);color:#fff;font-size:14px">Approve</div>
-      <div class="m crej" style="position:absolute;left:130px;bottom:-56px;height:38px;line-height:36px;padding:0 18px;border-radius:19px;border:1px solid #D9D2CA;color:#6d6760;font-size:14px">Reject</div></div>
-    <div class="m cfix" style="position:absolute;left:32px;top:698px;font-size:18px;color:#151413;visibility:hidden">✓ fabric · polyester → velvet</div>
-    <div class="m clog" data-t="892" data-s="✓ three · velvet-shader" style="position:absolute;left:32px;top:648px;font-size:15px;color:#7A736C"></div><div class="m clog" data-t="904" data-s="✓ hero viewport 918×666" style="position:absolute;left:32px;top:672px;font-size:15px;color:#7A736C"></div>
-    <div class="m" style="position:absolute;left:32px;top:860px;font-size:13px;color:${VG}">▪ SUGGESTIONS</div>
-    ${['Add a sofa','Warmer light','Show in room'].map((t,i)=>`<div class="m" style="position:absolute;left:${32+i*180}px;top:890px;height:38px;line-height:36px;padding:0 14px;border-radius:19px;border:1px solid #D9D2CA;font-size:14px;color:#5f5952">${t}</div>`).join('')}
-    <div style="position:absolute;left:24px;right:24px;bottom:28px;height:84px;border-radius:20px;background:#fff;box-shadow:0 0 0 1px #E6E1DB"><span style="position:absolute;left:22px;top:28px;font-size:19px;color:#A39C94;font-weight:400">What would you like to change?</span><span style="position:absolute;right:16px;top:16px;width:52px;height:52px;border-radius:14px;background:var(--ink)"></span></div></div>
+      <div class="m chapp" style="position:absolute;left:20px;bottom:-56px;white-space:nowrap;height:38px;line-height:38px;padding:0 18px;border-radius:19px;background:var(--ink);color:#fff;font-size:14px">Resolve</div>
+      <div class="m crej" style="position:absolute;left:130px;bottom:-56px;height:38px;line-height:36px;padding:0 18px;border-radius:19px;border:1px solid #D9D2CA;color:#6d6760;font-size:14px">Reply</div></div>
+    <div class="m cfix" style="position:absolute;left:32px;top:666px;font-size:16px;color:#151413;visibility:hidden">✓ fabric · polyester → velvet</div>
+    <div style="position:absolute;left:24px;right:24px;bottom:28px;height:84px;border-radius:20px;background:#fff;box-shadow:0 0 0 1px #E6E1DB"><span style="position:absolute;left:22px;top:28px;font-size:19px;color:#A39C94;font-weight:400">Reply…</span><span class="m" style="position:absolute;right:86px;top:28px;font-size:20px;color:#A39C94">@</span><span style="position:absolute;right:16px;top:16px;width:52px;height:52px;border-radius:26px;background:var(--ink)"></span></div></div>
   <div style="position:absolute;left:640px;top:34px">${VLOGO('#151413',22)}</div>
   <div style="position:absolute;left:640px;top:92px;font-size:46px;letter-spacing:-0.035em">Lounge Chair</div>
   <div class="m" style="position:absolute;left:643px;top:152px;font-size:15px;color:${VG}">Built for sitting well</div>

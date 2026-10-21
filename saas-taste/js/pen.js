@@ -2,9 +2,9 @@
    Le stylo rouge : chaque marque est un geste de Vladan enregistré (page « Prises au stylo »,
    fichiers pen/G01.json…G09.json). Tant qu'une prise manque, la marque est un brouillon de synthèse
    (PEN.draft) : le rendu final le refuse (render.mjs ?final).
-   Encre : contour perfect-freehand piloté par la pression, feutre sur papier (multiply, fibres qui
-   transparaissent, bord plus dense, flaque aux extrémités, bord dentelé par la dent du papier),
-   humide 6 images puis mat. Sur fond sombre : normal, pleine densité.
+   Matière : crayon gras rouge (contour perfect-freehand piloté par la pression, largeur peu variable,
+   bouts émoussés) ; la cire ne prend que sur les reliefs de la feuille : le grain de la dent du papier
+   traverse le trait, plus serré au bord qu'au cœur. Sur papier : multiply ; sur fond sombre : normal.
    ============================================================ */
 const PEN={red:'#FF3D5E', takes:{}, draft:new Set(), ms:1000/FPS};
 // cibles des prises dans la page de capture (coordonnées 1920×1080 de la planche) : x0,y0,x1,y1
@@ -83,38 +83,59 @@ const PAPER_N=(()=>{ const S=256, c=document.createElement('canvas'); c.width=c.
 // opts : size (px), ground 'paper'|'dark', u0/u1 (tranche d'abscisse pour les marques consommées), lift (force la levée),
 // uniform (0..1 : largeur rendue uniforme), alpha.
 function penOutline(pts,size,uniform=0,last=true){
+  // crayon gras : la largeur varie peu (la mine s'écrase à peine), bouts émoussés, pas de longues effilures de pinceau
   const P=pts.map(p=>[p[0],p[1],lerp(p[2],0.6,uniform)]);
-  return PF.getStroke(P,{size,thinning:lerp(.55,0,uniform),smoothing:.62,streamline:.38,simulatePressure:false,
-    start:{taper:lerp(5,0,uniform),cap:true},end:{taper:lerp(Math.min(30,size*3),0,uniform),cap:true},last});
+  return PF.getStroke(P,{size,thinning:lerp(.28,0,uniform),smoothing:.55,streamline:.42,simulatePressure:false,
+    start:{taper:lerp(Math.min(8,size*1.4),0,uniform),cap:true},end:{taper:lerp(Math.min(14,size*2.2),0,uniform),cap:true},last});
 }
 function penPath(poly){ const p=new Path2D(); if(!poly.length) return p; p.moveTo(poly[0][0],poly[0][1]); for(let i=1;i<poly.length;i++) p.lineTo(poly[i][0],poly[i][1]); p.closePath(); return p; }
 function penVisible(strokes,f,f0){ const ms=(f-f0)*PEN.ms; const out=[];
   for(const s of strokes){ if(!s.length||s[0][3]>ms) continue; const v=s.filter(p=>p[3]<=ms); if(v.length) out.push({pts:v,done:v.length===s.length}); } return out; }
+
+/* ---------- le grain du crayon gras : la cire ne prend que sur les reliefs de la feuille ----------
+   Deux masques tirés de la même dent que le papier (img/tooth.png, tuile 1024) : « bord » (la cire saute
+   sur près de la moitié des creux) et « cœur » (elle ne saute que dans les creux profonds). Le motif est
+   ancré sur la scène : le grain appartient à la feuille, il ne glisse pas avec le trait. */
+const PEN_TOOTH=preload('img/tooth.png'); let PEN_GRAIN=null;
+function penGrain(){ if(PEN_GRAIN) return PEN_GRAIN; const S=1024, src=document.createElement('canvas'); src.width=src.height=S; const sx=src.getContext('2d');
+  // grain en grappes (cire), pas en poussière
+  sx.filter='blur(1.2px)'; sx.drawImage(PEN_TOOTH,0,0,S,S); sx.filter='none'; const d=sx.getImageData(0,0,S,S).data;
+  const mk=(e0,e1,k)=>{ const c=document.createElement('canvas'); c.width=c.height=S; const x=c.getContext('2d'), im=x.createImageData(S,S);
+    for(let o=0;o<d.length;o+=4){ const v=128-d[o]; const t=clamp((v-e0)/(e1-e0)); im.data[o]=im.data[o+1]=im.data[o+2]=0; im.data[o+3]=Math.round(255*k*t*t*(3-2*t)); }
+    x.putImageData(im,0,0); return c; };
+  PEN_GRAIN={edge:mk(-10,26,0.82), core:mk(14,40,0.7)}; return PEN_GRAIN; }
+const PEN_OFF=[document.createElement('canvas'),document.createElement('canvas')];
 function penDraw(ctx,strokes,f,f0,{size=4,ground='paper',u0=0,u1=1,uniform=0,alpha=1,wetFrames=6,color=null}={}){
   const vis=penVisible(strokes,f,f0); if(!vis.length) return; ctx.canvas.style.display='block';
-  const lastT=Math.max(...strokes.map(s=>s[s.length-1][3]))/PEN.ms+f0; const wet=clamp(1-(f-lastT)/wetFrames);
-  ctx.save(); ctx.globalAlpha=alpha;
-  for(const {pts,done} of vis){
-    const p=(u0>0||u1<1)?penSlice(pts,u0,u1):pts; if(p.length<2) continue;
-    const path=penPath(penOutline(p,size,uniform,done));
-    if(ground==='dark'||color){ ctx.fillStyle=color||PEN.red; ctx.fill(path); continue; }
-    // feutre sur papier : aplat, bord plus dense, fibres qui transparaissent
-    ctx.fillStyle=wet>0?mixHex('#FF3D5E','#FF6A82',0.18*wet):'#FF3D5E'; ctx.fill(path);
-    ctx.save(); ctx.clip(path);
-    ctx.strokeStyle='rgba(176,18,52,0.32)'; ctx.lineWidth=Math.min(3,size*.45); ctx.stroke(path);
-    ctx.globalCompositeOperation='destination-out'; ctx.globalAlpha=alpha*0.16;
-    const pat=ctx.createPattern(PAPER_N,'repeat'); pat.setTransform(new DOMMatrix([0.9,0,0,0.9,(p[0][0]*7)%256,0])); ctx.fillStyle=pat;
-    const b=penBounds(p,size); ctx.fillRect(b[0],b[1],b[2]-b[0],b[3]-b[1]);
-    ctx.restore();
-  }
-  ctx.restore();
+  const paths=[]; let bx=1e9,by=1e9,bX=-1e9,bY=-1e9;
+  for(const {pts,done} of vis){ const p=(u0>0||u1<1)?penSlice(pts,u0,u1):pts; if(p.length<2) continue;
+    // bord déchiqueté (bruit lié à la position : il ne scintille pas d'une image à l'autre) ; stries de la mine le long du trait
+    const rag=poly=>poly.map(([x,y])=>{ const h=Math.sin(x*12.9898+y*78.233)*43758.5453; const r=(h-Math.floor(h)-0.5)*size*0.16; return [x+r,y+r*0.7]; });
+    const streaks=[-0.3,-0.08,0.17,0.36].map(k=>{ const q=new Path2D(); for(let i=0;i<p.length;i++){ const a=p[Math.max(0,i-1)], c=p[Math.min(p.length-1,i+1)]; const dx=c[0]-a[0], dy=c[1]-a[1], L=Math.hypot(dx,dy)||1;
+      const x=p[i][0]-dy/L*k*size, y=p[i][1]+dx/L*k*size; if(i) q.lineTo(x,y); else q.moveTo(x,y); } return q; });
+    paths.push({full:penPath(rag(penOutline(p,size,uniform,done))), core:penPath(penOutline(p,size*0.58,uniform,done)), streaks});
+    const b=penBounds(p,size+4); bx=Math.min(bx,b[0]); by=Math.min(by,b[1]); bX=Math.max(bX,b[2]); bY=Math.max(bY,b[3]); }
+  if(!paths.length) return;
+  bx=Math.floor(bx); by=Math.floor(by); const bw=Math.ceil(bX-bx)+1, bh=Math.ceil(bY-by)+1;
+  const col=color||(ground==='dark'?PEN.red:'#F23B56'); const G=penGrain();
+  // deux couches : le bord (pleine largeur, beaucoup de grain) et le cœur (plus étroit, plus dense)
+  const layer=(k,key,which)=>{ const c=PEN_OFF[k]; if(c.width<bw) c.width=bw; else c.getContext('2d').clearRect(0,0,c.width,c.height); if(c.height<bh) c.height=bh;
+    const x=c.getContext('2d'); x.setTransform(1,0,0,1,0,0); x.clearRect(0,0,c.width,c.height); x.setTransform(1,0,0,1,-bx,-by);
+    x.globalCompositeOperation='source-over'; x.fillStyle=col; paths.forEach(p=>x.fill(p[which]));
+    x.globalCompositeOperation='destination-out'; const pat=x.createPattern(G[key],'repeat'); pat.setTransform(new DOMMatrix([1.7,0,0,1.7,0,0])); x.fillStyle=pat; x.fillRect(bx,by,bw,bh); return c; };
+  const edge=layer(0,'edge','full'), core=layer(1,'core','core');
+  { const cx=core.getContext('2d'); cx.globalCompositeOperation='destination-out'; cx.strokeStyle='rgba(0,0,0,0.32)'; cx.lineWidth=Math.max(0.6,size*0.07); cx.lineCap='round';
+    paths.forEach(p=>p.streaks.forEach(q=>cx.stroke(q))); }
+  const ex=edge.getContext('2d'); ex.setTransform(1,0,0,1,0,0); ex.globalCompositeOperation='source-over'; ex.drawImage(core,0,0);
+  ctx.save(); ctx.globalAlpha=alpha; ctx.drawImage(edge,0,0,bw,bh,bx,by,bw,bh); ctx.restore();
 }
 function penBounds(pts,pad=0){ let a=1e9,b=1e9,c=-1e9,d=-1e9; for(const p of pts){ a=Math.min(a,p[0]); b=Math.min(b,p[1]); c=Math.max(c,p[0]); d=Math.max(d,p[1]); } return [a-pad,b-pad,c+pad,d+pad]; }
 function mixHex(a,b,t){ const A=hex(a), B=hex(b); return 'rgb('+A.map((v,i)=>Math.round(lerp(v,B[i],t))).join(',')+')'; }
 
 /* ---------- calque d'encre d'une scène : un canvas plein cadre au-dessus de la caméra ---------- */
 function inkLayer(scene,{ground='paper'}={}){ const c=document.createElement('canvas'); c.width=W; c.height=H; c.className='ink';
-  c.style.cssText=`position:absolute;inset:0;width:${W}px;height:${H}px;pointer-events:none;mix-blend-mode:${ground==='dark'?'normal':'multiply'}`;
+  // la cire est opaque, posée sur la feuille : fusion normale partout (en multiply, le rouge virait au violet sur le bleu)
+  c.style.cssText=`position:absolute;inset:0;width:${W}px;height:${H}px;pointer-events:none`;
   scene.appendChild(c); return c; }
 // le calque est masqué tant que rien n'y est dessiné (Chromium ne recompose pas toujours un canvas en multiply vidé)
 function inkClear(c){ const x=c.getContext('2d'); x.setTransform(1,0,0,1,0,0); x.clearRect(0,0,W,H); c.style.display='none'; return x; }

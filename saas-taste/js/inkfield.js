@@ -1,6 +1,6 @@
 /* ============================================================
    Champ d'encre plein cadre (WebGL, pleine résolution) pour la plongée dans le trait (V07, 219-233).
-   Mode 0 : on plonge dans le trait M3 ; le bord et les fibres sont calculés en coordonnées du papier,
+   Mode 0 : on plonge dans le trait M3 (crayon gras) ; le bord et le relief sont calculés en coordonnées du papier,
             avec des octaves qui suivent le zoom : du détail nouveau apparaît à chaque image.
    Mode 1 : l'encre sèche à travers les fibres, la dernière qui reste est le carré de la landing.
    ============================================================ */
@@ -28,7 +28,8 @@ const INK=(()=>{
       v+=w*r; tot+=w; a*=.62; }
     return v/max(tot,1e-4); }
   float tooth(vec2 q){ float v=0., a=.5, tot=0.; float lz=log2(max(ZN,1.)); float k0=floor(lz);
-    for(int i=0;i<6;i++){ float k=float(i)+k0; float per=ZN/(0.5*exp2(k)); float w=a*smoothstep(4.,10.,per); v+=w*vn(q*0.5*exp2(k)+k*5.1); tot+=w; a*=.55; } return v/max(tot,1e-4); }
+    for(int i=0;i<6;i++){ float k=float(i)+k0; float per=ZN/(0.5*exp2(k)); float w=a*smoothstep(4.,10.,per); v+=w*vn(q*0.5*exp2(k)+k*5.1); tot+=w; a*=.55; }
+    return mix(.5,v/max(tot,1e-4),clamp(tot*6.,0.,1.)); }   // sans octave visible (faible zoom) : relief neutre, pas « tout en creux »
   float sdStroke(vec2 q){ float d=1e9;
     for(int i=0;i<63;i++){ if(float(i)>=NP-1.) break; vec3 a=P[i], b=P[i+1]; vec2 pa=q-a.xy, ba=b.xy-a.xy; float t=clamp(dot(pa,ba)/max(dot(ba,ba),1e-6),0.,1.);
       d=min(d,length(pa-ba*t)-mix(a.z,b.z,t)); } return d; }
@@ -43,17 +44,15 @@ const INK=(()=>{
     float a; vec3 col;
     if(MODE<.5){
       float sd=sdStroke(q);
-      // bord : le corps du trait ondule à peine ; l'encre file le long des fibres au-delà du bord (capillarité)
-      float core=1.-smoothstep(-px,px,sd-(tt-.5)*.35);
-      // seules les fibres qui touchent le bord boivent l'encre, de moins en moins loin
-      float reach=clamp(sd/.45,0.,1.);
-      float bleed=smoothstep(.62+.3*reach,.9+.08*reach,fb)*(1.-reach);
-      a=max(core,bleed*.92);
+      // crayon gras : la cire ne file pas ; son bord suit le relief de la feuille, les creux restent papier
+      float core=1.-smoothstep(-px,px,sd-(tt-.5)*1.1-(fb-.5)*.5);
+      float gap=smoothstep(.36,.22,tt)*core;              // creux de la dent : pas de cire
+      float scr=smoothstep(.78,.9,fb)*.55*core;            // fibres en relief griffées par la mine
+      a=core;                                              // dans le trait, les creux montrent le papier (opaques) : rien de transparent
       float rim=1.-smoothstep(0.,1.4,-sd);
-      col=mix(ink,deep,.18*rim+.10*smoothstep(.55,.9,1.-tt));
-      col=mix(col,ink*1.04,.12*smoothstep(.6,.85,tt));
-      float skip=smoothstep(.80,.93,fb)*.85*core;
-      col=mix(col,paper,skip*(1.-rim*.6));
+      col=mix(ink*.93,deep,.14*rim);
+      col=mix(col,min(vec3(1.),ink*1.05+.04),.35*smoothstep(.58,.82,tt));   // la cire brille un peu sur les reliefs
+      col=mix(col,paper,max(gap*.94,scr*.5));
       col=mix(col,min(vec3(1.),col*1.06+.03),WET);
     } else {
       float sd=sdRR(q-RECT.xy,RECT.zw,RR);

@@ -71,13 +71,14 @@ em{font-family:'BE';font-style:italic;font-weight:500;letter-spacing:-0.01em}
 .haze{position:absolute;left:-200px;width:2400px;border-radius:50%;filter:blur(40px)}
 
 /* prompt */
-.pbox{position:absolute;width:1020px;height:300px;border-radius:24px;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.04),0 30px 60px -30px rgba(60,40,40,.25)}
-.ptext{position:absolute;left:40px;top:44px;width:830px;font-size:30px;line-height:1.38;font-weight:400;color:#151413;white-space:normal}
+.pbox{position:absolute;width:1020px;height:330px;border-radius:24px;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.04),0 30px 60px -30px rgba(60,40,40,.25)}
+.ptext{position:absolute;left:40px;top:100px;width:900px;font-size:30px;line-height:1.38;font-weight:400;color:#151413;white-space:normal}
 .ptext .blu{color:#2D6CDF}
 .pctx{position:absolute;font-size:22px;line-height:40px;height:40px;padding:0 14px;border-radius:10px;background:#F4F1ED;color:#5C5650}
 .pmodel{position:absolute;font:500 26px 'ID';color:#5C5650;display:flex;gap:8px;align-items:center}
 .pcaret{display:inline-block;width:3px;height:36px;background:#1c1a19;vertical-align:-6px;margin-left:2px}
-.psend{position:absolute;right:30px;top:30px;width:72px;height:72px;border-radius:18px;background:var(--ink)}
+.psend{position:absolute;right:30px;bottom:26px;width:72px;height:72px;border-radius:36px;background:var(--ink)}
+.pmention{font:500 24px 'ID';color:#151413;background:#ECE6DF;border-radius:10px;padding:6px 12px}
 .picon{position:absolute;font-family:'JB';font-size:34px;color:#B9B2AB}
 
 /* arborescence */
