@@ -1,127 +1,217 @@
 /* ============================================================
-   Ouverture (54-119) : l'éclatement de sites. Onze sites recréés dans l'esprit des Sites of the Day
-   d'Awwwards (mises en page de référence, noms inventés), chacun bâti sur sa couleur dominante.
+   Ouverture (54-119) : l'éclatement de sites. Onze sites inventés au niveau des Sites of the Day d'Awwwards,
+   un métier, une direction artistique et une couleur dominante chacun (noms et marques inventés).
+   Lecture en 1 s à 30-60 % : une idée forte par site (typo géante, objet, champ de couleur), du détail crédible autour.
    Pendant les teintes de la réf (62-69, 114-116), chaque carte passe en camaïeu de SA couleur.
+   Les tailles (w, h) sont celles de la mise en page de js/shots1.js (BR, BXT) : ne pas les changer.
    ============================================================ */
 const SITES=[];
 function site(name,color,w,h,html){ SITES.push({name,color,w,h,html}); return SITES.length-1; }
-const sNav=(items,c,f='ID',sz=13)=>`<div style="display:flex;gap:${sz*1.6}px;font:500 ${sz}px ${f};color:${c}">${items.map(t=>`<span>${t}</span>`).join('')}</div>`;
+const P='position:absolute;';
+// grain de film : bruit fractal en SVG (rastérisé une fois, en mosaïque), posé en incrustation
+const NOISE=`url(&quot;data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><filter id="n" x="0" y="0"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="160" height="160" filter="url(#n)"/></svg>')}&quot;)`;
+const grain=(o=.2,m='overlay')=>`<div style="${P}inset:0;background-image:${NOISE};background-size:160px 160px;mix-blend-mode:${m};opacity:${o}"></div>`;
+const row=(items,css)=>`<div style="display:flex;${css}">${items.map(t=>`<span>${t}</span>`).join('')}</div>`;
 
-// 0 · pilote automobile : lime électrique sur noir, casque, chiffres géants (esprit des sites de pilotes F1)
-site('KOVA','#D4FF3F',884,405,`<div style="position:absolute;inset:0;background:#0E0F0C;color:#D4FF3F;overflow:hidden">
-  <div style="position:absolute;left:28px;top:22px;right:28px;display:flex;justify-content:space-between;align-items:center">
-    <span style="font:800 22px 'AV';font-stretch:125%;letter-spacing:-.02em">KOVA</span>${sNav(['Calendar','Helmets','Store','On track'],'#D4FF3F','ID',12)}
-    <span style="font:600 11px 'JB';border:1px solid #D4FF3F;border-radius:20px;padding:6px 12px">NEXT · MONACO 24.05</span></div>
-  <div style="position:absolute;left:22px;bottom:-34px;font:900 300px/0.8 'AV';font-stretch:62%;letter-spacing:-.04em;color:#D4FF3F">07</div>
-  <svg viewBox="0 0 400 360" style="position:absolute;left:214px;top:70px;width:400px;height:360px;filter:drop-shadow(0 30px 40px #000)">
-    <defs><radialGradient id="kvS" cx=".36" cy=".3" r=".8"><stop offset="0" stop-color="#FAFFE0"/><stop offset=".18" stop-color="#E4FF7A"/><stop offset=".45" stop-color="#C6F02A"/><stop offset=".8" stop-color="#5E7A0C"/><stop offset="1" stop-color="#1C2605"/></radialGradient>
-      <linearGradient id="kvV" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3A4256"/><stop offset=".35" stop-color="#0D1018"/><stop offset=".6" stop-color="#1E2A3F"/><stop offset="1" stop-color="#05070B"/></linearGradient>
-      <linearGradient id="kvH" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
-    <path d="M58 236 C38 120 122 26 232 28 C334 30 386 112 372 206 C364 258 330 302 278 316 L122 322 C86 320 64 284 58 236 Z" fill="url(#kvS)"/>
-    <path d="M90 118 C150 52 260 40 340 84" fill="none" stroke="#F4FFD0" stroke-width="14" stroke-linecap="round" opacity=".9"/>
-    <path d="M78 150 C140 82 262 70 352 116" fill="none" stroke="#0E0F0C" stroke-width="6" stroke-linecap="round" opacity=".8"/>
-    <path d="M150 152 C196 122 300 118 364 150 L358 208 C302 220 214 224 152 208 C134 192 134 168 150 152 Z" fill="url(#kvV)" stroke="#0E0F0C" stroke-width="5"/>
-    <path d="M168 160 C214 138 290 136 346 156" fill="none" stroke="url(#kvH)" stroke-width="7" stroke-linecap="round"/>
-    <path d="M122 322 L278 316 C292 300 300 282 296 262 L130 268 C120 284 118 304 122 322 Z" fill="#0E0F0C" opacity=".85"/>
-    <circle cx="104" cy="226" r="26" fill="#0E0F0C"/><text x="104" y="235" text-anchor="middle" font-family="AV" font-weight="900" font-stretch="70%" font-size="26" fill="#D4FF3F">07</text>
+// 0 · écurie de course : noir carbone, « 07 » ultra-condensé avec traînée de vitesse, citron électrique (esprit des sites de pilotes)
+site('Korvo Racing','#D4FF3A',884,405,`<div style="${P}inset:0;background:#0A0B09;color:#EEF0E6;overflow:hidden;font-family:'ID'">
+  <div style="${P}inset:0;background:radial-gradient(46% 78% at 30% 68%,rgba(212,255,58,.24),rgba(212,255,58,0) 72%),radial-gradient(36% 60% at 100% 0%,rgba(255,255,255,.07),rgba(255,255,255,0) 70%)"></div>
+  <div style="${P}inset:0;background:repeating-linear-gradient(90deg,rgba(255,255,255,.055) 0 1px,transparent 1px 98px);-webkit-mask:linear-gradient(180deg,transparent 8%,#000 40%,#000 75%,transparent)"></div>
+  <svg width="884" height="405" style="${P}left:0;top:0">
+    <defs><filter id="kr0a" x="-80%" y="-10%" width="260%" height="120%"><feGaussianBlur stdDeviation="54 0"/></filter>
+      <filter id="kr0b" x="-80%" y="-10%" width="260%" height="120%"><feGaussianBlur stdDeviation="14 0"/></filter>
+      <linearGradient id="kr0g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F3FFB8"/><stop offset=".35" stop-color="#DDFF55"/><stop offset="1" stop-color="#A9D80E"/></linearGradient>
+      <linearGradient id="kr0s" x1="0" x2="1"><stop offset="0" stop-color="#D4FF3A" stop-opacity="0"/><stop offset="1" stop-color="#D4FF3A" stop-opacity=".9"/></linearGradient></defs>
+    ${[[120,176,1.5],[150,232,1],[40,262,2],[96,318,1],[10,350,1.5]].map(([x,y,s])=>`<rect x="${x}" y="${y}" width="${200-x/2}" height="${s}" fill="url(#kr0s)"/>`).join('')}
+    <g transform="translate(300 428) skewX(-10)" style="font:900 486px 'AV';font-stretch:62%;letter-spacing:-.035em" text-anchor="middle">
+      <text x="-130" fill="#D4FF3A" opacity=".16" filter="url(#kr0a)">07</text>
+      <text x="-44" fill="#D4FF3A" opacity=".38" filter="url(#kr0b)">07</text>
+      <text x="0" fill="url(#kr0g)">07</text></g>
   </svg>
-  <div style="position:absolute;right:28px;top:110px;width:250px;font:500 15px/1.35 'ID';color:#D4FF3F">Fast is a feeling. <span style="opacity:.55">Season 26 starts on the street where it all began.</span></div>
-  <div style="position:absolute;right:28px;bottom:26px;display:flex;gap:28px;font:700 46px/1 'AV';font-stretch:75%"><span>P1<small style="font:500 11px 'JB';display:block;opacity:.6">MIAMI</small></span><span>P3<small style="font:500 11px 'JB';display:block;opacity:.6">IMOLA</small></span><span>P2<small style="font:500 11px 'JB';display:block;opacity:.6">BAKU</small></span></div>
+  <div style="${P}left:0;right:0;top:0;height:28px;background:#D4FF3A;color:#0A0B09;font:500 10.5px/28px 'JB';letter-spacing:.04em;display:flex;justify-content:space-between;padding:0 44px">
+    <span>● LIVE — SUZUKA GP · FREE PRACTICE 2</span><span>ONBOARD CAM 07 · 312 KM/H · SECTOR 2 PURPLE</span><span>WATCH →</span></div>
+  <div style="${P}left:44px;right:34px;top:44px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font:900 19px 'AV';font-stretch:125%;letter-spacing:-.01em">KORVO<span style="color:#D4FF3A">/</span>07</span>
+    ${row(['Season 26','Helmet lab','Onboard','Partners','Store'],"gap:26px;font:500 12.5px 'ID';color:#C9CCC0")}
+    <span style="font:600 12px 'ID';height:32px;line-height:30px;padding:0 16px;border:1px solid rgba(238,240,230,.35);border-radius:16px">Shop the kit ↗</span></div>
+  <div style="${P}left:560px;top:104px;font:500 10.5px 'JB';color:#D4FF3A;letter-spacing:.06em">(DRIVER 07) — ROUND 18 / 24</div>
+  <div style="${P}left:556px;top:126px;font:800 58px/.9 'AV';font-stretch:88%;letter-spacing:-.045em;color:#F4F5EE">Ninety laps.<br><span style="color:#D4FF3A">Zero lift.</span></div>
+  <div style="${P}left:560px;top:250px;width:270px;font:400 13px/1.45 'ID';color:#92978B">Rookie of the year in ’25, now hunting the title in the KV-26 — seven tenths quicker through every sector.</div>
+  <div style="${P}left:560px;top:312px;display:flex;gap:10px;font:600 12.5px 'ID'">
+    <span style="height:36px;line-height:36px;padding:0 18px 0 14px;border-radius:18px;background:#D4FF3A;color:#0A0B09;display:flex;align-items:center;gap:9px"><i style="width:0;height:0;border-left:8px solid #0A0B09;border-top:5px solid transparent;border-bottom:5px solid transparent;display:block"></i>Watch onboard</span>
+    <span style="height:36px;line-height:34px;padding:0 18px;border-radius:18px;border:1px solid rgba(238,240,230,.35)">Season 26 →</span></div>
+  <div style="${P}left:560px;right:34px;bottom:0;height:44px;border-top:1px solid rgba(238,240,230,.16);display:flex;justify-content:space-between;align-items:center;font:500 10px 'JB';color:#7D8276;letter-spacing:.05em">
+    <span><b style="font:800 19px 'AV';font-stretch:70%;color:#EEF0E6;letter-spacing:0">14</b> PODIUMS</span><span><b style="font:800 19px 'AV';font-stretch:70%;color:#EEF0E6;letter-spacing:0">06</b> POLES</span><span><b style="font:800 19px 'AV';font-stretch:70%;color:#D4FF3A;letter-spacing:0">P2</b> STANDINGS</span></div>
 </div>`);
 
-// 1 · festival de création : bleu électrique, grotesque blanche géante, bandeau défilant
-// Driftweek en sarcelle : le bleu électrique d'origine se confondait avec le bleu « ennuyeux » du fondateur
-site('Driftweek','#007A6E',740,480,`<div style="position:absolute;inset:0;background:#007A6E;color:#fff;overflow:hidden">
-  <div style="position:absolute;left:26px;top:20px;right:26px;display:flex;justify-content:space-between;font:500 12px 'JB'"><span>DRIFTWEEK ®</span><span>LISBON — 02/06 → 07/06/26</span><span>(TICKETS)</span></div>
-  <div style="position:absolute;left:20px;top:64px;font:800 156px/0.84 'AV';font-stretch:100%;letter-spacing:-.06em">Drift<br>week<span style="font:400 italic 156px 'DS';letter-spacing:-.03em">26</span></div>
-  <div style="position:absolute;right:26px;top:84px;width:200px;font:500 14px/1.35 'ID'">Six days of talks, raves and badly parked bikes. 140 speakers. One river.</div>
-  <div style="position:absolute;right:30px;top:210px;width:150px;height:150px;border-radius:50%;border:1.5px solid #fff;display:grid;place-items:center;font:600 13px 'JB';text-align:center">GET<br>TICKETS<br>→</div>
-  <div style="position:absolute;left:0;right:0;bottom:0;height:54px;background:#fff;color:#007A6E;font:800 30px/54px 'AV';font-stretch:120%;white-space:nowrap;letter-spacing:-.02em">✺ TALKS ✺ WORKSHOPS ✺ NIGHT RIDES ✺ TALKS ✺ WORKSHOPS ✺</div>
-</div>`);
-
-// 2 · application mobile : un petit monde en 3D à travers lequel on envoie une lettre (esprit portfolio WebGL)
-site('Courier','#8FC8FF',320,493,`<div style="position:absolute;inset:0;background:linear-gradient(180deg,#BFE1FF 0,#8FC8FF 60%,#6FAEF2);color:#0B2A52;overflow:hidden">
-  <div style="position:absolute;left:18px;top:16px;right:18px;display:flex;justify-content:space-between;font:700 15px 'SY'"><span>courier</span><span style="font:500 11px 'JB'">☰</span></div>
-  <div style="position:absolute;left:40px;top:96px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFFDF5 0,#FFE3A8 12%,#9BD67F 30%,#4FA35E 55%,#245C49 80%,#163A3A);box-shadow:0 40px 60px -30px rgba(11,42,82,.6)">
-    <div style="position:absolute;left:110px;top:-18px;width:12px;height:40px;background:#FF8A3D;border-radius:3px"></div><div style="position:absolute;left:122px;top:-18px;width:26px;height:16px;background:#fff;border-radius:2px"></div>
-    <div style="position:absolute;left:150px;top:70px;width:34px;height:28px;background:#fff;border-radius:3px;transform:rotate(12deg)"></div></div>
-  <div style="position:absolute;left:18px;right:18px;top:336px;font:700 31px/0.95 'SY';letter-spacing:-.03em">A tiny world,<br>one letter<br>at a time.</div>
-  <div style="position:absolute;left:18px;bottom:18px;height:42px;padding:0 18px;border-radius:21px;background:#0B2A52;color:#fff;font:600 13px/42px 'ID'">Send a letter ✉</div>
-</div>`);
-
-// 3 · studio de marque : jaune, typo noire massive, pastilles autocollantes
-site('Sunday®','#FDCD34',550,297,`<div style="position:absolute;inset:0;background:#FDCD34;color:#111;overflow:hidden">
-  <div style="position:absolute;left:20px;top:16px;right:20px;display:flex;justify-content:space-between;font:600 12px 'ID'"><span style="font:700 16px 'SY'">Sunday®</span><span>Work · Studio · Say hi</span></div>
-  <div style="position:absolute;left:18px;top:48px;font:700 52px/0.92 'SY';letter-spacing:-.045em">We make<br>brands people<br><span style="font:italic 400 56px 'DS';letter-spacing:-.02em">miss.</span></div>
-  <div style="position:absolute;right:30px;bottom:26px;width:110px;height:110px;border-radius:50%;background:#111;color:#FDCD34;display:grid;place-items:center;font:700 13px/1.1 'SY';text-align:center;transform:rotate(-12deg)">OPEN FOR<br>SUMMER ’26</div>
-  <div style="position:absolute;left:20px;bottom:22px;display:flex;gap:8px">${['Branding','Packaging','Motion'].map(t=>`<span style="font:600 12px 'ID';border:1.5px solid #111;border-radius:20px;padding:6px 12px">${t}</span>`).join('')}</div>
-</div>`);
-
-// 4 · hôtel de luxe : sable, serif, grande photo, barre de réservation
-site('Maison Dune','#D4C6B9',830,440,`<div style="position:absolute;inset:0;background:#D4C6B9;color:#2B241E;overflow:hidden">
-  <div style="position:absolute;left:30px;top:22px;right:30px;display:flex;justify-content:space-between;align-items:center;font:500 12px 'ID';letter-spacing:.08em"><span>ROOMS</span><span style="font:400 26px 'DS';letter-spacing:.02em">Maison Dune</span><span>RESERVE</span></div>
-  <img src="img/room_eye.jpg" style="position:absolute;left:30px;top:74px;width:480px;height:320px;object-fit:cover;border-radius:2px">
-  <div style="position:absolute;left:536px;top:84px;width:280px;font:400 40px/1 'DS';letter-spacing:-.02em;white-space:nowrap">Slow mornings<br><span style="font-style:italic">by the dunes.</span></div>
-  <div style="position:absolute;left:540px;top:196px;width:250px;font:400 13px/1.45 'ID';color:#5A4F45">Twelve rooms, one garden, no televisions. Breakfast until noon, always.</div>
-  <div style="position:absolute;left:540px;top:338px;width:260px;height:46px;border:1px solid #2B241E;display:flex;justify-content:space-between;align-items:center;padding:0 14px;box-sizing:border-box;font:500 11px 'ID'"><span>14—18 Jun · 2 guests</span><span>Book →</span></div>
-</div>`);
-
-// 5 · studio créatif : violet profond, orbe néon, grille
-site('Volta.studio™','#6E2BD9',420,300,`<div style="position:absolute;inset:0;background:#1A0B3B;color:#E9DCFF;overflow:hidden">
-  <div style="position:absolute;inset:0;background-image:linear-gradient(#ffffff10 1px,transparent 1px),linear-gradient(90deg,#ffffff10 1px,transparent 1px);background-size:35px 35px"></div>
-  <div style="position:absolute;left:150px;top:40px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#FFFFFF 0,#E2C8FF 10%,#A46BFF 30%,#6E2BD9 55%,#2A0F66 80%);filter:blur(.5px);box-shadow:0 0 90px 10px #6E2BD9aa"></div>
-  <div style="position:absolute;left:16px;top:14px;font:600 13px 'UB'">Volta.studio™</div>
-  <div style="position:absolute;left:16px;bottom:16px;font:500 40px/0.92 'UB';letter-spacing:-.05em;color:#fff">Digital<br>experiences<br>with gravity.</div>
-  <div style="position:absolute;right:14px;top:14px;font:500 10px 'JB'">(SHOWREEL 26)</div>
-</div>`);
-
-// 6 · agence d'architecture : sauge, serif fin, photo, filets
-site('Atelier Mur','#B8C2A9',420,300,`<div style="position:absolute;inset:0;background:#B8C2A9;color:#1F2419;overflow:hidden">
-  <div style="position:absolute;left:16px;top:14px;right:16px;display:flex;justify-content:space-between;font:500 11px 'ID';letter-spacing:.06em"><span>ATELIER MUR</span><span>PROJECTS (24)</span></div>
-  <div style="position:absolute;left:16px;right:16px;top:38px;height:1px;background:#1F2419"></div>
-  <img src="img/room_top.jpg" style="position:absolute;left:206px;top:54px;width:198px;height:230px;object-fit:cover">
-  <div style="position:absolute;left:16px;top:58px;width:180px;font:400 38px/1 'DS';letter-spacing:-.02em">Rooms that hold the light.</div>
-  <div style="position:absolute;left:16px;bottom:16px;font:500 10px/1.5 'JB'">N° 014 — CASA PINHAL<br>LISBON · 2026</div>
-</div>`);
-
-// 7 · sommet fintech : bleu nuit, chiffres énormes
-site('Payline Summit','#0A1AA8',440,300,`<div style="position:absolute;inset:0;background:#06107A;color:#fff;overflow:hidden">
-  <div style="position:absolute;left:16px;top:14px;right:16px;display:flex;justify-content:space-between;font:600 12px 'ID'"><span>payline</span><span style="font:500 10px 'JB';opacity:.7">SUMMIT · BLR</span></div>
-  <div style="position:absolute;left:12px;top:30px;font:900 170px/0.85 'AV';font-stretch:75%;letter-spacing:-.05em;color:#fff">S26</div>
-  <div style="position:absolute;left:16px;bottom:18px;width:220px;font:500 14px/1.3 'ID'">Money moves faster than meetings. 2 days, 60 founders.</div>
-  <div style="position:absolute;right:16px;bottom:18px;width:120px;height:44px;border-radius:22px;background:#9CF2FF;color:#06107A;font:700 13px/44px 'ID';text-align:center">Register</div>
-  <div style="position:absolute;right:16px;top:52px;width:150px;height:150px;border-radius:24px;background:linear-gradient(135deg,#2A3BFF,#9CF2FF);transform:rotate(14deg)"></div>
-</div>`);
-
-// 8 · baskets / sport : vert, typo détourée géante, produit
-site('FIELD/ONE','#42C82A',480,280,`<div style="position:absolute;inset:0;background:#42C82A;color:#0B1A08;overflow:hidden">
-  <div style="position:absolute;left:-6px;top:30px;font:400 190px/0.8 'AN';color:transparent;-webkit-text-stroke:2px #0B1A08;letter-spacing:-.01em">FIELD</div>
-  <svg viewBox="0 0 300 140" style="position:absolute;left:150px;top:78px;width:300px;height:140px;transform:rotate(-10deg);filter:drop-shadow(0 26px 18px #0B1A0870)">
-    <path d="M14 104 C40 104 70 70 96 52 L132 34 C150 26 170 30 180 44 C200 70 240 76 276 84 C292 88 296 104 290 114 Z" fill="#F4F4EE"/>
-    <path d="M10 112 L292 112 C294 124 286 132 272 132 L24 132 C12 132 6 124 10 112 Z" fill="#0B1A08"/>
-    <path d="M60 96 C110 70 170 70 240 92" fill="none" stroke="#42C82A" stroke-width="12" stroke-linecap="round"/>
-    <path d="M100 56 L150 86 M118 46 L168 80 M136 38 L184 72" stroke="#0B1A08" stroke-width="5" stroke-linecap="round"/>
-    <path d="M176 44 C186 30 200 26 214 32" fill="none" stroke="#0B1A08" stroke-width="6" stroke-linecap="round"/>
+// 1 · festival : coucher de soleil magenta → orange, soleil qui se lève derrière les dunes, « Solstice » en serif italique géante
+site('Solstice','#F0457B',740,480,`<div style="${P}inset:0;background:linear-gradient(180deg,#1E0527 0%,#470B44 24%,#9E1A62 46%,#F0457B 63%,#FF7A45 80%,#FFB25E 100%);color:#FFF1E4;overflow:hidden;font-family:'ID'">
+  <div style="${P}left:330px;top:150px;width:330px;height:330px;border-radius:50%;background:radial-gradient(circle at 50% 42%,#FFFBE8 0,#FFE9A6 22%,#FFC05A 52%,#FF8A45 80%,#FF5F5F 100%);box-shadow:0 0 90px 24px rgba(255,170,90,.6),0 0 240px 90px rgba(240,69,123,.45)"></div>
+  <svg width="740" height="480" viewBox="0 0 740 480" style="${P}left:0;top:0" preserveAspectRatio="none">
+    <defs><linearGradient id="so1a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8E1B4D"/><stop offset="1" stop-color="#3A0A2C"/></linearGradient>
+      <linearGradient id="so1b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4B0C36"/><stop offset="1" stop-color="#1A0420"/></linearGradient></defs>
+    <path d="M0 372 C120 340 200 352 300 366 C400 380 470 330 580 336 C650 340 700 352 740 346 L740 480 L0 480 Z" fill="url(#so1a)"/>
+    <path d="M0 412 C90 390 190 384 300 404 C420 426 520 392 620 398 C680 402 720 410 740 408 L740 480 L0 480 Z" fill="url(#so1b)"/>
   </svg>
-  <div style="position:absolute;left:16px;top:12px;font:400 20px 'AN'">FIELD/ONE</div>
-  <div style="position:absolute;right:16px;bottom:14px;font:700 12px 'ID'">Run 01 — €180 →</div>
+  ${grain(.32)}
+  <div style="${P}left:0;right:0;top:0;height:26px;border-bottom:1px solid rgba(255,241,228,.18);font:500 10px/26px 'JB';letter-spacing:.06em;color:rgba(255,241,228,.8);display:flex;justify-content:space-between;padding:0 26px"><span>PHASE 2 TICKETS — 82% SOLD</span><span>CAMPING ADD-ON NOW OPEN</span><span>EN / ES</span></div>
+  <div style="${P}left:26px;right:56px;top:40px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font:800 16px 'SY';letter-spacing:-.01em;display:flex;align-items:center;gap:8px"><i style="width:14px;height:14px;border-radius:50%;background:#FFD27A;display:block;box-shadow:0 0 12px #FFD27A"></i>solstice</span>
+    ${row(['Line-up','Tickets','Camping','Journal','Info'],"gap:24px;font:500 12.5px 'ID'")}
+    <span style="font:600 12px 'ID';height:32px;line-height:32px;padding:0 16px;border-radius:16px;background:#FFF1E4;color:#470B44">Tickets from €189 →</span></div>
+  <div style="${P}left:28px;top:96px;font:500 11px 'JB';letter-spacing:.08em;color:rgba(255,241,228,.85)">(A FESTIVAL FOR THE LONGEST DAY)</div>
+  <div style="${P}left:16px;top:104px;font:italic 400 214px/1 'DS';letter-spacing:-.045em;white-space:nowrap">Solstice<span style="font:800 30px 'AV';font-stretch:125%;letter-spacing:-.02em;vertical-align:top;position:relative;top:44px;margin-left:6px">’26</span></div>
+  <div style="${P}left:30px;top:320px;display:flex;gap:26px;align-items:baseline">
+    <span style="font:800 22px 'AV';font-stretch:125%;letter-spacing:-.02em">19—22.06</span><span style="font:400 13px/1.35 'ID';color:rgba(255,241,228,.85)">Tarifa, Andalucía<br>4 days · 3 stages · 1 very long sunset</span></div>
+  <div style="${P}left:30px;right:56px;top:398px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px">
+    ${[['FRI 19.06','Moss Temple','Aya Korin · Halo Halo'],['SAT 20.06','Dune Machine','Velvet Antenna · Oru'],['SUN 21.06','Soft Riot','Noor &amp; the Tide · Parallax']].map(([d,a,b])=>`<div style="border-top:1px solid rgba(255,241,228,.3);padding-top:8px"><div style="font:500 9.5px 'JB';letter-spacing:.08em;opacity:.7">${d}</div><div style="font:800 19px/1.1 'AV';font-stretch:80%;letter-spacing:-.01em;text-transform:uppercase;margin-top:4px">${a}</div><div style="font:500 11.5px 'ID';opacity:.8;margin-top:2px">${b}</div></div>`).join('')}</div>
 </div>`);
 
-// 9 · audio (mobile) : orange brûlé, enceinte ronde
-site('Kiln Audio','#FF6B1A',240,380,`<div style="position:absolute;inset:0;background:#FF6B1A;color:#1E0D02;overflow:hidden">
-  <div style="position:absolute;left:14px;top:12px;font:700 15px 'UB'">kiln</div>
-  <div style="position:absolute;left:40px;top:60px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,#1E0D02 0 22%,#3A1A06 23% 46%,#1E0D02 47% 49%,#FF8B45 50% 100%);box-shadow:0 24px 40px -20px #1E0D02"></div>
-  <div style="position:absolute;left:14px;top:244px;font:600 30px/0.95 'UB';letter-spacing:-.05em">Warm<br>sound.</div>
-  <div style="position:absolute;left:14px;bottom:14px;right:14px;display:flex;justify-content:space-between;font:500 11px 'JB'"><span>K-1 · €390</span><span>ADD +</span></div>
+// 2 · parfum (mobile) : flacon de verre ambré sur socle de travertin, pêche poudrée, la marque en serif italique géante derrière l'objet
+// (la carte est rognée à gauche pendant l'éclatement : l'objet et le texte sont décalés vers la droite)
+site('Sève Parfums','#F2C3A5',320,493,`<div style="${P}inset:0;background:radial-gradient(120% 70% at 64% 34%,#FCE4D3 0,#F3BF9F 50%,#DE9673 100%);color:#3A1C12;overflow:hidden;font-family:'ID'">
+  <div style="${P}left:16px;right:16px;top:16px;display:flex;justify-content:space-between;align-items:center;font:500 11px 'ID'">
+    <span style="display:flex;flex-direction:column;gap:4px"><i style="width:18px;height:1.5px;background:#3A1C12;display:block"></i><i style="width:12px;height:1.5px;background:#3A1C12;display:block"></i></span>
+    <span style="font:400 19px 'DS';letter-spacing:.24em;margin-left:14px">SÈVE</span><span>Bag (0)</span></div>
+  <div style="${P}left:0;width:372px;top:58px;text-align:center;font:italic 400 142px/1 'DS';letter-spacing:-.05em;color:#E2936F;white-space:nowrap">Sève</div>
+  <div style="${P}left:82px;top:350px;width:220px;height:42px;background:linear-gradient(90deg,#C9AD94,#EDE0D1 30%,#F6EDE3 45%,#DAC4AE 75%,#BB9C83);border-radius:0 0 110px 110px / 0 0 20px 20px"></div>
+  <div style="${P}left:82px;top:322px;width:220px;height:56px;border-radius:50%;background:radial-gradient(closest-side,#FAF2E9,#EBDBCB 70%,#DCC5B0);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)"></div>
+  <div style="${P}left:198px;top:334px;width:110px;height:28px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,140,50,.75),rgba(255,140,50,0))"></div>
+  <div style="${P}left:118px;top:338px;width:150px;height:22px;border-radius:50%;background:radial-gradient(closest-side,rgba(80,30,10,.5),rgba(80,30,10,0));filter:blur(2px)"></div>
+  <div style="${P}left:158px;top:88px;width:68px;height:80px;border-radius:7px 7px 3px 3px;background:linear-gradient(90deg,#0B0806 0,#2E241F 16%,#8E7E74 27%,#2A201B 38%,#0D0907 64%,#3E322C 86%,#120D0A);box-shadow:0 8px 10px -6px rgba(0,0,0,.5)"></div>
+  <div style="${P}left:168px;top:166px;width:48px;height:12px;background:linear-gradient(90deg,#6E4E1C,#F0D28A 34%,#FFF1C6 44%,#B6893A 64%,#553A12)"></div>
+  <div style="${P}left:116px;top:176px;width:152px;height:170px;border-radius:24px;background:linear-gradient(180deg,rgba(255,240,228,.55),rgba(250,205,175,.35));box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.65),inset 0 -14px 22px rgba(140,50,10,.25),0 26px 30px -20px rgba(90,30,10,.6)">
+    <div style="${P}left:13px;right:13px;top:34px;bottom:13px;border-radius:13px;background:linear-gradient(180deg,#FFC27E 0,#F49144 40%,#D2632A 78%,#A9441B 100%);box-shadow:inset 0 2px 0 rgba(255,236,200,.9)"></div>
+    <div style="${P}left:13px;right:13px;bottom:13px;height:20px;border-radius:0 0 13px 13px;background:linear-gradient(180deg,rgba(255,220,170,0),rgba(255,220,170,.5))"></div>
+    <div style="${P}inset:0;border-radius:24px;background:linear-gradient(90deg,rgba(255,255,255,.62) 0,rgba(255,255,255,.12) 7%,rgba(255,255,255,0) 22%,rgba(255,255,255,0) 66%,rgba(255,255,255,.22) 84%,rgba(255,255,255,.7) 93%,rgba(255,255,255,.12) 100%)"></div>
+    <div style="${P}left:40px;top:72px;width:72px;height:46px;background:#FBF4EC;box-shadow:0 1px 2px rgba(80,30,10,.25);text-align:center;color:#3A1C12"><div style="font:400 13px/1 'DS';letter-spacing:.2em;margin-top:9px;margin-left:2px">SÈVE</div><div style="font:500 6px 'JB';letter-spacing:.12em;margin-top:6px">N°4 · EAU DE PARFUM</div></div></div>
+  ${grain(.14)}
+  <div style="${P}left:20px;right:18px;top:404px;display:flex;justify-content:space-between;font:500 9.5px 'JB';letter-spacing:.06em;color:#7A4A36"><span>04 / 07</span><span>EAU DE PARFUM · 50 ML · €148</span></div>
+  <div style="${P}right:18px;top:426px;text-align:right;font:400 23px/1.02 'DS';letter-spacing:-.01em;white-space:nowrap">Fig leaf, wet stone<br><i>&amp; a little smoke.</i></div>
+  <div style="${P}left:20px;top:432px;width:42px;height:42px;border-radius:50%;background:#3A1C12;color:#FBEFE6;font:400 18px/42px 'ID';text-align:center">+</div>
 </div>`);
 
-// 10 · labo de création WebGL : noir, sphère de particules lumineuses
-site('Lumen Lab','#E9E6DD',420,300,`<div style="position:absolute;inset:0;background:#0B0B0E;color:#E9E6DD;overflow:hidden">
-  <div style="position:absolute;left:120px;top:30px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle at 50% 50%,transparent 0 40%,#E9E6DD33 41% 41.5%,transparent 42% 55%,#E9E6DD22 56% 56.5%,transparent 57%),repeating-conic-gradient(from 0deg,#E9E6DD66 0 1deg,transparent 1deg 7deg);-webkit-mask:radial-gradient(circle,#000 0 60%,transparent 70%);mask:radial-gradient(circle,#000 0 60%,transparent 70%)"></div>
-  <div style="position:absolute;left:196px;top:106px;width:88px;height:88px;border-radius:50%;background:radial-gradient(circle,#fff,#E9E6DD 30%,transparent 70%);filter:blur(4px)"></div>
-  <div style="position:absolute;left:16px;top:14px;font:500 12px 'JB'">LUMEN LAB / R&D</div>
-  <div style="position:absolute;left:16px;bottom:16px;font:400 italic 40px/0.95 'DS'">Light, but<br>make it think.</div>
-  <div style="position:absolute;right:16px;bottom:18px;font:500 10px 'JB';text-align:right">FIG. 03<br>PARTICLES 120K</div>
+// 3 · fonderie typographique : lie-de-vin, « Ag » géant avec ses lignes de métrique, réglages d'axes variables
+site('Basalt Type','#5E0F1B',550,297,`<div style="${P}inset:0;background:#5E0F1B;color:#FFC9CF;overflow:hidden;font-family:'ID'">
+  <div style="${P}inset:0;background:radial-gradient(70% 90% at 25% 70%,#7A1626,rgba(122,22,38,0) 70%)"></div>
+  <div style="${P}left:18px;right:18px;top:14px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font:800 16px 'AV';font-stretch:112%;letter-spacing:-.02em">Basalt<sup style="font:500 8px 'JB';letter-spacing:.06em;margin-left:3px;vertical-align:6px">TYPE</sup></span>
+    ${row(['Typefaces','In use','Trials','Licensing','Cart (2)'],"gap:18px;font:500 11px 'ID'")}</div>
+  <div style="${P}left:18px;right:18px;top:40px;height:1px;background:rgba(255,201,207,.25)"></div>
+  <svg width="340" height="297" style="${P}left:0;top:0">
+    ${[[66,'CAP 710'],[111,'X 528'],[200,'BASE 0'],[238,'DESC −210']].map(([y,t])=>`<line x1="18" x2="332" y1="${y}" y2="${y}" stroke="#FFC9CF" stroke-opacity=".35" stroke-dasharray="2 3"/><text x="332" y="${y-4}" text-anchor="end" style="font:500 7.5px 'JB';letter-spacing:.06em" fill="#FFC9CF" fill-opacity=".7">${t}</text>`).join('')}
+    <text x="12" y="200" style="font:800 190px 'AV';font-stretch:72%;letter-spacing:-.04em" fill="#FFC9CF">Ag</text>
+  </svg>
+  <div style="${P}left:356px;top:54px;width:176px">
+    <div style="font:600 19px/1 'ID';letter-spacing:-.02em;color:#FFE4E7">Basalt Grotesk</div>
+    <div style="font:500 9px 'JB';letter-spacing:.05em;margin-top:6px;opacity:.7">VARIABLE · 2 AXES · 72 STYLES</div>
+    ${[['Weight',800,.86],['Width',72,.15]].map(([k,v,p])=>`<div style="margin-top:14px;display:flex;justify-content:space-between;font:500 10px 'ID'"><span>${k}</span><span style="font-family:'JB'">${v}</span></div><div style="position:relative;height:2px;background:rgba(255,201,207,.25);margin-top:7px"><div style="position:absolute;left:0;top:0;height:2px;width:${p*100}%;background:#FFC9CF"></div><div style="position:absolute;left:calc(${p*100}% - 6px);top:-5px;width:12px;height:12px;border-radius:50%;background:#FFC9CF"></div></div>`).join('')}
+    <div style="display:flex;gap:6px;margin-top:16px">${['a','g','&amp;','R','3'].map((g,i)=>`<span style="width:30px;height:30px;border:1px solid rgba(255,201,207,.35);border-radius:4px;display:grid;place-items:center;font:${[300,500,800,900,600][i]} 17px 'AV';font-stretch:${[62,90,72,112,125][i]}%">${g}</span>`).join('')}</div>
+    <div style="display:flex;gap:6px;margin-top:16px;font:600 10.5px 'ID'"><span style="height:30px;line-height:30px;padding:0 12px;border-radius:15px;background:#FFC9CF;color:#5E0F1B;white-space:nowrap">Buy family · €480</span><span style="height:30px;line-height:28px;padding:0 12px;border-radius:15px;border:1px solid rgba(255,201,207,.45);white-space:nowrap">Trial ↓</span></div></div>
+  <div style="${P}left:18px;right:18px;top:262px;height:1px;background:rgba(255,201,207,.25)"></div>
+  <div style="${P}left:18px;top:270px;display:flex;gap:16px;align-items:baseline;white-space:nowrap;font-size:17px;font-family:'AV';letter-spacing:-.02em">${[[100,62,'Thin'],[300,75,'Light'],[400,87,'Book'],[600,100,'Medium'],[800,112,'Bold'],[900,125,'Black']].map(([w,s,t])=>`<span style="font-weight:${w};font-stretch:${s}%">${t}</span>`).join('')}</div>
+</div>`);
+
+// 4 · agence d'architecture : colonne béton clair + photo en bichromie (la fenêtre et ses ombres portées), titre fin mêlé d'italique
+// (la carte est rognée à droite et en bas pendant l'éclatement : le texte est dans la colonne de gauche, la fenêtre juste à côté)
+site('Ombra Architects','#CBC3B5',830,440,`<div style="${P}inset:0;background:#D8D1C4;color:#1B1916;overflow:hidden;font-family:'ID'">
+  <div style="${P}left:340px;top:0;right:0;bottom:0;overflow:hidden;background:#26231F">
+    <img src="img/room_top.jpg" style="${P}left:-14px;top:-96px;width:1380px;height:776px;object-fit:cover;filter:grayscale(1) contrast(1.32) brightness(1.03)">
+    <div style="${P}inset:0;background:#2B2621;mix-blend-mode:lighten"></div>
+    <div style="${P}inset:0;background:#EEE4D3;mix-blend-mode:multiply"></div>
+    <div style="${P}inset:0;background:linear-gradient(180deg,rgba(20,18,15,.45),rgba(20,18,15,0) 20%,rgba(20,18,15,0) 70%,rgba(20,18,15,.6))"></div>
+    ${grain(.2)}
+    <div style="${P}left:24px;bottom:22px;font:500 10px/1.6 'JB';letter-spacing:.05em;color:rgba(250,246,239,.9)">CASA SOMBRA — COMPORTA<br>RESIDENTIAL · 240 M² · 2025</div>
+    <div style="${P}right:26px;bottom:24px;display:flex;align-items:center;gap:12px;font:500 10px 'JB';color:rgba(250,246,239,.9)"><span>03</span><span style="width:110px;height:1px;background:rgba(250,246,239,.3);position:relative"><i style="position:absolute;left:0;top:0;width:28%;height:1px;background:#FAF6EF;display:block"></i></span><span>12</span></div>
+    <div style="${P}right:26px;top:24px;display:flex;gap:24px;font:500 12px 'ID';color:#FAF6EF">${['Projects <sup style="font-size:8px">31</sup>','Studio','Research','Contact'].map(t=>`<span>${t}</span>`).join('')}<span style="font:500 10.5px 'JB';margin-left:8px">EN / PT</span></div></div>
+  ${grain(.12,'multiply')}
+  <div style="${P}left:30px;top:24px;font:600 14px 'AV';font-stretch:125%;letter-spacing:.34em">OMBRA</div>
+  <div style="${P}left:30px;top:52px;font:500 9.5px 'JB';letter-spacing:.06em;color:#6E665B">ARCHITECTS — PORTO, SINCE 2011</div>
+  <div style="${P}left:26px;top:104px;font:300 47px/.94 'AV';font-stretch:100%;letter-spacing:-.055em;white-space:nowrap">We draw with<br>light first,<br>then build<br><span style="font:italic 400 49px 'DS';letter-spacing:-.035em">around it.</span></div>
+  <div style="${P}left:30px;top:304px;width:270px;font:400 12px/1.5 'ID';color:#4F483F">Houses, schools and one very quiet chapel — 31 buildings drawn around the sun’s path.</div>
+  <div style="${P}left:30px;top:366px;display:flex;gap:8px;font:600 11.5px 'ID'"><span style="height:34px;line-height:34px;padding:0 16px;border-radius:17px;background:#1B1916;color:#EFEAE1">View projects</span><span style="height:34px;line-height:32px;padding:0 16px;border-radius:17px;border:1px solid rgba(27,25,22,.4)">Studio reel ▸</span></div>
+</div>`);
+
+// 5 · banque en ligne (goût) : vert forêt, carte en métal brossé inclinée, serif éditoriale
+site('Halden','#123D2E',420,300,`<div style="${P}inset:0;background:radial-gradient(90% 80% at 75% 40%,#1C5A43,#123D2E 55%,#0B2a20);color:#EAF1E8;overflow:hidden;font-family:'ID'">
+  <div style="${P}left:16px;right:16px;top:14px;display:flex;justify-content:space-between;align-items:center;font:500 11px 'ID'"><span style="font:400 18px 'DS';letter-spacing:-.01em">Halden</span>${row(['Save','Invest','Business'],'gap:14px;opacity:.8')}<span style="height:24px;line-height:24px;padding:0 10px;border-radius:12px;background:#EAF1E8;color:#123D2E;font-weight:600">Open account</span></div>
+  <div style="${P}left:16px;top:66px;font:400 42px/.95 'DS';letter-spacing:-.025em">Money,<br><i>quietly.</i></div>
+  <div style="${P}left:16px;top:170px;width:150px;font:400 11.5px/1.45 'ID';opacity:.75">No noise, no confetti. Just a very good rate.</div>
+  <div style="${P}left:16px;bottom:16px"><div style="font:800 40px/1 'AV';font-stretch:68%;letter-spacing:-.02em;color:#C8F0B4">4.10%</div><div style="font:500 9px 'JB';letter-spacing:.06em;opacity:.7;margin-top:4px">AER · INSTANT ACCESS</div></div>
+  <div style="${P}left:192px;top:78px;width:210px;height:132px;border-radius:12px;transform:perspective(600px) rotateY(-18deg) rotateX(10deg) rotateZ(-8deg);background:linear-gradient(118deg,#B9CBBE 0,#E7F0E9 22%,#93AE9D 46%,#DDE8E0 64%,#7E9A89 100%);box-shadow:0 30px 40px -16px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.45);color:#123D2E">
+    <div style="${P}inset:0;border-radius:12px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.08) 0 1px,transparent 1px 3px)"></div>
+    <div style="${P}left:16px;top:14px;font:400 16px 'DS'">Halden</div>
+    <div style="${P}left:16px;top:48px;width:30px;height:22px;border-radius:4px;background:linear-gradient(135deg,#E9D08C,#B48C3E 60%,#F3E2B0)"></div>
+    <div style="${P}left:16px;bottom:14px;font:500 10px 'JB';letter-spacing:.12em">•••• 0417</div><div style="${P}right:14px;bottom:12px;font:500 8px 'JB';letter-spacing:.08em">METAL</div></div>
+  ${grain(.16)}
+</div>`);
+
+// 6 · céramiste : terre cuite, photo de la jarre dans une arche, serif chaude
+site('Terra Cruda','#C4643F',420,300,`<div style="${P}inset:0;background:#C4643F;color:#FBEDE1;overflow:hidden;font-family:'ID'">
+  <div style="${P}inset:0;background:radial-gradient(80% 90% at 20% 20%,#D27650,rgba(210,118,80,0) 70%)"></div>
+  ${grain(.24)}
+  <div style="${P}left:16px;right:16px;top:14px;display:flex;justify-content:space-between;font:500 10.5px 'ID'"><span style="font:600 11px 'ID';letter-spacing:.18em">TERRA CRUDA</span>${row(['Shop','Studio','Workshops','Cart 1'],'gap:14px')}</div>
+  <div style="${P}right:18px;top:40px;width:164px;height:236px;border-radius:82px 82px 4px 4px;overflow:hidden;background:#2A2522;box-shadow:0 20px 30px -18px rgba(60,20,5,.6)">
+    <img src="img/tile_plant.jpg" style="${P}left:-74px;top:-150px;width:312px;height:416px;object-fit:cover;filter:saturate(.9) contrast(1.05)"></div>
+  <div style="${P}left:16px;top:50px;font:400 37px/.95 'DS';letter-spacing:-.02em">Thrown slow,<br>fired<br><i>slower.</i></div>
+  <div style="${P}left:16px;top:188px;width:200px;font:400 11px/1.45 'ID';opacity:.85">Red Alentejo clay, wood-fired twice a year. Every jar is a little lopsided, on purpose.</div>
+  <div style="${P}left:16px;bottom:16px;height:28px;line-height:28px;padding:0 12px;border-radius:14px;background:#FBEDE1;color:#7A3018;font:600 10.5px 'ID'">Shop the kiln →</div>
+  <div style="${P}right:18px;bottom:8px;width:164px;display:flex;justify-content:space-between;font:500 8.5px 'JB';letter-spacing:.05em;opacity:.9"><span>VASO N°12</span><span>€86</span></div>
+</div>`);
+
+// 7 · magazine culturel : violet, titre de une en serif géante, grille d'articles avec images génératives
+site('Parallax Magazine','#7D4CF2',440,300,`<div style="${P}inset:0;background:#7D4CF2;color:#140A2B;overflow:hidden;font-family:'ID'">
+  <div style="${P}left:14px;right:14px;top:10px;display:flex;justify-content:space-between;font:500 9px 'JB';letter-spacing:.06em"><span>N°12 — THE SLOW ISSUE</span><span>AUTUMN 2026</span><span>SUBSCRIBE →</span></div>
+  <div style="${P}left:6px;top:12px;font:400 121px/1 'DS';letter-spacing:-.055em;color:#F3EEFF;white-space:nowrap">Parallax</div>
+  <div style="${P}left:14px;right:14px;top:128px;height:1px;background:#140A2B"></div>
+  <div style="${P}left:14px;top:138px;width:200px;height:146px;border-radius:3px;overflow:hidden;background:radial-gradient(60% 70% at 62% 40%,#FFD08A,#FF7A3C 40%,#B3205A 75%,#3A0E3E)">
+    <div style="${P}left:54px;top:30px;width:92px;height:92px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#4A3A5E,#120A1E 60%,#000);box-shadow:24px 30px 40px rgba(40,0,30,.5)"></div>${grain(.35)}</div>
+  ${[['ESSAY','The last analog darkroom in Porto'],['DESIGN','Why every chair wants to be a sculpture'],['INTERVIEW','A typographer who only draws in pencil']].map(([k,t],i)=>`<div style="${P}left:228px;right:14px;top:${138+i*50}px;height:44px;border-bottom:1px solid rgba(20,10,43,.35)"><div style="font:500 8px 'JB';letter-spacing:.08em">0${i+1} · ${k}</div><div style="font:400 14px/1 'DS';margin-top:3px;letter-spacing:-.01em">${t}</div></div>`).join('')}
+</div>`);
+
+// 8 · marque de running : orange signal, « 42.195 » géant penché, tracé de parcours
+site('Second Wind','#FF5A1F',480,280,`<div style="${P}inset:0;background:#FF5A1F;color:#140B06;overflow:hidden;font-family:'ID'">
+  <div style="${P}inset:0;background:radial-gradient(70% 90% at 80% 20%,#FF8A4A,rgba(255,138,74,0) 70%)"></div>
+  <svg width="480" height="280" style="${P}left:0;top:0"><path d="M-10 214 C50 170 96 112 170 118 C240 124 236 176 300 170 C360 164 362 108 420 112 C450 114 470 128 500 120" fill="none" stroke="#FFE7D6" stroke-width="2.5" stroke-dasharray="1 6" stroke-linecap="round"/><circle cx="420" cy="112" r="5" fill="#140B06"/><circle cx="420" cy="112" r="11" fill="none" stroke="#140B06" stroke-width="1.5"/></svg>
+  <div style="${P}left:274px;top:101px;height:22px;line-height:22px;padding:0 9px;border-radius:11px;background:#140B06;color:#FFE7D6;font:500 9.5px 'JB';letter-spacing:.04em">KM 42 · 4’12”/KM</div>
+  <div style="${P}left:16px;right:16px;top:14px;display:flex;justify-content:space-between;align-items:center;font:500 11px 'ID'"><span style="font:900 13px 'AV';font-stretch:125%;letter-spacing:-.01em">SECOND WIND®</span>${row(['Shoes','Apparel','Run club','Journal'],'gap:16px')}<span>Bag 0</span></div>
+  <div style="${P}left:16px;top:44px;font:600 17px/1.1 'ID';letter-spacing:-.02em;width:200px">Built for the last<br>195 metres.</div>
+  <div style="${P}right:16px;top:46px;text-align:right;font:500 9px/1.5 'JB';letter-spacing:.05em">TEMPO 3 — €165<br>NEW · 7 COLOURS</div>
+  <div style="${P}left:12px;bottom:-28px;font:900 198px/1 'AV';font-stretch:62%;letter-spacing:-.045em;transform:skewX(-10deg);transform-origin:0 100%;white-space:nowrap">42.195<span style="font:800 26px 'AV';font-stretch:100%;letter-spacing:-.02em;margin-left:6px">km</span></div>
+  ${grain(.2)}
+</div>`);
+
+// 9 · boisson (mobile) : canette rose « Sprizzo » sur pistache, rondelles d'orange sanguine en conic-gradient
+site('Sprizzo','#C9DE9A',240,380,`<div style="${P}inset:0;background:radial-gradient(100% 70% at 50% 38%,#E4F0C2,#C9DE9A 60%,#AFC97C);color:#1F3410;overflow:hidden;font-family:'ID'">
+  <div style="${P}left:14px;right:14px;top:12px;display:flex;justify-content:space-between;align-items:center;font:600 10px 'ID'"><span style="font:900 14px 'UB';letter-spacing:-.04em">sprizzo</span><span>Shop · ☰</span></div>
+  ${[[22,96,46,30],[170,70,38,-20],[176,236,30,50]].map(([x,y,s,r])=>`<div style="${P}left:${x}px;top:${y}px;width:${s}px;height:${s}px;border-radius:50%;background:#FFE6C9;padding:3px;transform:rotate(${r}deg);box-shadow:0 8px 12px -6px rgba(31,52,16,.4)"><div style="width:100%;height:100%;border-radius:50%;background:repeating-conic-gradient(#D7263D 0 26deg,#FFD3B0 26deg 30deg)"></div></div>`).join('')}
+  <div style="${P}left:72px;top:48px;width:96px;height:200px;transform:rotate(-8deg)">
+    <div style="${P}left:0;top:10px;width:96px;height:184px;border-radius:12px/9px;background:linear-gradient(90deg,#9E0F3E 0,#E2306A 14%,#FF8CB2 27%,#FF4F86 40%,#E2306A 70%,#A1123F 100%);box-shadow:0 30px 30px -18px rgba(31,52,16,.6)">
+      <div style="${P}left:0;right:0;top:0;height:14px;border-radius:12px/9px;background:linear-gradient(90deg,#9B9B9B,#F2F2F2 30%,#BDBDBD 55%,#7A7A7A)"></div>
+      <div style="${P}left:0;right:0;bottom:0;height:10px;border-radius:12px/7px;background:linear-gradient(90deg,#8A8A8A,#E6E6E6 30%,#A8A8A8 60%,#6E6E6E)"></div>
+      <div style="${P}left:50%;top:94px;transform:translate(-50%,-50%) rotate(-90deg);font:900 28px/1 'UB';letter-spacing:-.05em;color:#FFF0E4;white-space:nowrap">sprizzo</div>
+      </div>
+    <div style="${P}left:6px;top:0;width:84px;height:18px;border-radius:50%;background:radial-gradient(closest-side,#FAFAFA,#C8C8C8 70%,#9A9A9A)"></div></div>
+  <div style="${P}left:14px;top:268px;font:800 21px/.98 'SY';letter-spacing:-.04em;white-space:nowrap">Aperitivo,<br>minus the<br>hangover.</div>
+  <div style="${P}left:14px;right:14px;bottom:12px;display:flex;justify-content:space-between;align-items:center;font:600 10px 'ID'"><span style="height:26px;line-height:26px;padding:0 11px;border-radius:13px;background:#1F3410;color:#E4F0C2">12-pack · €29</span><span style="font:500 9px 'JB'">0% ABV</span></div>
+</div>`);
+
+// 10 · galerie d'art : mur blanc, toile en champs de couleur sous la lumière, cartel
+site('Hall Nine','#E9E3D8',420,300,`<div style="${P}inset:0;background:linear-gradient(180deg,#F6F3EE,#E9E3D8 70%,#D9D1C3);color:#161412;overflow:hidden;font-family:'ID'">
+  <div style="${P}inset:0;background:radial-gradient(34% 75% at 29% 0%,rgba(255,252,246,.95),rgba(255,252,246,0) 72%)"></div>
+  <div style="${P}left:16px;right:16px;top:14px;display:flex;justify-content:space-between;font:500 10.5px 'ID'"><span style="font:700 12px 'ID';letter-spacing:-.01em">Hall Nine</span>${row(['Exhibitions','Visit','Shop'],'gap:14px')}<span>Tickets</span></div>
+  <div style="${P}left:38px;top:48px;width:168px;height:206px;background:#6A1424;overflow:hidden;box-shadow:0 24px 28px -16px rgba(40,20,10,.55),0 2px 3px rgba(40,20,10,.25)">
+    <div style="${P}left:14px;right:14px;top:16px;height:92px;background:linear-gradient(180deg,#F06A33,#E2502A 60%,#D8482A);border-radius:4px;box-shadow:0 0 6px 3px #E2502A"></div>
+    <div style="${P}left:16px;right:16px;top:118px;height:6px;background:#B32A2A;border-radius:3px;box-shadow:0 0 5px 2px #B32A2A;opacity:.85"></div>
+    <div style="${P}left:14px;right:14px;top:132px;height:58px;background:#2B0A16;border-radius:4px;box-shadow:0 0 6px 3px #2B0A16"></div>
+    <div style="${P}inset:0;background:linear-gradient(180deg,rgba(255,240,220,.16),rgba(255,240,220,0) 45%,rgba(0,0,0,.18))"></div>${grain(.3)}</div>
+  <div style="${P}left:236px;top:58px;font:500 9px 'JB';letter-spacing:.08em;color:#6B635A">NOW ON VIEW — HALL 2</div>
+  <div style="${P}left:236px;top:74px;font:600 30px/.95 'ID';letter-spacing:-.045em">Mira Olsen</div>
+  <div style="${P}left:236px;top:104px;font:italic 400 30px/1 'DS';letter-spacing:-.02em">Weight of Air</div>
+  <div style="${P}left:236px;top:150px;width:160px;font:400 11px/1.45 'ID';color:#4A443E">Twelve paintings about the hour before a storm.</div>
+  <div style="${P}left:236px;top:202px;font:500 10px/1.6 'JB';color:#161412">12.09 — 30.11.26<br>FREE ENTRY</div>
+  <div style="${P}left:236px;bottom:16px;font:600 11px 'ID';border-bottom:1px solid #161412;padding-bottom:2px">Plan your visit →</div>
+  <div style="${P}left:38px;bottom:16px;font:500 8.5px 'JB';color:#6B635A">UNTITLED (RUST), 2026 · OIL ON LINEN</div>
 </div>`);
 
 /* camaïeu de la couleur dominante : ombres → couleur → clair, appliqué par luminance (comme les teintes de la réf) */

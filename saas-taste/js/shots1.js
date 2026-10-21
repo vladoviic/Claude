@@ -58,7 +58,7 @@ const BR=[[0,0],[1180,0],[0,587],[330,783],[1090,640]].map(([x,y],i)=>[x,y,SITES
 const BCL=[[-200,-95,560,0],[210,-120,430,0],[-360,60,200,0],[-80,120,390,0],[260,95,470,0]];
 const BDR=[[-50,-20],[40,-5],[-45,10],[35,40],[100,45]], BST=[84,89,90,89,91], BSW=[[110,0],[-90,1.3],[140,2.2],[-80,3.1],[120,4.4]];
 const BXT=[5,6,7,8,9,10].map(i=>[i,SITES[i].w,SITES[i].h]);
-const BXC=[[40,-30,300,-3,-1,-1],[-330,-180,270,4,-1,-1],[360,-10,300,-2,1,0],[-40,170,280,3,0,1],[150,-190,200,2,1,-1],[-260,150,240,-4,-1,1]];
+const BXC=[[-440,-20,300,-3,-1,0],[-330,-180,270,4,-1,-1],[360,-10,300,-2,1,0],[-40,170,280,3,0,1],[150,-190,200,2,1,-1],[-260,150,240,-4,-1,1]];
 const wCol=el(W1.cam,'abs','', 'inset:0;width:1920px;height:1080px'); let wColB=null;
 const wB=BR.map(([x,y,w,h,si])=>{ const d=el(wCol,'bshot',SITES[si].html, `left:0;top:0;width:${w}px;height:${h}px;transform-origin:0 0;background:${SITES[si].color}`); d._r=[x,y,w,h]; d._si=si; return d; });
 const wX=BXT.map(([si,w,h])=>{ const d=el(wCol,'bshot',SITES[si].html, `left:0;top:0;width:${w}px;height:${h}px;transform-origin:0 0;background:${SITES[si].color}`); d._w=w; d._h=h; d._si=si; return d; });
@@ -122,7 +122,7 @@ function shotW(f){ push(W1.cam,f,0,0.0009);
   wX.forEach((d,i)=>{ const st=97+(i%2); if(f<st){ show(d,false); return; } show(d,true); const [cx,cy,cw,rot,ox,oy]=BXC[i]; const p=clamp((f-st+1)/2);
     const X=960+cx+ox*40*(1-p), Y=540+cy+oy*40*(1-p), S=cw/d._w*lerp(0.92,1,p); d.style.zIndex=10+((i+shuf)%6); d.style.opacity=p.toFixed(3);
     d.style.transform=`translate(${(X-d._w*S/2).toFixed(1)}px,${(Y-d._h*S/2).toFixed(1)}px) rotate(${rot}deg) scale(${S.toFixed(4)})`; d.style.borderRadius='10px'; d.style.boxShadow='0 20px 50px -20px rgba(40,30,30,.35)';
-    mblur(d,0,0); d.style.filter=((f>=114+i*0.6?DUO(d._si):'saturate(.7)')+bl).trim(); });
+    mblur(d,0,0); d.style.filter=((f>=114+i*0.6?DUO(d._si):'')+bl).trim(); });   // les beaux sites gardent leur couleur : le contraste avec la carte bleue
   // la carte du fondateur : monte du bas à 88, se pose au centre, sur le dessus ; le curseur « You » se pose sur « Get Started » (il ne clique pas)
   const foOn=f>=96; show(wFo,foOn);
   if(foOn){ // elle tombe sur la pile en même temps que le serrage (70 % à 96, posée à 97), au centre, au-dessus de tout
