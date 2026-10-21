@@ -218,7 +218,7 @@ const PR_N=(()=>{ const a=[58]; for(const k of PR_INC) a.push(a[a.length-1]+k); 
 for(let i=0;i<PR_INC.length;i++) if(PR_INC[i]) cue(175+i,'key',{v:.2+Math.abs(PR_INC[i])*0.08});
 // autour de la carte (443-1476 × 371-675, marge 40 px), jamais sur son texte
 const prGly=gset(12,33,860,430,(x,y)=>!(Math.abs(x)<560&&y>-215&&y<170)).map(g=>{ const d=el(P1.cam,'abs c glyph'); d._g=g; return d; });
-cue(207,'scratch',{v:.8,end:212}); cue(212,'rub',{v:.7,peak:226,dur:16});
+cue(207,'scratch',{v:.8,end:212}); cue(212,'rub',{v:.7,peak:226,dur:16}); cue(220,'impact',{v:.35});
 let PR_ARIAL=[0,0,0,0], PR_XH=15.6; const PR_BOXH=330;
 function prLayout(){ show(P1.s,true); prText.innerHTML=prSeg(PROMPT.length); const sp=prText.querySelector('.ari'), r=sp.getBoundingClientRect(), st=P1.s.getBoundingClientRect(), k=st.width/W;
   PR_ARIAL=[(r.left-st.left)/k,(r.top-st.top)/k,(r.right-st.left)/k,(r.bottom-st.top)/k]; show(P1.s,false); }
@@ -413,9 +413,9 @@ function shotHero(F){ const f=F-1, i=clamp(f-380,0,38);
   const P=AERIAL[seqIdx(SEQ.aerial,i)]; if(!P) return;
   heRoute.setAttribute('d',pth(P.route)); heRouteS.setAttribute('d',pth(P.route));
   let tk='';
-  HE_SH.forEach((k,j)=>{ heShapes[j].setAttribute('d',pth(P[k])+' Z'); const o=vl(f,383+j*2,6); heShapes[j].style.opacity=o.toFixed(3);
+  HE_SH.forEach((k,j)=>{ heShapes[j].setAttribute('d',pth(P[k])+' Z'); const o=vl(f,383+j*2,6); heShapes[j].style.opacity=(k==='chair'?0:o).toFixed(3);
     // équerres de 10 px aux coins de la boîte englobante
-    if(o>0.5){ const xs=P[k].map(p=>p[0]*1920), ys=P[k].map(p=>p[1]*1080); const a=Math.min(...xs), b=Math.max(...xs), c=Math.min(...ys), d=Math.max(...ys);
+    if(o>0.5){ const xs=P[k].map(p=>p[0]*1920), ys=P[k].map(p=>p[1]*1080); const a=Math.min(...xs), b=Math.max(...xs), d=Math.max(...ys), c=Math.min(...ys)-(k==='chair'?0.26*(d-Math.min(...ys)):0);
       tk+=`M${a} ${c+10}V${c}H${a+10} M${b-10} ${c}H${b}V${c+10} M${b} ${d-10}V${d}H${b-10} M${a+10} ${d}H${a}V${d-10} `;
       if(k==='chair'){ heLab.setAttribute('x',(b+12).toFixed(0)); heLab.setAttribute('y',(c+16).toFixed(0)); } } });
   heTick.innerHTML=`<path d="${tk}"/>`; heLab.style.opacity=vl(f,394,5).toFixed(3);
@@ -466,7 +466,7 @@ const plRoot=el(PL.cam,'','', 'position:absolute;left:0;top:0;width:1920px;heigh
 const plMinor=qa(plRoot,'.pminor'), plChips=qa(plRoot,'.pchip'), plDays=qa(plRoot,'.day'), plDn=qa(plRoot,'.dname'), plCols=qa(plRoot,'.col'), plSide=q1(plRoot,'.side'), plTitle=[q1(plRoot,'.ptitle'),q1(plRoot,'.psub')], plX=qa(plRoot,'.plx');
 // vague 1 : grosses barres floues (≈140 px), qui poussent vers la droite puis se rattrapent et s'éteignent (réf 466-480)
 // barres floues nées dans des teintes du bleu du fondateur, qui sèchent en teintes d'encre (488-500)
-const PL_BLUE=['#C6D8F7','#A9C4F2','#D9E5FA','#B8CEF4','#CBDCF8','#9DBBEF'], PL_INK=[.06,.10,.16,.08,.12,.10];
+const PL_BLUE=['#E4D3BE','#CFD8C2','#E6C3B2','#C9D2DC','#EADFCB','#D6CDBF'], PL_INK=[.06,.10,.16,.08,.12,.10];
 // dix barres, deux toutes les deux images ; elles naissent dans le rose-orangé de la coulée des pilules et bleuissent (466-476)
 const PL_BARS=Array.from({length:20},(_,i)=>[466+2*Math.floor(i/2),(()=>{ const r=rng(900+i); return 130+r()*820; })()]).map(([st,y],i)=>{ const c=PL_BLUE[i%6]; const r=rng(810+i), hh=30+r()*28; const d=el(PL.cam,'','', `position:absolute;top:${y}px;height:${hh.toFixed(0)}px;border-radius:${(hh/2).toFixed(0)}px;display:none`); d._st=st; d._i=i; d._x=i==0?600:60+r()*1100; d._g=30+r()*70; d._c=100+r()*70; return d; });
 plChips.forEach((c,i)=>{ c._st=504+i*1.3; c._x0=parseFloat(c.style.left); c._y0=parseFloat(c.style.top); });
@@ -582,7 +582,7 @@ const clDash=buildDash(q1(clCard,'.clD'));
 // la photo de stock se fend le long des deux diagonales de la croix : quatre triangles qui glissent et s'effacent
 const CL_TRI=[['0 0,100% 0,50% 50%',0,-1],['100% 0,100% 100%,50% 50%',1,0],['100% 100%,0 100%,50% 50%',0,1],['0 100%,0 0,50% 50%',-1,0]];
 const clTri=CL_TRI.map(([poly,dx,dy])=>{ const c=clDash.ph1.cloneNode(true); c.style.clipPath=`polygon(${poly})`; c._d=[dx,dy]; clDash.ph1.parentNode.insertBefore(c,clDash.ph1.nextSibling); return c; }); show(clDash.ph1,false);
-CL.cam.style.transformOrigin='1553px 133px';   // la barre d'outils : la poussée finale va vers elle
+CL.cam.style.transformOrigin='1602px 109px';   // la barre d'outils : la poussée finale va vers elle
 const clInk=inkLayer(CL.s);
 // les centres des composants dans le dashboard (1360×800) : la vague y arrive depuis les deux marques
 const CL_C={0:i=>i<4?[150,150+i*52]:i<8?[380+(i-4)*350,186]:[366+(i-8)*46,730],1:()=>[680,400],2:i=>[130,150+i*52],3:i=>i?[420,127]:[560,77],4:i=>[460+i*350,245],
@@ -590,7 +590,7 @@ const CL_C={0:i=>i<4?[150,150+i*52]:i<8?[380+(i-4)*350,186]:[366+(i-8)*46,730],1
 let CL_S=[560,77], CL_X=[1150,555];
 // la vague part de 653 (et non 659) : le v2 tient ~15 images avant la poussée vers la barre d'outils, au lieu de 10
 function clFront(k,i,f){ const c=(CL_C[k]||(()=>[680,400]))(i); const t=Math.min(653+Math.hypot(c[0]-CL_S[0],c[1]-CL_S[1])/300, 655+Math.hypot(c[0]-CL_X[0],c[1]-CL_X[1])/300);
-  return vladan(clamp((f-t)/4)); }
+  return k===3||k===7?vladan(clamp((f-t)/4)):(f>=t?1:0); }
 const M5a=()=>{ const r=clRect(clDash.usr); return penPlace('G05',[r[0]-4,r[1]+(r[3]-r[1])*0.55,r[2]+6,0]); };
 const M5b=()=>{ const r=clRect(clDash.img); return penPlace('G06',[r[0]+8,r[1]+8,r[2]-8,r[3]-8],{mode:'stretch'}); };
 function clRect(e){ const r=e.getBoundingClientRect(), st=CL.s.getBoundingClientRect(), k=st.width/W; return [(r.left-st.left)/k,(r.top-st.top)/k,(r.right-st.left)/k,(r.bottom-st.top)/k]; }
@@ -601,13 +601,13 @@ const clIcons=CL_IC.map(([k,x])=>{ const d=el(clBand,'','', `position:absolute;l
 el(clBand,'abs','Share','left:1640px;top:96px;height:170px;line-height:166px;padding:0 60px;border-radius:30px;background:#fff;box-shadow:0 0 0 3px #DDD6CE;font-size:84px');
 cue(642,'impact',{v:.5}); cue(645,'scratch',{v:.6,end:648}); cue(648,'scratch',{v:.6,end:652}); cue(653,'glide',{v:.5,end:659}); cue(668,'whoosh',{v:.45,peak:671,dur:4}); cue(676,'tick',{v:.25}); cue(690,'click',{v:.95}); cue(687,'whoosh',{v:.4,peak:694,dur:7});
 function shotClients(f){ const z=f>=672; show(clZoom,z); show(CL.cam,!z);
-  if(!z){ const y=96+40*(1-approach(f,642,4,0.3)); placeTL(clCard,40,y,1.22);
+  if(!z){ const y=70+40*(1-approach(f,642,4,0.3)); placeTL(clCard,-10,y,1.3);
     CL.cam.style.transform=`scale(${((1+0.035*clamp((f-642)/26))*(1+0.058*accel(f,668,4,3))).toFixed(4)})`;   // lente poussée vers la barre d'outils pendant l'avant/après
     updateDash(clDash,(k,i)=>clFront(k,i,f),f);
     // le visuel v2 est le produit lui-même, qui tourne en direct dans la tuile (rendu du plateau, recadré en portrait)
     { const p7=clFront(7,0,f); show(clDash.img3,p7>0); if(p7>0){ const im=TURN.red[38+((f-650)%34+34)%34], c=clDash.img3.getContext('2d'); if(im&&im.naturalWidth){ const sw=800*400/482; c.drawImage(im,(1100-sw)/2,0,sw,800,0,0,400,482); } clDash.img3.style.opacity=p7.toFixed(3); } clDash.imgt.style.color=p7>0?mixc('#F3EFEA','#151413',p7):''; }
     // la salutation : la v1 s'efface, « Morning, Léa. » se tape ; pas de glissement
-    const pg=clFront(3,0,f); const sa=clDash.greet.parentNode.parentNode; sa.children[0].style.transform=''; sa.children[0].style.opacity=(1-pg).toFixed(3);
+    const pg=clFront(3,0,f); const sa=clDash.greet.parentNode.parentNode; sa.children[0].style.transform=''; sa.children[0].style.opacity=pg>0?'0':'1';   // l'ancienne salutation part d'un coup : la nouvelle s'écrit sur du vide
     sa.children[1].style.transform=''; sa.children[1].style.clipPath=`inset(0 ${(100*(1-pg)).toFixed(1)}% 0 0)`;
     const pi=clFront(7,0,f); clTri.forEach(t=>{ t.style.translate=`${(t._d[0]*14*pi).toFixed(1)}px ${(t._d[1]*14*pi).toFixed(1)}px`; t.style.opacity=(1-pi).toFixed(3); });
     const ix=inkClear(clInk);
@@ -621,5 +621,5 @@ function shotClients(f){ const z=f>=672; show(clZoom,z); show(CL.cam,!z);
   mblur(clBand,f>=689?vel(t=>-60*accel(t,686,8,2.8),f)*BLUR:0,0);
   const hov=f>=680; clIcons[2].style.background=hov?(f>=688&&f<691?'#DDD6CE':'#E4DFD9'):'transparent';
   // le curseur du fondateur clique le terminal (690) : c'est lui qui ouvre le terminal du plan suivant
-  const cf=twos(f,672), cp=clamp((cf-672)/10); cursor(lerp(760,1100+85-40,cp)+pan,lerp(820,300+180,cp),f>=688&&f<691?1:0,true,3);
+  const cf=f, cp=clamp((cf-672)/10); cursor(lerp(760,1100+85-40,cp)+pan,lerp(820,300+180,cp),f>=688&&f<691?1:0,true,3);
 }

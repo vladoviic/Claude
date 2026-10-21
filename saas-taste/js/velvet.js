@@ -22,7 +22,7 @@ const VMARK=(s)=>`<span class="vmk" style="display:inline-block;width:${s}px;hei
    et le geste du plan : la loupe X-ray montre la même pièce en trait d'encre (ce n'est pas une photo, c'est une scène). */
 const CATS=[['chair','Lounge Chairs','24 pieces'],['sofa','Sofas','18 pieces'],['pouf','Poufs','31 pieces'],['lamp','Lighting','42 pieces'],['plant','Living Things','12 pieces']];
 // la landing de velvetly v2 : un SaaS de configurateur 3D pour marques de mobilier (pas une boutique)
-const FEATS=[['sofa','Room planner','drag, drop, done'],['chair','3D hero','360° in the browser'],['lamp','AR preview','in their room'],['pouf','Fabric swap','212 fabrics'],['plant','Embed','1 line of JS']];
+const FEATS=[['sofa','Room planner','drag, drop, done'],['chair','3D hero','360° in-browser'],['lamp','AR preview','in their room'],['pouf','Fabric swap','212 fabrics'],['plant','Embed','1 line of JS']];
 // le titre en deux copies coupées à y 560 : papier sur la photo, encre sur la bande
 const VLHEAD=c=>`<div class="vhead lnh" style="left:28px;top:452px;font-size:176px;letter-spacing:-0.055em;color:${c}">Plan with ${VMARK(128)} <em style="font-size:172px;color:${c}">taste.</em></div>`;
 function tplVLanding(){ return `<div class="full" style="background:#151413;overflow:hidden">
@@ -86,7 +86,7 @@ function tplVRoom(){ const chk=(t,on)=>`<div class="vchk"><span style="${on?'bac
       <g><circle cx="214" cy="560" r="30" fill="none"/><path d="M196 560 H232 M214 542 V578" stroke-width="1.2"/></g>
     </g>
     <path class="vroute" pathLength="1" d="M515 600 C520 520 600 520 640 470 S700 420 690 404" fill="none" stroke="#151413" stroke-width="5" stroke-linecap="round" stroke-dasharray="1" stroke-dashoffset="1"/>
-    <g class="m" font-size="13" fill="#5C5650"><text x="300" y="138">kidney sofa · 2.19 m</text><text x="700" y="496">lounge chair · 0.83 m</text><text x="404" y="482">pouf · Ø 0.61 m</text><text x="128" y="400" transform="rotate(-90 128 400)">window · SW</text></g>
+    <g class="m" font-size="13" fill="#5C5650"><text x="300" y="138">kidney sofa · 2.19 m</text><text x="547" y="370">lounge chair · 0.83 m</text><text x="404" y="482">pouf · Ø 0.61 m</text><text x="128" y="400" transform="rotate(-90 128 400)">window · SW</text></g>
     <g transform="translate(880 120)" font-family="JB" font-size="12" fill="#3A3633"><circle r="16" fill="none" stroke="#3A3633" stroke-width="1.2"/><path d="M0 -12 L5 6 L0 2 L-5 6 Z" fill="#3A3633"/><text x="-4" y="-22">N</text></g>
     <g transform="translate(170 690)" font-family="JB" font-size="11" fill="#3A3633"><rect width="125" height="6" fill="#3A3633"/><rect x="125" width="125" height="6" fill="none" stroke="#3A3633" stroke-width="1"/><text y="22">0</text><text x="121" y="22">1</text><text x="244" y="22">2 m</text></g>
   </svg>
@@ -113,7 +113,7 @@ function tplVRoom(){ const chk=(t,on)=>`<div class="vchk"><span style="${on?'bac
 /* ---------- Taste Sprint : le plan du fondateur (Ship lundi), cinq jours, le week-end est off ---------- */
 const PLAN_X0=330, PLAN_COL=212;
 // [libellé, livrable, colonne, durée, y, voix du fondateur]
-const PLAN_CHIPS=[['Ship','v1 → prod',0,1,462,1],['Type system','Typography.ts',1,1,642,0],['Colour & tokens','OneAccent.tsx',2,1,372,0],['Motion pass','EaseOut.tsx',3,1,732,0],
+const PLAN_CHIPS=[['Ship','v1 → prod',0,1,462,1],['Type system','Typography.ts',1,1,642,0],['Colour','OneAccent.tsx',2,1,372,0],['Motion pass','EaseOut.tsx',3,1,732,0],
   ['Taste Check','audit · 47 items',4,1,552,0],['Kickoff','brief.md',0,1,732,0],['Hand-off','Figma + code',4,1,822,0]];
 // la densité de la réf, sans son bariolage : des teintes de matière (lin, sauge, argile, ardoise, avoine), une par pilier,
 // et des tâches secondaires plus pâles (pas de filet d'encre, texte gris) : l'œil reste sur les sept tâches principales
@@ -164,7 +164,7 @@ function tplVChat(){ return `<div class="full" style="background:#F3EFEA">
   <div style="position:absolute;left:640px;top:34px">${VLOGO('#151413',22)}</div>
   <div style="position:absolute;left:640px;top:92px;font-size:46px;letter-spacing:-0.035em">Lounge Chair</div>
   <div class="m" style="position:absolute;left:643px;top:152px;font-size:15px;color:${VG}">Built for sitting well</div>
-  <div style="position:absolute;left:630px;top:196px;width:918px;height:668px;border-radius:24px;overflow:hidden;background:#E6DED4"><canvas class="pturn" width="1100" height="800" style="position:absolute;inset:0;width:100%;height:100%"></canvas></div>
+  <div style="position:absolute;left:630px;top:196px;width:888px;height:668px;border-radius:24px;overflow:hidden;background:#E6DED4"><canvas class="pturn" width="1100" height="800" style="position:absolute;inset:0;width:100%;height:100%"></canvas></div>
   <div style="position:absolute;left:630px;top:884px;display:flex;gap:12px">${['chair','sofa','pouf','lamp'].map((k,i)=>`<div class="${i==0?'cthumb':''}" style="width:112px;height:112px;border-radius:16px;overflow:hidden;${i==0?'box-shadow:0 0 0 2px #151413':''}">${vimg('tile_'+k,'position:relative;width:100%;height:100%','50% 62%')}</div>`).join('')}</div>
   <div class="spec"><div class="m" style="position:absolute;left:32px;top:36px;font-size:12px;color:#8E877F">HERO SPEC</div>
     <div style="position:absolute;left:32px;top:70px;width:84px;height:84px;border-radius:12px;overflow:hidden" class="cthumb">${vimg('tile_chair','inset:0;width:100%;height:100%','50% 62%')}</div>

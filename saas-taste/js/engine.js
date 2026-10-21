@@ -74,8 +74,11 @@ function seqLoad(dir,prefix,n,ext='jpg',from=0,skip=[]){ const a=[]; for(let i=f
 // l'indice réel de l'image i (0…n−1) d'une séquence
 function seqIdx(frames,i){ const k=frames.length-1; if(!frames.uniq) return clamp(Math.round(i),0,k); const U=frames.uniq.length; return frames.uniq[clamp(Math.round(clamp(i,0,k)*(U-1)/k),0,U-1)]; }
 function seqDraw(cv,frames,i,px=0.5,py=0.5,zoom=1){ const k=frames.length-1; let j=seqIdx(frames,i); while(!frames[j]&&j<k) j++; const im=frames[j];
-  const W=cv.width,H=cv.height,iw=im.naturalWidth||im.width,ih=im.naturalHeight||im.height, s=Math.max(W/iw,H/ih)*zoom, sw=W/s, sh=H/s;
-  cv.getContext('2d').drawImage(im,(iw-sw)*px,(ih-sh)*py,sw,sh,0,0,W,H); }
+  const W=cv.width,H=cv.height,iw=im.naturalWidth||im.width,ih=im.naturalHeight||im.height, s=Math.max(W/iw,H/ih)*zoom, sw=W/s, sh=H/s, x=cv.getContext('2d');
+  if(!frames.uniq){ x.drawImage(im,(iw-sw)*px,(ih-sh)*py,sw,sh,0,0,W,H); return; }
+  const U=frames.uniq, u=clamp(i,0,k)*(U.length-1)/k, j0=Math.floor(u), j1=Math.min(j0+1,U.length-1), t=u-j0, a=frames[U[j0]], b=frames[U[j1]];
+  x.globalAlpha=1; x.drawImage(a,(iw-sw)*px,(ih-sh)*py,sw,sh,0,0,W,H);
+  if(t>0.02&&b){ x.globalAlpha=t; x.drawImage(b,(iw-sw)*px,(ih-sh)*py,sw,sh,0,0,W,H); x.globalAlpha=1; } }
 
 // cue écrit en numéros de la réf pour une scène recalée de d images (le REMAP le ramènera)
 function cueAt(d){ return (f,k,o={})=>{ const q={...o}; if('peak' in q) q.peak+=d; if('end' in q) q.end+=d; cue(f+d,k,q); }; }

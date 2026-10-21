@@ -11,7 +11,7 @@ const teBig=el(TE.cam,'abs',ARROW(240,170),'line-height:0');
 const teBigCaret=el(TE.cam,'abs','', 'width:30px;height:280px;border-radius:4px');
 const teLine=el(TE.cam,'abs tt'); const teBox=el(TE.cam,'tpanel','', 'border-color:#3A3633;display:none');
 const tePanel=el(TE.cam,'tpanel'); const teDim1=el(tePanel,'abs','<span style="color:#CFC8BF">taste.ts</span>&nbsp;&nbsp;velvetly / src','left:26px;top:20px;font-family:FM;font-size:15px;color:#5A544E');
-const teDim2=el(tePanel,'abs','ln 6 · utf-8 · typescript','right:26px;bottom:16px;left:auto;font-family:FM;font-size:14px;color:#4A4541');
+const teDim2=el(tePanel,'abs','ln 6 · utf-8 · typescript','right:26px;bottom:16px;left:auto;top:auto;font-family:FM;font-size:14px;color:#4A4541');
 const teSide=el(tePanel,'','', 'position:absolute;left:0;top:0;bottom:0;width:64px;border-right:1px solid #2C2C2C;display:none');
 for(let k=0;k<5;k++) el(teSide,'','', `position:absolute;left:20px;top:${70+k*56}px;width:24px;height:24px;border-radius:6px;border:2px solid ${k==1?'#F3EFEA':'#3E3B38'}`);
 const tePanelLine=el(TE.cam,'abs tt','', 'font-size:84px');
@@ -440,7 +440,7 @@ function heatField(f,n,seed,bias,dark){ const r=rng(seed), S=[]; for(let i=0;i<n
 const reCard=el(RE.cam,'rcard','', 'width:960px;height:420px'); reCard.innerHTML=`<div style="position:absolute;left:40px;top:34px;font-size:38px;letter-spacing:-0.02em">BrandReport <span class="m" style="font-size:16px;color:#F3EFEA;background:#151413;border-radius:8px;padding:4px 10px;margin-left:12px;vertical-align:6px">● velvetly.app</span></div>
   <div style="position:absolute;left:40px;top:96px;display:flex;align-items:baseline;gap:16px"><span class="ar r47" style="font-size:96px;color:#2D6CDF;line-height:1">47</span><span style="font-size:30px">boring issues</span></div>
   <div style="position:absolute;left:40px;top:200px;font-size:20px;color:#5C5650;display:flex;align-items:center;gap:10px"><span style="display:inline-block;width:26px;height:26px;border-radius:13px;background:#FF3D5E;color:#fff;font-size:15px;line-height:26px;text-align:center">v</span>vladan suggested 47 changes</div>
-  <div style="position:absolute;left:40px;top:248px;width:560px">
+  <div style="position:absolute;left:40px;top:248px;width:560px;display:none">
     <div class="ar" style="font-size:24px;line-height:36px;color:#333">font-family: Arial ×19</div>
     <div class="m" style="font-size:24px;line-height:36px;color:#2D6CDF">#2D6CDF ×11</div>
     <div class="m" style="font-size:24px;line-height:36px;color:#151413">users named “User” ×3</div>
@@ -497,15 +497,15 @@ function alDotsDraw(f,zc){ const c=alDots.getContext('2d'); c.clearRect(0,0,1920
   c.fillStyle='#F3EFEA'; for(const [x,y,d] of AL_DOTS){ const a=1175+11*(d/alDMax); const k=clamp((f-a)/3)*fade; if(k<=0) continue;
     c.globalAlpha=0.26*k; c.beginPath(); c.arc(960+(x-960)*zc,540+(y-540)*zc,3.2*Math.max(zc,0.5),0,7); c.fill(); } c.globalAlpha=1; }
 const alCount=el(AL.s,'','', 'position:absolute;left:0;top:0;display:none');
-alCount.innerHTML=`<div class="alnum ar" style="font-size:96px;line-height:1;color:#2D6CDF;font-variant-numeric:tabular-nums">47</div><div class="m" style="font-size:24px;color:rgba(243,239,234,.55);margin-top:8px">boring issues left</div>`;
-const alNum=q1(alCount,'.alnum');
+alCount.innerHTML=`<div class="alnum ar" style="font-size:80px;line-height:1;color:#2D6CDF;font-variant-numeric:tabular-nums">47</div><div class="m allab" style="font-size:24px;color:rgba(243,239,234,.55);margin-top:8px">boring issues left</div>`;
+const alNum=q1(alCount,'.alnum'), alLab=q1(alCount,'.allab');
 const alInk=inkLayer(AL.s,{ground:'dark'}); alInk.style.zIndex='3';
 const alMark=el(AL.cam,'abs','', 'width:150px;height:150px'); alMark.innerHTML=MARK_SVG;
 const alDisc=el(AL.s,'','', 'position:absolute;left:885px;top:465px;width:150px;height:150px;border-radius:50%;background:#FF3D5E;transform:scale(0);z-index:2');
 const alFade=el(AL.s,'','', 'position:absolute;left:0;right:0;bottom:0;height:430px;background:linear-gradient(transparent,#3C3C3C);opacity:0');
 const alBtn=el(AL.cam,'abs','', 'display:none;overflow:hidden'); const alBtnBar=el(alBtn,'','', 'position:absolute;left:50%;top:50%;width:14px;height:58px;margin:-29px 0 0 -7px;border-radius:7px;background:#EEE9E4;transform-origin:50% 50%');
 // M8 : un seul trait, gribouillis sur les six rangées, pause sur la poignée de main, boucle « dele »
-const M8=()=>penPlace('G08',[574,254,1346,826]);
+const M8=()=>penPlace('G08',[574,292,1346,864]);
 const AL_A=[941.25,568.1], AL_B=[979,512];
 // le chemin du fil : le trait lui-même, puis de son extrémité jusqu'à la fente (A → B) ; tirer = faire glisser le trait le long de ce chemin
 let AL_PATH=null; function alPath(){ if(AL_PATH) return AL_PATH; const st=penResample(M8().flat(),260); const end=st[st.length-1];
@@ -535,9 +535,10 @@ function shotAlerts(F){ const f=F-1; push(AL.cam,f,1175,0.0005);
   alDotsDraw(f,zc);
   // le compteur part du « 47 » du rapport et descend d'une unité par tuile barrée ; à 0, il passe à l'encre fixée
   // pendant le fil (1210-1228), les tuiles qui restent partent avec lui : le compteur finit sur 0 à 1228 et y tient
-  let left=47-cross.filter(c=>c<=ms).length; if(f>=1210){ const l0=47-cross.filter(c=>c<=(1210-1186)*PEN.ms).length, t=clamp((f-1210)/18); left=Math.round(lerp(l0,0,t*t*(3-2*t))); }
+  const left=47-alTiles.filter((t,n)=>n===46?f>=1213:f>=alFix(n,cross)+3).length;
   show(alCount,f>=1175&&f<1232); placeTL(alCount,120,860); alCount.style.opacity=vl(f,1175,4).toFixed(3);   // à sa place dès le début : il ne passe plus sur les tuiles
-  alNum.textContent=Math.max(0,left); if(left<=0&&f>=1210){ alNum.style.color='#F3EFEA'; alNum.style.fontFamily='ID'; } else { alNum.style.color='#2D6CDF'; alNum.style.fontFamily=''; }
+  alNum.textContent=Math.max(0,left); alLab.textContent=left===1?'boring issue left':'boring issues left';
+  if(left<=0){ alNum.style.color='#F3EFEA'; alNum.style.fontFamily='ID'; alNum.style.opacity='1'; } else { alNum.style.color=AL_BL; alNum.style.fontFamily=''; alNum.style.opacity='0.7'; }
   const ix=inkClear(alInk);
   if(f>=1186&&f<1210) penDraw(ix,M8(),f,1186,{size:13.5,ground:'dark'});
   // 1210-1227 : on tire le fil ; il glisse le long de son propre chemin et entre dans la fente, la queue se défait rangée par rangée
@@ -557,7 +558,7 @@ function shotAlerts(F){ const f=F-1; push(AL.cam,f,1175,0.0005);
 }
 const AL_Z=[1,.87,.635,.464,.338,.240,.125];
 function alFix(n,cross){ const cf=1186+cross[n]/PEN.ms; if(cf<=1210) return cf;
-  const rest=alTiles.map((_,i)=>i).filter(i=>1186+cross[i]/PEN.ms>1210), r=rest.indexOf(n)/Math.max(1,rest.length-1), e=r*r*(3-2*r); return 1209+17*e; }
+  const rest=alTiles.map((_,i)=>i).filter(i=>1186+cross[i]/PEN.ms>1210), r=rest.indexOf(n)/Math.max(1,rest.length-1), e=r*r*(3-2*r); return 1209+7*e; }
 function alZ(f){ if(f<=1225) return 1; if(f>=1231) return AL_Z[6]; const i=Math.floor(f-1225); return lerp(AL_Z[i],AL_Z[i+1],f-1225-i); }
 
 /* ---------- 28 · la fenêtre de la pièce : le ciel glisse sous le bouton déjà en place, « Ship it » se tape ; le fondateur clique (1295) ---------- */
