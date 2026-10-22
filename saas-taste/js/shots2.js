@@ -440,7 +440,7 @@ const RE=scene('sReport',1131,1175,f=>shotReport(f));
 const cR26=cueAt(1);
 // derrière la carte, un champ thermique pâle qui dérive (la réf : un fond irisé qui bouge) ; flou et bas contraste : la carte reste le seul élément net
 const reTh=canvas(RE.cam,960,540,'left:-60px;top:-60px;width:2040px;height:1200px;filter:blur(38px);opacity:.62');
-function heatField(f,n,seed,bias,dark,gain=1){ const r=rng(seed), S=[]; for(let i=0;i<n;i++){ const x0=r(), y0=r(), ax=0.08+r()*0.12, ay=0.06+r()*0.1, w=0.25+r()*0.35, ph=r()*6.28, sp=0.012+r()*0.018;
+function heatField(f,n,seed,bias,dark,gain=1,spd=1){ const r=rng(seed), S=[]; for(let i=0;i<n;i++){ const x0=r(), y0=r(), ax=0.08+r()*0.12, ay=0.06+r()*0.1, w=0.25+r()*0.35, ph=r()*6.28, sp=(0.012+r()*0.018)*spd;
     S.push([x0+ax*Math.sin(f*sp+ph),y0+ay*Math.cos(f*sp*1.3+ph),0.18+r()*0.16,w*gain]); }
   return THERMAL.draw(THERMAL.blank,{spots:S,wimg:0,bias,bands:7,blur:1,t:f,dark}); }
 const reCard=el(RE.cam,'rcard','', 'width:960px;height:420px'); reCard.innerHTML=`<div style="position:absolute;left:40px;top:34px;font-size:38px;letter-spacing:-0.02em">BrandReport <span class="m" style="font-size:16px;color:#F3EFEA;background:#151413;border-radius:8px;padding:4px 10px;margin-left:12px;vertical-align:6px">● velvetly.app</span></div>
@@ -458,7 +458,7 @@ const reBtn=el(reCard,'abs','Accept all','left:auto;right:44px;top:316px;height:
 const reProg=q1(reCard,'.rprog');
 cR26(1130,'impact',{v:.5}); cR26(1161,'click',{v:1}); cR26(1162,'pop',{v:.5,n:84});
 function shotReport(F){ const f=F-1;
-  if(THERMAL){ heatField(f,6,1131,0,0,0.45); reTh.getContext('2d').drawImage(THERMAL.canvas,0,0); }
+  if(THERMAL){ heatField(f,6,1131,0,0,0.45,3.5); reTh.getContext('2d').drawImage(THERMAL.canvas,0,0); }
   RE.cam.style.transform=`scale(${(1+0.0025*(f-1131)).toFixed(4)})`;   // poussée à vitesse constante jusqu'à la coupe (l'ease-out figeait les 4 dernières images)
   // la carte monte (40 px, 10 images), le 47 se compte, les lignes et les barres par catégorie arrivent une à une
   const p=approach(f,1130,6); place(reCard,960,545+40*(1-vl(f,1131,10)),0.86); reCard.style.opacity=lerp(0.3,1,p).toFixed(3);
@@ -513,7 +513,7 @@ const alBtn=el(AL.cam,'abs','', 'display:none;overflow:hidden'); const alLbl=el(
 // le morph : une onde part du centre de la grille (1186) et règle chaque tuile à son passage ; la dernière à 1216
 cR27(1175,'hush',{}); cR27(1186,'shimmer',{v:.55,end:1219}); cR27(1222,'riser',{v:.45,end:1231}); cR27(1232,'boom',{v:.8});
 function shotAlerts(F){ const f=F-1; push(AL.cam,f,1175,0.0005);
-  const tho=1-clamp((f-1178)/9); show(alTh,tho>0&&!!THERMAL); if(tho>0&&THERMAL){ heatField(f,11,1175,-0.04,1,0.5); alTh.getContext('2d').drawImage(THERMAL.canvas,0,0); alTh.style.opacity=(0.85*tho).toFixed(3); }
+  const tho=1-clamp((f-1178)/9); show(alTh,tho>0&&!!THERMAL); if(tho>0&&THERMAL){ heatField(f,11,1175,-0.04,1,0.5,3.5); alTh.getContext('2d').drawImage(THERMAL.canvas,0,0); alTh.style.opacity=(0.85*tho).toFixed(3); }
   // le champ est déjà allumé à 1175 (le centre), le reste se remplit jusqu'à 1184 ; à la fin la grille se resserre dans la marque
   // (facteurs de la réf : ×0,87, ×0,73, ×0,73, ×0,73, ×0,71, ×0,52 sur 1226-1231) au lieu de s'éteindre
   const zc=alZ(f);
