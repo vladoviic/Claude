@@ -63,6 +63,8 @@ const wCol=el(W1.cam,'abs','', 'inset:0;width:1920px;height:1080px'); let wColB=
 const wB=BR.map(([x,y,w,h,si])=>{ const d=el(wCol,'bshot',SITES[si].html, `left:0;top:0;width:${w}px;height:${h}px;transform-origin:0 0;background:${SITES[si].color}`); d._r=[x,y,w,h]; d._si=si; return d; });
 const wX=BXT.map(([si,w,h])=>{ const d=el(wCol,'bshot',SITES[si].html, `left:0;top:0;width:${w}px;height:${h}px;transform-origin:0 0;background:${SITES[si].color}`); d._w=w; d._h=h; d._si=si; return d; });
 const ease3=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+function wPink(d,f){ if(!d._pk) d._pk=el(d,'','', 'position:absolute;inset:0;z-index:99;pointer-events:none;display:none;background:radial-gradient(circle at 34% 28%,rgba(255,255,255,.55),rgba(255,255,255,0) 62%),#FFC2CD');
+  const p=clamp((f-113)/6), e=p*p*(3-2*p); d._pk.style.display=e>0?'block':'none'; d._pk.style.opacity=e.toFixed(3); }
 // la carte du fondateur parmi les beaux sites (juge, ronde 3) : SON dashboard v1, bleu #2D6CDF + Arial, pas de teinte ;
 // elle arrive en dernier (92, quand « boring. » s'en va), au centre, le curseur « You » posé dessus ; la barre M2 la traverse et la déchirure l'emporte
 const wFo=el(wCol,'bshot','', 'left:0;top:0;width:560px;height:350px;transform-origin:0 0;background:#F4F6F9;display:none;overflow:hidden;border-radius:10px');
@@ -117,12 +119,12 @@ function shotW(f){ push(W1.cam,f,0,0.0009);
     mblur(d,f>=96&&f<98?vel(t=>lerp(x+w/2,960+cx,wSnap(t)),f)*BLUR*0.6:0,f>=96&&f<98?vel(t=>lerp(y+h/2,540+cy,wSnap(t)),f)*BLUR*0.6:0);
     d.style.transform=`translate(${(X-w*S/2).toFixed(1)}px,${(Y-h*S/2).toFixed(1)}px) scale(${S.toFixed(4)})`;
     d.style.boxShadow=pc>0?`0 ${(20*pc).toFixed(0)}px ${(50*pc).toFixed(0)}px -20px rgba(40,30,30,${(.35*pc).toFixed(2)})`:''; d.style.borderRadius=(10*pc)+'px';
-    const tint=(f>=62&&f<70+i)||f>=114+i*0.8; d.style.filter=((tint?DUO(d._si):'')+bl).trim(); });
+    const tint=f>=62&&f<70+i; d.style.filter=((tint?DUO(d._si):'')+bl).trim(); wPink(d,f); });
   // les six autres naissent DANS la pile (97-98) : 40 px de décalage qui se résorbe, ×0,92 → 1, fondu de 2 images, un peu désaturés
   wX.forEach((d,i)=>{ const st=97+(i%2); if(f<st){ show(d,false); return; } show(d,true); const [cx,cy,cw,rot,ox,oy]=BXC[i]; const p=clamp((f-st+1)/2);
     const X=960+cx+ox*40*(1-p), Y=540+cy+oy*40*(1-p), S=cw/d._w*lerp(0.92,1,p); d.style.zIndex=10+((i+shuf)%6); d.style.opacity=p.toFixed(3);
     d.style.transform=`translate(${(X-d._w*S/2).toFixed(1)}px,${(Y-d._h*S/2).toFixed(1)}px) rotate(${rot}deg) scale(${S.toFixed(4)})`; d.style.borderRadius='10px'; d.style.boxShadow='0 20px 50px -20px rgba(40,30,30,.35)';
-    mblur(d,0,0); d.style.filter=((f>=114+i*0.6?DUO(d._si):'')+bl).trim(); });   // les beaux sites gardent leur couleur : le contraste avec la carte bleue
+    mblur(d,0,0); d.style.filter=bl.trim(); wPink(d,f); });   // les beaux sites gardent leur couleur : le contraste avec la carte bleue
   // la carte du fondateur : monte du bas à 88, se pose au centre, sur le dessus ; le curseur « You » se pose sur « Get Started » (il ne clique pas)
   const foOn=f>=96; show(wFo,foOn);
   if(foOn){ // elle tombe sur la pile en même temps que le serrage (70 % à 96, posée à 97), au centre, au-dessus de tout
@@ -130,7 +132,7 @@ function shotW(f){ push(W1.cam,f,0,0.0009);
     const S=(f<97?1.04:1)+0.02*clamp((f-100)/12), X=960, Y=foY(f);
     wFo.style.zIndex=40; wFo.style.transform=`translate(${(X-280*S).toFixed(1)}px,${(Y-175*S).toFixed(1)}px) scale(${S.toFixed(4)})`;
     wFo.style.boxShadow='0 30px 60px -24px rgba(40,30,30,.45)'; mblur(wFo,0,f<98?vel(foY,f)*BLUR*0.5:0);
-    wFo.style.filter=bl.trim();
+    wFo.style.filter=bl.trim(); wPink(wFo,f);
     const cp=clamp((twos(f,97)-97)/7), tg=wMap([X+238*S,Y-175*S+40*S],f); if(f>=97&&f<113) cursor(lerp(1330,tg[0],cp),lerp(820,tg[1],cp),0,true,1,cp>=1?'hand':'arrow'); }
   wFoMorph(f);
   gather(f);
@@ -271,7 +273,7 @@ function shotPrompt(f){
   prGly.forEach((d,i)=>{ const st=204+i; const on=f>=st&&f<224; show(d,on); if(!on) return; const g=d._g; const drift=1+(f-st)*0.012;
     d.textContent=i%2?['/','|','\\','-'][(Math.floor(f/2)+i)%4]:g[0]; d.style.color=mixc(GBORN,GINK,approach(f,st,6)); place(d,960+g[1]*drift,546+g[2]*drift,back(f,st,4)); });
   // M3 : le trait biffe « Arial, » (207-212) ; au-delà de ×3, le champ d'encre plein cadre prend le relais
-  const C3=[(PR_ARIAL[0]+PR_ARIAL[2])/2,(PR_ARIAL[1]+PR_ARIAL[3])/2], ho=clamp((f-213)/6); show(prTh,ho>0&&!!THERMAL); if(ho>0&&THERMAL){ prHeat(f,[t[0]+C3[0]*k,t[1]+C3[1]*k]); prTh.style.opacity=ho.toFixed(3); }   // le trait en coordonnées écran
+  const C3=[(PR_ARIAL[0]+PR_ARIAL[2])/2,(PR_ARIAL[1]+PR_ARIAL[3])/2], ho=clamp((f-213)/6); show(prTh,ho>0&&!!THERMAL); if(ho>0&&THERMAL){ prHeat(f,[t[0]+C3[0]*k,t[1]+C3[1]*k]); prTh.style.opacity=ho.toFixed(3); } { const sh=q1(P1.cam,'.sheet'), to=q1(P1.cam,'.tooth'); if(sh) sh.style.opacity=(1-ho).toFixed(3); if(to) to.style.opacity=(0.62*(1-ho)).toFixed(3); }   // la feuille et sa dent (main.js) s'effacent sur la chaleur : sans feuille, la dent en soft-light griserait l'image   // le trait en coordonnées écran
   prBox.style.opacity=(1-0.88*clamp((f-223)/4)).toFixed(3); prSite.style.opacity=(1-clamp((f-213)/6)).toFixed(3);
   const co=clamp((f-221)/4); show(prCode,co>0); if(co>0){ if(!prCode.firstChild) prCode.innerHTML=laCode.innerHTML; prCode.style.opacity=(0.42*co).toFixed(3); prCode.style.transform=`translateY(${(-(f-221)*4).toFixed(1)}px)`; }
   inkClear(prInk);
@@ -325,7 +327,9 @@ function shotLand(f){
   else if(f<281){ const a=accel(f,274,6.6,2.6); sc=lerp(0.94,0.80,a); x=960+40*a; }   // sortie à la vitesse de la réf (−3 / −4,3 %/image), nette
   else { const p=approach(f,281,14,0.25); sc=lerp(0.683,0.632,p); x=1588-720*sc+lerp(16,0,p); y=548; }
   const gone=f>=294?approach(f,294,5):0;
-  place(laFrame,x,y,sc); laFrame.style.filter=gone>0?`blur(${(10*gone).toFixed(1)}px) brightness(${(1+0.35*gone).toFixed(2)})`:''; laFrame.style.opacity=(1-0.85*clamp((f-297)/3)).toFixed(3);
+  if(!laD._iri) laD._iri=el(laD,'','', 'position:absolute;inset:0;z-index:60;pointer-events:none;mix-blend-mode:screen;display:none;background:linear-gradient(115deg,#CDB9F2 0%,#BFE7F3 34%,#FFC9A8 68%,#F3B9D0 100%)');
+  { const ir=vl(f,293,4); laD._iri.style.display=ir>0?'block':'none'; laD._iri.style.opacity=(0.75*ir).toFixed(3); }
+  place(laFrame,x,y,sc); laFrame.style.filter=gone>0?`blur(${(8*gone).toFixed(1)}px) brightness(${(1+0.2*gone).toFixed(2)})`:''; laFrame.style.opacity=(1-0.85*clamp((f-297)/3)).toFixed(3);
   mblur(LA.cam,f>=276&&f<281?0.5*vel(t=>40*accel(t,274,6.6,2.6),f):0,0);
   seqDraw(laSeq,SEQ.land,fl-234);
   // Ken Burns dans la carte ; le titre ne glisse plus (il tient exactement entre les marges, à cheval sur le bord de la photo)

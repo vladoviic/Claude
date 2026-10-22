@@ -146,17 +146,21 @@ function shotTerm(F){ const f=F-1;
 const MA=scene('sMacro',816,879,f=>shotMacro(f)); MA.s.style.background='#000';
 const cR20=cueAt(1);
 // N&B contrasté mais lisible : le grain du noyer et le reflet des boulons restent (brightness .6 / contrast 1.35 bouchait le pied au noir)
-const maSeq=canvas(MA.cam,1280,720,'left:0;top:0;width:1920px;height:1080px;filter:grayscale(1) contrast(1.18) brightness(.86)');
+const maSeq=canvas(MA.cam,1280,720,'left:0;top:0;width:1920px;height:1080px');
 const maDots=MA_BOLT.map(()=>el(MA.s,'','', 'position:absolute;width:70px;height:70px;margin:-35px 0 0 -35px;border-radius:50%;background:#F3EFEA;mix-blend-mode:screen'));
 cR20(815,'riser',{v:.35,end:826}); cR20(864,'whoosh',{v:.6,peak:876,dur:12});
 // curseur en 3 segments (réf) : entrée rapide 826-832, glisse le long du pied en ralentissant jusqu'à 868, repart à gauche
 const MA_CUR=[[826,683,1011],[832,896,649],[868,1515,559],[878,1109,627]];
 function maCursor(f){ if(f<826) return null; for(let k=0;k<MA_CUR.length-1;k++){ const [a,x0,y0]=MA_CUR[k],[b,x1,y1]=MA_CUR[k+1]; if(f<=b){ const t=(f-a)/(b-a), e=k==1?1-Math.pow(1-t,1.6):k==2?t*t:t; return [lerp(x0,x1,e),lerp(y0,y1,e)]; } } return [1109,627]; }
 function shotMacro(F){ const f=F-1;
-  seqDraw(maSeq,SEQ.macro,f-816); maSeq.style.opacity=vl(f,815,4).toFixed(3);   // la macro monte du noir (réf 815-818), sous les deux points
+  seqDraw(maSeq,SEQ.macro,f-816); maSeq.style.opacity='1';
+  // la macro monte du noir sur 9 images (réf 815-823 : la silhouette d'abord, puis la lumière) : pas de flash blanc à la coupe
+  const rise=f<815?0:1-Math.pow(1-clamp((f-815)/9),2); maSeq.style.filter=`grayscale(1) contrast(1.15) brightness(${(0.08+0.66*rise).toFixed(3)})`;
   // fin : le recul rendu continue en 2D avec un flou directionnel croissant (pas de roulis)
   // −5, −8, −12 %/image en plus du rendu, jusqu'à la coupe
-  const wh=accel(f,872,7.6,3); MA.cam.style.transform=`scale(${(1-0.35*wh).toFixed(4)})`; MA.cam.style.filter=wh>0?`blur(${(wh*10).toFixed(1)}px)`:'';
+  const wh=accel(f,870,9.6,2.4); MA.s.style.background=f>=866?mixc('#000000','#BDBCBA',clamp((f-866)/5)):'#000';
+  MA.cam.style.transform=`rotate(${(-6*wh).toFixed(2)}deg) scale(${(1-0.4*wh).toFixed(4)})`; MA.cam.style.filter=wh>0?`blur(${(wh*16).toFixed(1)}px)`:'';
+  maSeq.style.webkitMaskImage=maSeq.style.maskImage=wh>0.02?`radial-gradient(ellipse 72% 72% at 50% 50%,#000 ${lerp(100,35,wh).toFixed(0)}%,transparent 100%)`:'';
   // les deux points du « : » fondent dans les deux boulons quand la macro s'allume (816-822)
   const m=vl(f,816,6); maDots.forEach((d,i)=>{ show(d,m<1); d.style.left=MA_BOLT[i][0]+'px'; d.style.top=MA_BOLT[i][1]+'px'; d.style.opacity=(1-m).toFixed(3); d.style.transform=`scale(${(1-0.4*m).toFixed(3)})`; });
   cursor(0,0,0,false);
@@ -341,14 +345,14 @@ function shotDone(F){ const f=F-2;
   { const c=mixc('#CDB3F2','#F3EFEA',approach(f,952,9,0.2)); doTitle.style.color=c; qa(doTitle,'em').forEach(e=>e.style.color=c); }
   const card=f<989; show(doFrame,card); show(doFull,f>=989&&f<1003);
   // carte : entre à 0,95 en glissant de 50 px (952-966), tient en rampant (+0,12 %/i), puis poussée qui accélère ×1,19 (978-988)
-  if(card){ const en=approach(f,952,14,0.2); const s=lerp(0.95,1,en)*(1+0.003*Math.max(0,f-966))*(1+0.19*accel(f,978,11,3));
+  if(card){ const en=approach(f,952,14,0.2); const s=lerp(0.95,1,en)*(1+0.003*Math.max(0,f-966))*(1+0.85*accel(f,978,11,3)); doFrame.style.filter=f>=982?`brightness(${(1+0.75*accel(f,982,7,2)).toFixed(3)})`:'';
     place(doFrame,960+50*(1-en),540,s); const fu=q1(doD,'.full'); fu.style.transformOrigin='55% 60%'; fu.style.transform=`scale(${(1+0.12*accel(f,980,9,3)).toFixed(4)})`;
     seqDraw(doSeq,SEQ.done,f-952);
     doSum.style.clipPath=`inset(0 0 ${((1-approach(f,956,10))*100).toFixed(1)}% 0 round 18px)`; }
   // 989-1079 : la page claire et sa chaleur à l'encre
   const hp=f>=989; show(doTP,hp); show(doFull,false);
   // sortie : plus de glissement qui accélère vers une coupe sèche ; une dérive lente et un fondu par le flou (1068-1077) que la grille reprend
-  if(hp){ const z=1+0.0026*(f-989), pan=f<1062?0:(f-1062)*6, zz=1;
+  if(hp){ const z=1+0.0026*(f-989), pan=f<1062?0:(f-1062)*6, zz=1+0.24*Math.pow(1-clamp((f-989)/9),2);
     doTPi.style.transform=`translate(${pan.toFixed(1)}px,${(pan*0.6).toFixed(1)}px) scale(${(z*zz).toFixed(4)})`;
     // les étiquettes restent fixes à l'écran pendant la poussée (sinon le cadre coupe « 1,204 sessions » et la légende)
     if(f<1062){ const Z=z*zz; Object.assign(doHud.style,{right:(1920-(960+(1892-960)/Z)).toFixed(1)+'px',top:(540+(84-540)/Z).toFixed(1)+'px',transform:`scale(${(1/Z).toFixed(4)})`,transformOrigin:'100% 0'});
@@ -364,7 +368,7 @@ function shotDone(F){ const f=F-2;
     const rg=vl(f,1024,6); show(doRing,f>=1024); show(doRingL,f>=1024); doRing.style.left=DO_SEAT[0]+'px'; doRing.style.top=DO_SEAT[1]+'px'; doRing.style.transform=`scale(${rg.toFixed(3)})`;
     doRingL.style.left=(DO_SEAT[0]+46)+'px'; doRingL.style.top=(DO_SEAT[1]-58)+'px'; doRingL.style.opacity=rg.toFixed(3);
     [doHud,doLeg].forEach(e=>e.style.opacity=f<1052?'1':'0');
-    const df=vl(f,1068,9); doTP.style.filter=df>0?`blur(${(20*df).toFixed(1)}px) brightness(${(1+0.05*df).toFixed(2)})`:''; }
+    const df=vl(f,1068,9), eb=f<992?7*(1-(f-989)/3):0; doTP.style.filter=df>0?`blur(${(20*df).toFixed(1)}px) brightness(${(1+0.05*df).toFixed(2)})`:eb>0.1?`blur(${eb.toFixed(1)}px) brightness(${(1+0.08*eb/7).toFixed(3)})`:''; }
   // le bouton : apparaît à 0,91, texte accent 1 image, grandit de 10 % ; clic 1050 = 1 image à 0,82, brun chaud qui reste
   const bOn=f>=1020&&f<1072; show(doBtn,bOn); if(bOn){ const sc=lerp(0.91,1,approach(f,1020,14))*(f==1050?0.82/1:f==1051?0.97:1);
     place(doBtn,960,556,sc); doBtn.style.color='#F3EFEA'; doBtn.style.background=f>=1050&&f<1052?'#2E2B28':'#151413';
@@ -505,11 +509,11 @@ const alInk=inkLayer(AL.s,{ground:'dark'}); alInk.style.zIndex='3';
 const alMark=el(AL.cam,'abs','', 'width:150px;height:150px'); alMark.innerHTML=MARK_SVG;
 const alDisc=el(AL.s,'','', 'position:absolute;left:885px;top:465px;width:150px;height:150px;border-radius:50%;background:#FF3D5E;transform:scale(0);z-index:2');
 const alFade=el(AL.s,'','', 'position:absolute;left:0;right:0;bottom:0;height:430px;background:linear-gradient(transparent,#3C3C3C);opacity:0');
-const alBtn=el(AL.cam,'abs','', 'display:none;overflow:hidden'); const alBtnBar=el(alBtn,'','', 'position:absolute;left:50%;top:50%;width:14px;height:58px;margin:-29px 0 0 -7px;border-radius:7px;background:#EEE9E4;transform-origin:50% 50%');
+const alBtn=el(AL.cam,'abs','', 'display:none;overflow:hidden'); const alLbl=el(alBtn,'','Ship it','position:absolute;inset:0;text-align:center;font-size:40px;line-height:90px;color:#F3EFEA;display:none;white-space:nowrap'); const alBtnBar=el(alBtn,'','', 'position:absolute;left:50%;top:50%;width:14px;height:58px;margin:-29px 0 0 -7px;border-radius:7px;background:#EEE9E4;transform-origin:50% 50%');
 // le morph : une onde part du centre de la grille (1186) et règle chaque tuile à son passage ; la dernière à 1216
 cR27(1175,'hush',{}); cR27(1186,'shimmer',{v:.55,end:1219}); cR27(1222,'riser',{v:.45,end:1231}); cR27(1232,'boom',{v:.8});
 function shotAlerts(F){ const f=F-1; push(AL.cam,f,1175,0.0005);
-  const tho=1-clamp((f-1178)/9); show(alTh,tho>0&&!!THERMAL); if(tho>0&&THERMAL){ heatField(f,7,1175,0.1,1); alTh.getContext('2d').drawImage(THERMAL.canvas,0,0); alTh.style.opacity=(0.85*tho).toFixed(3); }
+  const tho=1-clamp((f-1178)/9); show(alTh,tho>0&&!!THERMAL); if(tho>0&&THERMAL){ heatField(f,11,1175,-0.04,1,0.5); alTh.getContext('2d').drawImage(THERMAL.canvas,0,0); alTh.style.opacity=(0.85*tho).toFixed(3); }
   // le champ est déjà allumé à 1175 (le centre), le reste se remplit jusqu'à 1184 ; à la fin la grille se resserre dans la marque
   // (facteurs de la réf : ×0,87, ×0,73, ×0,73, ×0,73, ×0,71, ×0,52 sur 1226-1231) au lieu de s'éteindre
   const zc=alZ(f);
@@ -534,7 +538,9 @@ function shotAlerts(F){ const f=F-1; push(AL.cam,f,1175,0.0005);
   const mo=f>=1243?1-Math.pow(1-clamp((f-1243)/7),3):0; show(alBtn,f>=1243);
   if(f>=1243){ Object.assign(alBtn.style,{width:lerp(150,228,mo)+'px',height:lerp(150,90,mo)+'px',borderRadius:lerp(75,14,mo)+'px',background:mixc('#FF3D5E','#151413',mo)});
     place(alBtn,960,540); alBtnBar.style.transform=`rotate(${lerp(33.7,0,mo).toFixed(1)}deg) scale(${lerp(1,0.5,mo).toFixed(3)},${lerp(1,0.55,mo).toFixed(3)})`; alBtnBar.style.width=lerp(9*1.5625,3,mo)+'px'; }
-  alFade.style.opacity=approach(f,1243,7).toFixed(3);
+  alFade.style.opacity='0';
+  { const k=f<1242?0:Math.pow(clamp((f-1242)/7),1.4); AL.s.style.background=k>0?`linear-gradient(${mixc('#151413','#F0E7DF',k)},${mixc('#151413','#F3E4D6',k)} 50%,${mixc('#151413','#F8E3CF',k)})`:'#151413';
+    show(alLbl,f>=1245); if(f>=1245){ const p=morphT(f,1245,4); morphIn(alLbl,p,4,0.94); } alBtnBar.style.opacity=(1-clamp((f-1245)/3)).toFixed(3); }
   // sortie : petite poussée qui accélère dans la coupe (réf +0,2 → +2 %/image), pas d'image figée
   AL.cam.style.scale=(1+0.04*accel(f,1243,7,2.2)).toFixed(4);
 }
