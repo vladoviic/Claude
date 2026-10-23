@@ -154,8 +154,8 @@ const MA_CUR=[[826,683,1011],[832,896,649],[868,1515,559],[878,1109,627]];
 function maCursor(f){ if(f<826) return null; for(let k=0;k<MA_CUR.length-1;k++){ const [a,x0,y0]=MA_CUR[k],[b,x1,y1]=MA_CUR[k+1]; if(f<=b){ const t=(f-a)/(b-a), e=k==1?1-Math.pow(1-t,1.6):k==2?t*t:t; return [lerp(x0,x1,e),lerp(y0,y1,e)]; } } return [1109,627]; }
 function shotMacro(F){ const f=F-1;
   seqDraw(maSeq,SEQ.macro,f-816); maSeq.style.opacity='1';
-  // la macro monte du noir sur 9 images (réf 815-823 : la silhouette d'abord, puis la lumière) : pas de flash blanc à la coupe
-  const rise=f<815?0:1-Math.pow(1-clamp((f-815)/9),2); maSeq.style.filter=`grayscale(1) contrast(1.15) brightness(${(0.08+0.66*rise).toFixed(3)})`;
+  // la macro monte du noir sur 14 images (réf 815-829 : la silhouette d'abord, puis la lumière) : pas de flash blanc à la coupe
+  const rise=f<815?0:Math.pow(clamp((f-815)/14),1.5); maSeq.style.filter=`grayscale(1) contrast(1.15) brightness(${(0.04+0.7*rise).toFixed(3)})`;
   // fin : le recul rendu continue en 2D avec un flou directionnel croissant (pas de roulis)
   // −5, −8, −12 %/image en plus du rendu, jusqu'à la coupe
   const wh=accel(f,870,9.6,2.4); MA.s.style.background=f>=866?mixc('#000000','#BDBCBA',clamp((f-866)/5)):'#000';
@@ -230,6 +230,7 @@ function chSoak(f,V,red){ const tt=clamp((f-918)/12), R=lerp(10,380,0.5-0.5*Math
     const dn=d+14*1100/918*2*chNoise(px,py), e=clamp((r-dn)/(6*1100/918)), a=e*e*(3-2*e); im.data[o]=im.data[o+1]=im.data[o+2]=255; im.data[o+3]=Math.round(255*a); }
   x.putImageData(im,0,0); }
 function shotChat(f){
+  CH.cam.style.transform=`scale(${((1+0.16*Math.pow(1-clamp((f-880)/8),2.2))*(1+0.13*accel(f,941,7,2.6))).toFixed(4)})`;
   const ii=chIdx(f), i=Math.round(ii), V=chView3(f);
   const tr=`translate(${V.x.toFixed(1)}px,${V.y.toFixed(1)}px) rotate(${V.r.toFixed(2)}deg) scale(${V.s.toFixed(4)})`;
   [chTurn,chTurnR].forEach(c=>{ c.style.transform=tr; });
@@ -345,14 +346,14 @@ function shotDone(F){ const f=F-2;
   { const c=mixc('#CDB3F2','#F3EFEA',approach(f,952,9,0.2)); doTitle.style.color=c; qa(doTitle,'em').forEach(e=>e.style.color=c); }
   const card=f<989; show(doFrame,card); show(doFull,f>=989&&f<1003);
   // carte : entre à 0,95 en glissant de 50 px (952-966), tient en rampant (+0,12 %/i), puis poussée qui accélère ×1,19 (978-988)
-  if(card){ const en=approach(f,952,14,0.2); const s=lerp(0.95,1,en)*(1+0.003*Math.max(0,f-966))*(1+0.85*accel(f,978,11,3)); doFrame.style.filter=f>=982?`brightness(${(1+0.75*accel(f,982,7,2)).toFixed(3)})`:'';
+  if(card){ const en=approach(f,952,14,0.2); const s=lerp(0.95,1,en)*(1+0.003*Math.max(0,f-966))*(1+0.85*accel(f,978,11,3)); doFrame.style.filter=f>=982?`brightness(${(1+1.1*accel(f,982,7,2)).toFixed(3)})`:'';
     place(doFrame,960+50*(1-en),540,s); const fu=q1(doD,'.full'); fu.style.transformOrigin='55% 60%'; fu.style.transform=`scale(${(1+0.12*accel(f,980,9,3)).toFixed(4)})`;
     seqDraw(doSeq,SEQ.done,f-952);
     doSum.style.clipPath=`inset(0 0 ${((1-approach(f,956,10))*100).toFixed(1)}% 0 round 18px)`; }
   // 989-1079 : la page claire et sa chaleur à l'encre
   const hp=f>=989; show(doTP,hp); show(doFull,false);
   // sortie : plus de glissement qui accélère vers une coupe sèche ; une dérive lente et un fondu par le flou (1068-1077) que la grille reprend
-  if(hp){ const z=1+0.0026*(f-989), pan=f<1062?0:(f-1062)*6, zz=1+0.24*Math.pow(1-clamp((f-989)/9),2);
+  if(hp){ const z=1+0.0026*(f-989)+0.05*approach(f,989,12,0.2), pan=f<1062?0:(f-1062)*6, zz=1;
     doTPi.style.transform=`translate(${pan.toFixed(1)}px,${(pan*0.6).toFixed(1)}px) scale(${(z*zz).toFixed(4)})`;
     // les étiquettes restent fixes à l'écran pendant la poussée (sinon le cadre coupe « 1,204 sessions » et la légende)
     if(f<1062){ const Z=z*zz; Object.assign(doHud.style,{right:(1920-(960+(1892-960)/Z)).toFixed(1)+'px',top:(540+(84-540)/Z).toFixed(1)+'px',transform:`scale(${(1/Z).toFixed(4)})`,transformOrigin:'100% 0'});
@@ -368,7 +369,7 @@ function shotDone(F){ const f=F-2;
     const rg=vl(f,1024,6); show(doRing,f>=1024); show(doRingL,f>=1024); doRing.style.left=DO_SEAT[0]+'px'; doRing.style.top=DO_SEAT[1]+'px'; doRing.style.transform=`scale(${rg.toFixed(3)})`;
     doRingL.style.left=(DO_SEAT[0]+46)+'px'; doRingL.style.top=(DO_SEAT[1]-58)+'px'; doRingL.style.opacity=rg.toFixed(3);
     [doHud,doLeg].forEach(e=>e.style.opacity=f<1052?'1':'0');
-    const df=vl(f,1068,9), eb=f<992?7*(1-(f-989)/3):0; doTP.style.filter=df>0?`blur(${(20*df).toFixed(1)}px) brightness(${(1+0.05*df).toFixed(2)})`:eb>0.1?`blur(${eb.toFixed(1)}px) brightness(${(1+0.08*eb/7).toFixed(3)})`:''; }
+    const df=vl(f,1068,9), eb=f<991?3*(1-(f-989)/2):0; doTP.style.filter=df>0?`blur(${(20*df).toFixed(1)}px) brightness(${(1+0.05*df).toFixed(2)})`:eb>0.1?`blur(${eb.toFixed(1)}px) brightness(${(0.86+0.14*(f-989)/2).toFixed(3)})`:''; }
   // le bouton : apparaît à 0,91, texte accent 1 image, grandit de 10 % ; clic 1050 = 1 image à 0,82, brun chaud qui reste
   const bOn=f>=1020&&f<1072; show(doBtn,bOn); if(bOn){ const sc=lerp(0.91,1,approach(f,1020,14))*(f==1050?0.82/1:f==1051?0.97:1);
     place(doBtn,960,556,sc); doBtn.style.color='#F3EFEA'; doBtn.style.background=f>=1050&&f<1052?'#2E2B28':'#151413';
@@ -458,7 +459,7 @@ const reBtn=el(reCard,'abs','Accept all','left:auto;right:44px;top:316px;height:
 const reProg=q1(reCard,'.rprog');
 cR26(1130,'impact',{v:.5}); cR26(1161,'click',{v:1}); cR26(1162,'pop',{v:.5,n:84});
 function shotReport(F){ const f=F-1;
-  if(THERMAL){ heatField(f,6,1131,0,0,0.45,3.5); reTh.getContext('2d').drawImage(THERMAL.canvas,0,0); }
+  if(THERMAL){ heatField(f,6,1131,0,0,0.85,3.5); reTh.getContext('2d').drawImage(THERMAL.canvas,0,0); }
   RE.cam.style.transform=`scale(${(1+0.0025*(f-1131)).toFixed(4)})`;   // poussée à vitesse constante jusqu'à la coupe (l'ease-out figeait les 4 dernières images)
   // la carte monte (40 px, 10 images), le 47 se compte, les lignes et les barres par catégorie arrivent une à une
   const p=approach(f,1130,6); place(reCard,960,545+40*(1-vl(f,1131,10)),0.86); reCard.style.opacity=lerp(0.3,1,p).toFixed(3);
@@ -513,7 +514,7 @@ const alBtn=el(AL.cam,'abs','', 'display:none;overflow:hidden'); const alLbl=el(
 // le morph : une onde part du centre de la grille (1186) et règle chaque tuile à son passage ; la dernière à 1216
 cR27(1175,'hush',{}); cR27(1186,'shimmer',{v:.55,end:1219}); cR27(1222,'riser',{v:.45,end:1231}); cR27(1232,'boom',{v:.8});
 function shotAlerts(F){ const f=F-1; push(AL.cam,f,1175,0.0005);
-  const tho=1-clamp((f-1178)/9); show(alTh,tho>0&&!!THERMAL); if(tho>0&&THERMAL){ heatField(f,11,1175,-0.04,1,0.5,3.5); alTh.getContext('2d').drawImage(THERMAL.canvas,0,0); alTh.style.opacity=(0.85*tho).toFixed(3); }
+  const tho=1-clamp((f-1178)/9); show(alTh,tho>0&&!!THERMAL); if(tho>0&&THERMAL){ heatField(f,11,1175,-0.04,1,0.9,3.5); alTh.getContext('2d').drawImage(THERMAL.canvas,0,0); alTh.style.opacity=(0.85*tho).toFixed(3); }
   // le champ est déjà allumé à 1175 (le centre), le reste se remplit jusqu'à 1184 ; à la fin la grille se resserre dans la marque
   // (facteurs de la réf : ×0,87, ×0,73, ×0,73, ×0,73, ×0,71, ×0,52 sur 1226-1231) au lieu de s'éteindre
   const zc=alZ(f);
@@ -587,7 +588,7 @@ const shPane=el(SH.cam,'','', 'position:absolute;left:0;top:0;width:1920px;heigh
 const shBtn=el(SH.s,'bbtn',''); shBtn.style.zIndex=5; shBtn.style.width='228px'; shBtn.style.padding='0'; shBtn.style.textAlign='center'; shBtn.style.borderRadius='14px';
 const shRing=el(SH.s,'','', 'position:absolute;left:960px;top:540px;width:0;height:0;border-radius:50%;box-shadow:0 0 0 1px #151413;z-index:4');
 cR28(1250,'impact',{v:.5}); cR28(1293,'beep',{v:.6}); cR28(1298,'riser',{v:.55,end:1306});
-function shotShip(F){ const f=F-1; SH.cam.style.transform=`scale(${(1+0.03*clamp((f-1250)/56)).toFixed(4)})`;   // poussée de 3 %
+function shotShip(F){ const f=F-1; const shz=1.029*(1+0.035*approach(f,1250,10,0.25))*(1+0.0004*(f-1250)); SH.cam.style.transform=`scale(${shz.toFixed(4)})`;   // la poussée des alertes continue à travers la coupe
   const y=-900*approach(f,1250,36,0.11);
   // le rayon (≈ +14 niveaux sur les vitres) glisse de 60 px pendant le plan ; il ne descend pas sur le mur
   shShaft.style.opacity='0.5'; shShaft.style.transform=`translateX(${(60*clamp((f-1250)/56)).toFixed(1)}px)`; shShaft.style.clipPath=`inset(0 0 ${Math.max(0,1280-(200+1080+y*0.35)).toFixed(0)}px 0)`;
@@ -599,7 +600,7 @@ function shotShip(F){ const f=F-1; SH.cam.style.transform=`scale(${(1+0.03*clamp
   // un bouton n'a pas de caret : le libellé est déjà là (comme « Publish » dans la réf)
   shBtn.textContent='Ship it';
   // le clic tombe à 1293, comme dans la réf
-  const pr=f>=1293&&f<1295; place(shBtn,960,540,pr?0.94:1); shBtn.style.background='#151413';
+  const pr=f>=1293&&f<1295; place(shBtn,960,540,(pr?0.94:1)*shz); shBtn.style.background='#151413';
   const rg=clamp((f-1293)/10); show(shRing,f>=1293&&f<1304); const R=120*rg; Object.assign(shRing.style,{width:2*R+'px',height:2*R+'px',left:(960-R)+'px',top:(540-R)+'px',opacity:(1-rg).toFixed(2)});
   const cf=twos(f,1270), cp=clamp((cf-1270)/10); cursor(lerp(1185,1030,cp),lerp(705,580,cp),pr?1:0,f>=1270,1,cp>=1?'hand':'arrow');
 }

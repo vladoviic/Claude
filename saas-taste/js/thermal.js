@@ -1,10 +1,9 @@
 /* ============================================================
    Caméra thermique (WebGL) : la luminance floutée d'une source + des points chauds (l'attention, l'encre)
    passent par une palette thermique à isothermes. Deux palettes :
-     clair : papier-lilas (froid) → rose → rouge du stylo → corail → blanc chaud (le plus chaud) ;
-     sombre : presque noir → prune → bordeaux → braise, pour les fonds de nuit.
-   Le rouge du stylo est à 0,70 : un champ « aplati » à 0,70 est exactement l'encre rouge, ce qui permet
-   de développer une image thermique à partir d'un aplat d'encre (FLAT 1 → 0).
+     clair : blanc bleuté (froid) → lilas → rose → pêche → orange → ambre → blanc chaud (la réf) ;
+     sombre : presque noir → sarcelle → rouille → braise, pour les fonds de nuit (réf 1175).
+   L'orange est à 0,70 : un champ « aplati » (FLAT 1) est un aplat orange, l'image s'en développe (FLAT 1 → 0).
    ============================================================ */
 const THERMAL=(()=>{
   const c=document.createElement('canvas'); c.width=960; c.height=540;
@@ -20,8 +19,10 @@ const THERMAL=(()=>{
     if(h<.22) return mix(a,b,h/.22); if(h<.42) return mix(b,c,(h-.22)/.20); if(h<.58) return mix(c,d,(h-.42)/.16);
     if(h<.70) return mix(d,e,(h-.58)/.12); if(h<.84) return mix(e,f,(h-.70)/.14); return mix(f,g,(h-.84)/.16); }
   vec3 pal(float h){
-    vec3 l=ramp(h,vec3(.933,.918,.961),vec3(.843,.820,.941),vec3(.953,.725,.816),vec3(1.,.490,.576),vec3(1.,.239,.369),vec3(1.,.498,.384),vec3(1.,.886,.651));
-    vec3 d=ramp(h,vec3(.055,.051,.071),vec3(.137,.098,.227),vec3(.290,.118,.275),vec3(.478,.133,.251),vec3(.722,.263,.247),vec3(.80,.42,.30),vec3(.898,.604,.361));
+    // clair (réf 223-235, 1000-1077) : blanc bleuté → lilas → rose → pêche → orange (0,70) → ambre → blanc chaud
+    vec3 l=ramp(h,vec3(.894,.914,.937),vec3(.851,.824,.925),vec3(.929,.722,.784),vec3(.949,.635,.478),vec3(.933,.541,.235),vec3(.965,.706,.361),vec3(.984,.941,.769));
+    // sombre (réf 1175) : nacre de nuit, presque noir → sarcelle → rouille → braise
+    vec3 d=ramp(h,vec3(.071,.078,.075),vec3(.078,.141,.137),vec3(.106,.200,.192),vec3(.165,.145,.133),vec3(.208,.094,.102),vec3(.306,.141,.125),vec3(.420,.227,.149));
     return mix(l,d,DARK); }
   void main(){
     vec2 uv=gl_FragCoord.xy/R; uv.y=1.-uv.y;

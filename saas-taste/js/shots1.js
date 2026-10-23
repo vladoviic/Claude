@@ -137,36 +137,23 @@ function shotW(f){ push(W1.cam,f,0,0.0009);
   wFoMorph(f);
   gather(f);
 }
-// la version corrigée de la carte du fondateur (velvetly v2), posée sur elle ; chaque groupe se corrige à son tour
-const WFO_K=['s',0,0,1,2,2,2,3,4]; [...wFo.firstElementChild.children].forEach((e,i)=>{ e.dataset.k=WFO_K[i]; });
-const wFo2=el(wFo,'','', 'position:absolute;inset:0;pointer-events:none');
-wFo2.innerHTML=`<div data-k="s" style="position:absolute;left:0;top:0;bottom:0;width:118px;background:#151413;color:#F3EFEA"><div style="position:absolute;left:16px;top:18px;font:600 16px 'ID';letter-spacing:-.02em">● velvetly</div>
-    ${['Overview','Rooms','Embeds','Settings'].map((t,i)=>`<div style="position:absolute;left:16px;top:${60+i*28}px;font:500 11px 'ID';color:${i?'#8E877F':'#F3EFEA'}">${t}</div>`).join('')}</div>
-  <div data-k="0" style="position:absolute;left:138px;top:16px;font:500 26px 'ID';letter-spacing:-.035em;color:#151413">Morning, <em style="font-family:'BE'">Léa.</em></div>
-  <div data-k="0" style="position:absolute;left:139px;top:50px;font:400 10px 'JB';color:#8E877F">velvetly · Studio plan · 14/20 seats</div>
-  <div data-k="1" style="position:absolute;right:16px;top:17px;height:30px;line-height:30px;padding:0 15px;border-radius:15px;background:#151413;color:#F3EFEA;font:500 12px 'ID'">New report →</div>
-  ${[['ROOMS','1,234','+18%'],['EMBEDS','312','+9%'],['3D VIEWS','48.2k','+31%']].map(([t,v,d],i)=>`<div data-k="2" style="position:absolute;left:${138+i*136}px;top:78px;width:124px;height:64px;border-top:1px solid #E1DAD2"><div style="position:absolute;left:0;top:8px;font:400 9px 'JB';color:#8E877F;letter-spacing:.06em">${t}</div><div style="position:absolute;right:0;top:7px;font:500 9px 'JB';color:#151413">${d}</div><div style="position:absolute;left:0;top:26px;font:500 28px 'ID';letter-spacing:-.04em;color:#151413">${v}</div></div>`).join('')}
-  <div data-k="3" style="position:absolute;left:138px;top:156px;width:250px;height:176px"><div style="position:absolute;left:0;top:4px;font:500 13px 'ID';color:#151413">3D views <span style="font:400 9px 'JB';color:#8E877F">12 mo</span></div>
-    ${[40,52,34,60,48,70,44,74,62,84,66,90].map((h,i)=>`<i style="position:absolute;left:${4+i*20}px;bottom:16px;width:13px;height:${h*1.25}px;background:#151413;border-radius:2px 2px 0 0;display:block"></i>`).join('')}</div>
-  <div data-k="4" style="position:absolute;left:402px;top:156px;width:142px;height:176px;border-radius:12px;overflow:hidden;background:#E6DED4"><img src="img/tile_chair.jpg" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><div style="position:absolute;left:10px;bottom:9px;font:500 12px/1.1 'ID';color:#fff">Room 04<br><em style="font-family:'BE'">is live.</em></div></div>`;
-// la vague : titre (104), barre latérale et bouton (105), chiffres (106), courbe (107), photo (108) ; 6 images chacun, sec en 10
-const WFO_T={0:104,s:105,1:105,2:106,3:107,4:108};
-function wFoMorph(f){ const o=[...wFo.firstElementChild.children], n=[...wFo2.children];
-  o.forEach(e=>{ const p=morphT(f,WFO_T[e.dataset.k],6); morphOut(e,p,5); });
-  n.forEach(e=>{ const k=e.dataset.k, f0=WFO_T[k], p=morphT(f,f0,6); morphIn(e,p,5,0.96);
-    if(k!=='s'&&k!=='4') e.style.color=''; if(k==='0') e.style.color=morphInk(f,f0,6,10);
-    if(k==='1'||k==='s') e.style.background=morphInk(f,f0,6,10,MORPH.ink,MORPH.fill);
-    if(k==='3') [...e.querySelectorAll('i')].forEach(b=>b.style.background=morphInk(f,f0,6,10,MORPH.ink,MORPH.fill)); }); }
+// l'après de la carte du fondateur : la même refonte que chez les clients (js/dash2.js), à l'échelle de la carte (560 / 1360)
+const WFO_K=560/1360, wFoIn=el(wFo,'','', `position:absolute;left:0;top:0;width:1360px;height:850px;transform:scale(${WFO_K});transform-origin:0 0;pointer-events:none`);
+const wFoD2=buildDash2(wFoIn,850), wFoA=[...wFo.firstElementChild.children];
+// les blocs de la v1 de la carte, en coordonnées de la v2
+const WFO_A=Object.fromEntries(Object.entries({flood:[0,0,118,350],title:[138,20,250,26],sub:[138,48,200,14],btn:[444,18,100,28],kpi0:[138,76,124,66],kpi1:[274,76,124,66],kpi2:[410,76,124,66],list:[138,156,250,176],hero:[402,156,142,176]}).map(([k,r])=>[k,r.map(v=>v/WFO_K)]));
+const WFO_AEL={flood:wFoA[0],title:wFoA[1],sub:wFoA[2],btn:wFoA[3],kpi0:wFoA[4],kpi1:wFoA[5],kpi2:wFoA[6],list:wFoA[7],hero:wFoA[8]};
+function wFoMorph(f){ dash2Morph(wFoD2,f,104,WFO_A,WFO_AEL,WFO_K); }
 // le regroupement (réf, largeurs mesurées image par image) : toute la pile se contracte vers le centre en accélérant,
 // ×0,28 de 113 à 120 (−27 %/image à la fin), avec un flou qui monte ; le disque du logo prend la suite au même rythme (121)
 const W_Z=[1,.85,.80,.74,.64,.55,.40,.284], wZ=f=>f<=113?1:f>=120?W_Z[7]:lerp(W_Z[Math.floor(f-113)],W_Z[Math.floor(f-113)+1],(f-113)%1);
 // le serrage : 15 % du chemin à 95 (les cartes rampent), 70 % à 96, posé à 97 (le temps fort)
 function wSnap(f){ return f<89?0:f<95?0.15*Math.pow((f-89)/6,1.6):f<96?lerp(0.15,0.70,f-95):f<97?lerp(0.70,1,f-96):1; }
 // la caméra de la pile : après le serrage elle continue de se resserrer (−1,4 %/image) en dérivant, puis la contraction finale
-const wAmk=f=>f<97?1:1+0.35*(1-clamp((f-113)/7));
+const wAmk=f=>f<113?1+0.35*wSnap(f):1+0.35*(1-clamp((f-113)/7));
 function wCam(f){ const n=clamp(f,97,113)-97; return {z:Math.pow(0.986,n)*wZ(f)*wAmk(f),dx:4*n,dy:-3*n}; }
 function wMap(p,f){ const m=wCam(f); return [960+(p[0]-960+m.dx)*m.z,540+(p[1]-540+m.dy)*m.z]; }
-function gather(f){ if(f<97){ wCol.style.transform=''; return; } const m=wCam(f); wCol.style.transformOrigin='960px 540px';
+function gather(f){ if(f<89){ wCol.style.transform=''; return; } const m=wCam(f); wCol.style.transformOrigin='960px 540px';
   wCol.style.transform=`scale(${m.z.toFixed(4)}) translate(${m.dx.toFixed(1)}px,${m.dy.toFixed(1)}px)`; }
 // le disque du logo naît à la taille de la pile contractée
 const LG_IN=232;
@@ -217,13 +204,14 @@ q1(prSite,'.prD').style.filter='blur(2.5px)';
 const prDash=buildDash(q1(prSite,'.prD'));
 // le repère du commentaire, planté sur la photo de poignée de main
 const prPin=el(P1.cam,'','', 'position:absolute;left:1494px;top:536px;width:46px;height:46px;border-radius:23px 23px 23px 4px;background:#2D6CDF;color:#fff;font:700 21px/46px AR;text-align:center;box-shadow:0 0 0 3px #fff,0 8px 18px rgba(0,0,0,.25)'); prPin.textContent='L';
-const prTh=canvas(P1.s,960,540,'left:0;top:0;width:1920px;height:1080px;display:none'); P1.s.insertBefore(prTh,P1.cam);
+const prTh=canvas(P1.s,1920,1080,'left:0;top:0;width:1920px;height:1080px;display:none'); P1.s.insertBefore(prTh,P1.cam);
 const prBox=el(P1.cam,'pbox','', 'left:450px;top:396px');
 const prCode=el(P1.s,'','', 'position:absolute;inset:0;display:none;pointer-events:none;z-index:31');
-function prHeat(f,C){ const g=clamp((f-214)/13), im=SEQ.land[0], ok=im&&im.naturalWidth;
-  // l'encre du trait reste le point le plus chaud, sans halo : une tache étroite qui s'élargit à peine
-  THERMAL.draw(ok?im:THERMAL.blank,{spots:[[C[0]/1920,C[1]/1080,0.05+0.04*g,0.22*g]],wimg:ok?0.2+0.8*g:0,lo:0.12,hi:0.9,gam:1.1,blur:5,bias:-0.3+0.3*g,t:f});
-  const c=prTh.getContext('2d'); c.clearRect(0,0,960,540); c.drawImage(THERMAL.canvas,0,0); prTh.style.filter=`blur(${lerp(26,3,g).toFixed(1)}px)`; }
+function prHeat(f){ const g=clamp((f-214)/13);
+  // la landing posée comme à 228 (cachée), sa carte thermique développée depuis un aplat : à 227 c'est l'image exacte de 228
+  const was=LA.s.style.display; LA.s.style.display='block'; shotLand(228);
+  landThermal(LA.s,laFrame,laSeq,laMark,prTh,{flat:lerp(0.85,LA_FLAT[0],g*g*(3-2*g)),t:f}); LA.s.style.display=was; show(laTh,false); show(laCode,false);
+  prTh.style.filter=g<1?`blur(${(16*(1-g)).toFixed(1)}px)`:''; }
 el(prBox,'','', 'position:absolute;left:36px;top:30px;width:44px;height:44px;border-radius:22px;background:#2D6CDF;color:#fff;font:700 20px/44px AR;text-align:center').textContent='L';
 el(prBox,'','Léa <span class="m" style="font-size:15px;color:#8E877F;margin-left:10px">velvetly · founder · now</span>','position:absolute;left:94px;top:38px;font-size:23px;color:#151413');
 const prText=el(prBox,'ptext ar'); const prSend=el(prBox,'psend','<svg viewBox="0 0 72 72" width="72" height="72"><path d="M36 50 V22 M24 33 L36 21 L48 33" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>');
@@ -273,7 +261,7 @@ function shotPrompt(f){
   prGly.forEach((d,i)=>{ const st=204+i; const on=f>=st&&f<224; show(d,on); if(!on) return; const g=d._g; const drift=1+(f-st)*0.012;
     d.textContent=i%2?['/','|','\\','-'][(Math.floor(f/2)+i)%4]:g[0]; d.style.color=mixc(GBORN,GINK,approach(f,st,6)); place(d,960+g[1]*drift,546+g[2]*drift,back(f,st,4)); });
   // M3 : le trait biffe « Arial, » (207-212) ; au-delà de ×3, le champ d'encre plein cadre prend le relais
-  const C3=[(PR_ARIAL[0]+PR_ARIAL[2])/2,(PR_ARIAL[1]+PR_ARIAL[3])/2], ho=clamp((f-213)/6); show(prTh,ho>0&&!!THERMAL); if(ho>0&&THERMAL){ prHeat(f,[t[0]+C3[0]*k,t[1]+C3[1]*k]); prTh.style.opacity=ho.toFixed(3); } { const sh=q1(P1.cam,'.sheet'), to=q1(P1.cam,'.tooth'); if(sh) sh.style.opacity=(1-ho).toFixed(3); if(to) to.style.opacity=(0.62*(1-ho)).toFixed(3); }   // la feuille et sa dent (main.js) s'effacent sur la chaleur : sans feuille, la dent en soft-light griserait l'image   // le trait en coordonnées écran
+  const C3=[(PR_ARIAL[0]+PR_ARIAL[2])/2,(PR_ARIAL[1]+PR_ARIAL[3])/2], ho=clamp((f-213)/6); show(prTh,ho>0&&!!THERMAL); if(ho>0&&THERMAL){ prHeat(f); prTh.style.opacity=ho.toFixed(3); } { const sh=q1(P1.cam,'.sheet'), to=q1(P1.cam,'.tooth'); if(sh) sh.style.opacity=(1-ho).toFixed(3); if(to) to.style.opacity=(0.62*(1-ho)).toFixed(3); }   // la feuille et sa dent (main.js) s'effacent sur la chaleur : sans feuille, la dent en soft-light griserait l'image   // le trait en coordonnées écran
   prBox.style.opacity=(1-0.88*clamp((f-223)/4)).toFixed(3); prSite.style.opacity=(1-clamp((f-213)/6)).toFixed(3);
   const co=clamp((f-221)/4); show(prCode,co>0); if(co>0){ if(!prCode.firstChild) prCode.innerHTML=laCode.innerHTML; prCode.style.opacity=(0.42*co).toFixed(3); prCode.style.transform=`translateY(${(-(f-221)*4).toFixed(1)}px)`; }
   inkClear(prInk);
@@ -608,18 +596,11 @@ clCard.innerHTML=`<div style="position:absolute;left:0;right:0;top:0;height:60px
   <div style="position:absolute;right:16px;top:12px;height:36px;line-height:36px;padding:0 16px;border-radius:9px;background:#fff;box-shadow:0 0 0 1px #DDD6CE;font-size:15px">Share</div></div>
   <div class="clD" style="position:absolute;left:20px;top:70px;width:1360px;height:800px;transform-origin:0 0"></div>`;
 const clDash=buildDash(q1(clCard,'.clD'));
-// la photo de stock se fend le long des deux diagonales de la croix : quatre triangles qui glissent et s'effacent
-const CL_TRI=[['0 0,100% 0,50% 50%',0,-1],['100% 0,100% 100%,50% 50%',1,0],['100% 100%,0 100%,50% 50%',0,1],['0 100%,0 0,50% 50%',-1,0]];
-const clTri=CL_TRI.map(([poly,dx,dy])=>{ const c=clDash.ph1.cloneNode(true); c.style.clipPath=`polygon(${poly})`; c._d=[dx,dy]; clDash.ph1.parentNode.insertBefore(c,clDash.ph1.nextSibling); return c; }); show(clDash.ph1,false);
+// l'après : une refonte complète (js/dash2.js), chaque bloc de la v1 vole vers son bloc de la v2
+const clD2=buildDash2(q1(clCard,'.clD')), clSw=(c,i)=>clDash.sws.find(e=>e.dataset.c==c&&e.dataset.i==i);
+const CL_AEL={flood:clDash.side,hero:clDash.img,title:clSw(3,0),sub:clSw(3,1),btn:clDash.btn,kpi0:clDash.kpis[0],kpi1:clDash.kpis[1],kpi2:clDash.kpis[2],list:clDash.ch};
 CL.cam.style.transformOrigin='1602px 109px';   // la barre d'outils : la poussée finale va vers elle
 const clInk=inkLayer(CL.s);
-// les centres des composants dans le dashboard (1360×800) : la vague y arrive depuis les deux marques
-const CL_C={0:i=>i<4?[150,150+i*52]:i<8?[380+(i-4)*350,186]:[366+(i-8)*46,730],1:()=>[680,400],2:i=>[130,150+i*52],3:i=>i?[420,127]:[560,77],4:i=>[460+i*350,245],
-  5:i=>i===0?[400,370]:i<=12?[366+(i-1)*46,650]:[900,500],6:()=>[1235,75],7:()=>[1150,555]};
-let CL_S=[560,77], CL_X=[1150,555];
-// la vague part de 653 (et non 659) : le v2 tient ~15 images avant la poussée vers la barre d'outils, au lieu de 10
-function clFront(k,i,f){ const c=(CL_C[k]||(()=>[680,400]))(i); const t=648+Math.hypot(c[0]-CL_S[0],c[1]-CL_S[1])/260;
-  return morphT(f,t,5); }
 function clRect(e){ const r=e.getBoundingClientRect(), st=CL.s.getBoundingClientRect(), k=st.width/W; return [(r.left-st.left)/k,(r.top-st.top)/k,(r.right-st.left)/k,(r.bottom-st.top)/k]; }
 const clZoom=el(CL.s,'','', 'position:absolute;inset:0;display:none;background:#F6F2EE');
 const clBelow=el(clZoom,'','', 'position:absolute;left:0;top:0;width:1400px;height:880px;transform-origin:0 0;filter:blur(7px);opacity:.45');
@@ -629,24 +610,17 @@ const clIcons=CL_IC.map(([k,x])=>{ const d=el(clBand,'','', `position:absolute;l
 el(clBand,'abs','Share','left:1640px;top:96px;height:170px;line-height:166px;padding:0 60px;border-radius:30px;background:#fff;box-shadow:0 0 0 3px #DDD6CE;font-size:84px');
 cue(642,'impact',{v:.5}); cue(648,'shimmer',{v:.5,end:660}); cue(668,'whoosh',{v:.45,peak:671,dur:4}); cue(676,'tick',{v:.25}); cue(690,'click',{v:.95}); cue(687,'whoosh',{v:.4,peak:694,dur:7});
 function shotClients(f){ const z=f>=672; show(clZoom,z); show(CL.cam,!z);
-  if(!z){ const y=70+40*(1-approach(f,642,4,0.3)); placeTL(clCard,-10,y,1.3);
+  if(!z){ const y=70+40*(1-approach(f,642,4,0.3)); clCard.style.transformOrigin='0 0'; placeTL(clCard,-90,y,1.3);   // déborde à gauche et en bas ; le titre de la v2 reste entier
     CL.cam.style.transform=`scale(${((1+0.035*clamp((f-642)/26))*(1+0.058*accel(f,668,4,3))).toFixed(4)})`;   // lente poussée vers la barre d'outils pendant l'avant/après
-    updateDash(clDash,(k,i)=>clFront(k,i,f),f);
-    // le visuel v2 est le produit lui-même, qui tourne en direct dans la tuile (rendu du plateau, recadré en portrait)
-    { const p7=clFront(7,0,f); show(clDash.img3,p7>0); if(p7>0){ const im=TURN.red[38+((f-650)%34+34)%34], c=clDash.img3.getContext('2d'); if(im&&im.naturalWidth){ const sw=800*400/482; c.drawImage(im,(1100-sw)/2,0,sw,800,0,0,400,482); } clDash.img3.style.opacity=p7.toFixed(3); } clDash.imgt.style.color=p7>0?mixc('#F3EFEA','#151413',p7):''; }
-    // la salutation : la v1 s'efface, « Morning, Léa. » se tape ; pas de glissement
-    const pg=clFront(3,0,f); const sa=clDash.greet.parentNode.parentNode; sa.children[0].style.transform=''; sa.children[0].style.opacity=pg>0?'0':'1';   // l'ancienne salutation part d'un coup : la nouvelle s'écrit sur du vide
-    sa.children[1].style.transform=''; sa.children[1].style.clipPath=`inset(0 ${(100*(1-pg)).toFixed(1)}% 0 0)`;
-    const pi=clFront(7,0,f); clTri.forEach(t=>{ t.style.translate=''; t.style.filter=pi>0.01&&pi<0.99?`blur(${(6*pi).toFixed(1)}px)`:''; t.style.opacity=(1-pi).toFixed(3); });
-    const ix=inkClear(clInk);
-    // les deux marques, tracées 1,6× plus vite (le geste reste le même)
+    updateDash(clDash,()=>0,f); dash2Morph(clD2,f,648,D2_A1,CL_AEL);
+    inkClear(clInk);
     cursor(0,0,0,false); return; }
   // la poussée continue à travers la coupe et ralentit (672-680), on tient (680-686), puis panoramique qui accélère vers la gauche (687-694)
   const zp=approach(f,672,8,0.25), pan=-60*accel(f,686,8,2.8);
-  clBand.style.transform=`translate(${(pan-(f-672)*0.3).toFixed(1)}px,${(30*(1-zp)).toFixed(1)}px) scale(${(1.3*(1.06-0.06*zp)).toFixed(4)})`; clBand.style.transformOrigin='2300px 180px';
+  clBand.style.transform=`translate(${(pan-26*zp).toFixed(1)}px,${(16*zp).toFixed(1)}px) scale(${(1.3*(1+0.045*zp)).toFixed(4)})`; clBand.style.transformOrigin='2300px 180px';
   // copie figée dans l'état v2 (toute la vague passée) : l'image reste une fonction de f, quel que soit l'ordre de rendu
-  if(!clBelow.firstChild){ updateDash(clDash,()=>1,671); const c=clCard.cloneNode(true); c.style.transform=''; c.style.boxShadow='none'; clBelow.appendChild(c); }
-  clBelow.style.transform=`translate(${(-2866+pan-(f-672)*0.3).toFixed(1)}px,${(384+30*(1-zp)).toFixed(1)}px) scale(3.2)`;
+  if(!clBelow.firstChild){ updateDash(clDash,()=>0,671); dash2Morph(clD2,671,648,D2_A1,CL_AEL); const c=clCard.cloneNode(true); c.style.transform=''; c.style.boxShadow='none'; clBelow.appendChild(c); }
+  clBelow.style.transform=`translate(${(-2866+pan-26*zp).toFixed(1)}px,${(384+16*zp).toFixed(1)}px) scale(3.2)`;
   mblur(clBand,f>=689?vel(t=>-60*accel(t,686,8,2.8),f)*BLUR:0,0);
   const hov=f>=680; clIcons[2].style.background=hov?(f>=688&&f<691?'#DDD6CE':'#E4DFD9'):'transparent';
   // le curseur du fondateur clique le terminal (690) : c'est lui qui ouvre le terminal du plan suivant
