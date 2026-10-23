@@ -24,35 +24,42 @@ const W1=scene('sW',0,119,f=>shotW(f));
 const wWord=el(W1.s,'abs c word','', 'font-size:60px;z-index:30;text-shadow:0 0 24px rgba(238,233,228,.9)');
 wWord.innerHTML='<span class="wa"></span><span class="wi" style="display:inline-block;overflow:hidden;vertical-align:bottom;white-space:pre"></span><span class="wb ar" style="color:var(--blue);font-weight:400"></span>';
 const [wA,wI,wB2]=['.wa','.wi','.wb'].map(q=>wWord.querySelector(q));
-// états de la phrase (réf : un mot par temps) ; « boring. » est le bleu Arial du fondateur
-const WST=[[10,'Your',''],[17,'Your SaaS',''],[23,'Your SaaS is',''],[30,'Your SaaS is ','boring.'],[80,'is ','boring.'],[85,'','boring.'],[99,'','']];
-const W_INS='a bit '; let W_INSW=128, W_GAP=[0,0];
-function wLayout(){ show(W1.s,true); wA.textContent='Your SaaS is '; wB2.textContent='boring.'; wI.textContent=W_INS; wI.style.width='auto'; W_INSW=wI.offsetWidth;
-  wI.textContent=''; wI.style.width='0px'; place(wWord,960,540); const ra=wA.getBoundingClientRect(), rb=wB2.getBoundingClientRect(), st=W1.s.getBoundingClientRect(), k=st.width/W;
-  const isEnd=(ra.right-st.left)/k - 0.27*60/2;   // l'espace après « is »
-  W_GAP=[(isEnd+(rb.left-st.left)/k)/2, (rb.bottom-st.top)/k]; show(W1.s,false); }
+// la phrase : six mots comme la réf (« How | far | can | your | apps | go? »), une fenêtre de trois mots au plus,
+// qui change sur les mêmes images (17, 24, 44, 49, 55, 61, 80, 85) ; « boring. » est le bleu Arial du fondateur (le « go? » coloré de la réf)
+const WST=[[17,'Your',''],[24,'Your SaaS',''],[44,'is',''],[49,'is a',''],[55,'is a bit',''],[61,'a bit ','boring.'],[80,'bit ','boring.'],[85,'','boring.'],[93,'','']];
+function wLayout(){}
 const wInk=inkLayer(W1.s);
-const GACC='#FF3D5E', GLIL='#9C86FF', GINK='#151413', GBORN='#C9D9F6';
-// Les glyphes s'accumulent jusqu'à 53 (comme dans la réf) ; les deux grands « / » s'écartent de part et d'autre de la phrase.
-// ils s'écartent toujours un temps avant le mot qui arrive (10, 17, 30) : jamais un « / » sur une lettre
-const GLY=[{ch:[[0,'/'],[24,'<']],pos:[[0,0,0],[5,-18,0],[8,-124,0],[14,-232,0],[25,-450,0]],col:GINK,born:0,big:1},
-           {ch:[[7,'/'],[24,'>']],pos:[[7,18,0],[8,124,0],[14,232,0],[25,450,0]],col:GINK,born:7,big:1}];
-(()=>{ const r=rng(7), ex=[]; [27,30,30,33,36,36,36,39,42,45,45,45,45,47,49,51,51,51,52,52].forEach(b=>{ let x,y,t=0;
-  do{ x=(r()*2-1)*560; y=(r()*2-1)*330; t++; }while(t<500&&((Math.abs(x)<470&&Math.abs(y)<70)||x*x/(560*560)+y*y/(330*330)>1||ex.some(e=>Math.hypot(e[0]-x,e[1]-y)<74)));
-  ex.push([x,y]); GLY.push({ch:[[b,['/','/','/','<','>','*','|','\\'][(r()*8)|0]]],pos:[[b,x,y]],col:GINK,born:b}); }); })();
-// glyphes épars (prompt, outro) : encre seulement (loi des couleurs : pas de rouge que le stylo n'a pas posé)
+const GACC='#FF3D5E', GLIL='#9C86FF', GINK='#151413', GBORN='#C9D9F6', GOR='#EE8A4C', GLV='#A98AE8';
+// le fantôme : les sites à venir, très flous, à peine visibles derrière la phrase (réf 0-61)
+const wGhost=el(W1.s,'','', 'position:absolute;inset:0;pointer-events:none;filter:blur(26px)');
+wGhost.innerHTML=[[150,150,260,200],[420,120,200,240],[880,90,140,300],[1240,140,230,220],[180,560,240,210],[430,620,200,180],[880,600,120,280],[1240,640,220,200],[1560,300,160,160],[60,360,90,100]].map(([x,y,w,h],k)=>`<i style="position:absolute;left:${x}px;top:${y}px;width:${w}px;height:${h}px;border-radius:24px;display:block;background:${['#8A7F76','#6E655E','#9A8F86'][k%3]}"></i>`).join('');
+W1.s.insertBefore(wGhost,W1.cam);
+// les deux grands signes (réf) : « / » seul (0), « // » (7), écartés autour du mot (17), crochets (24), crochets colorés (44)
+const W_BR=[0,7].map(b=>el(W1.cam,'abs c glyph','', 'font-size:72px;display:none'));
+const W_BRS=[[0,['/','/'],[0,0],[GINK,GINK]],[7,['/','/'],[-14,14],[GINK,GINK]],[17,['/','/'],[-205,205],[GINK,GINK]],[24,['<','>'],[-230,230],[GINK,GINK]],[44,['<','>'],[-230,230],[GLV,GOR]],[53,null]];
+// le champ de glyphes : il naît à 26 et s'épaissit comme la réf (1, 2, 4, 6, 8, 10… 26) ; il se ré-agence à chaque mot (44, 49)
+const W_FB=[26,28,30,30,31,31,34,35,36,38,38,42,43,44,44,44,44,46,47,49,49,49,49,50,51,51];
+const W_FL=[[26,1,330,150],[44,2,380,230],[49,3,520,350]];
+const wFld=W_FB.map((b,k)=>{ const r=rng(300+k), d=el(W1.cam,'abs c glyph','', 'display:none'); d._b=b; d._spin=r()<0.45; d._ch=['/','/','<','>','*','/','\\'][(r()*7)|0];
+  d._col=r()<0.16?GOR:r()<0.19?GLV:GINK; d._pale=r()<0.12; d._P={}; return d; });
+// positions par phase, sur une ellipse autour du mot, jamais sur lui, jamais deux glyphes à moins de 64 px
+W_FL.forEach(([,ph,rx,ry])=>{ const r=rng(410+ph*31), pts=[]; wFld.forEach(d=>{ let x,y,t=0; do{ x=(r()*2-1)*rx; y=(r()*2-1)*ry; t++; }
+  while(t<800&&((Math.abs(x)<300&&Math.abs(y)<62)||x*x/(rx*rx)+y*y/(ry*ry)>1||pts.some(p=>Math.hypot(p[0]-x,p[1]-y)<64))); pts.push([x,y]); d._P[ph]=[x,y]; }); });
+// glyphes épars (prompt, outro) : encre seulement
 function gset(n,seed,rx,ry,keep=(x,y)=>Math.abs(x)>=70||Math.abs(y)>=46){ const r=rng(seed), a=[]; let t=0; while(a.length<n&&t++<900){ const x=(r()*2-1)*rx, y=(r()*2-1)*ry; if(!keep(x,y)) continue; if(x*x/(rx*rx)+y*y/(ry*ry)>1) continue; if(a.some(g=>Math.hypot(g[1]-x,g[2]-y)<54)) continue;
   r(); a.push([['/','/','/','<','>','*','|','\\'][(r()*8)|0],x,y,GINK]); } return a; }
-const wGly=GLY.map(g=>el(W1.cam,'abs c glyph','',g.big?'font-size:64px':''));
-function gpos(g,f){ let i=0; for(let k=0;k<g.pos.length;k++) if(f>=g.pos[k][0]) i=k; const c=g.pos[i], p=i?g.pos[i-1]:c, t=approach(f,c[0],5); return [lerp(p[1],c[1],t),lerp(p[2],c[2],t)]; }
-function gch(g,f){ let c=g.ch[0][1]; for(const k of g.ch) if(f>=k[0]) c=k[1]; return c; }
 // fragments du CSS ennuyeux, dans le bleu du fondateur sur 3 profondeurs ; une grille de 24 px et pas de chevauchement
-const FRAGS=['font-family: Arial;','color: #2D6CDF;','box-shadow: 0 6px 10px #000;','border-radius: 4px;','/* TODO: make it pop */','<h1>Welcome back, User!</h1>','lorem ipsum dolor sit','img: stock_handshake.jpg','.btn-primary { }','font-size: 12px;','!important','z-index: 9999;','<marquee>','cursor: pointer;','text-align: center;','Get Started Today!'];
-const FRBOX=[]; function fragPos(t,seed,sz){ const r=rng(seed), w=t.length*sz*0.6, h=sz*1.3; let x,y,k=0;
-  do{ x=40+Math.round(r()*(1840-w)/24)*24; y=72+Math.round(r()*900/24)*24; k++; }while(k<200&&((Math.abs(x+w/2-960)<w/2+520&&Math.abs(y-540)<100)||FRBOX.some(b=>x<b[2]+12&&x+w+12>b[0]&&y<b[3]+12&&y+h+12>b[1])));
+const FRAGS=['font-family: Arial;','color: #2D6CDF;','box-shadow: 0 6px 10px #000;','border-radius: 4px;','/* TODO: make it pop */','<h1>Welcome back, User!</h1>','lorem ipsum dolor sit','img: stock_handshake.jpg','.btn-primary { }','font-size: 12px;','!important','z-index: 9999;','<marquee>','cursor: pointer;','text-align: center;','Get Started Today!',
+  'padding: 4px;','line-height: 1;','gradient(#00f, #f0f)','"Synergy"','name: "User"','alert("Welcome!")','.card { shadow }','font-weight: bold;','Click here','onclick="go()"','#2D6CDF','Arial, sans-serif',
+  'opacity: .99;','width: 100%;','{ }',':hover','display: block;','<div class="hero">','stock_photo_02.jpg','<br><br><br>','margin: 0 auto;','!!!','TODO','v1_final_FINAL','<center>','color: blue;','font: 12px Arial','<table>','spacer.gif','€9.99/mo'];
+const FRBOX=[]; function fragPos(t,seed,sz){ const r=rng(seed), w=t.length*sz*0.6+40, h=sz*1.5; let x,y,k=0;
+  do{ x=20+Math.round(r()*(1860-w)/12)*12; y=40+Math.round(r()*1000/12)*12; k++; }while(k<300&&((Math.abs(x+w/2-960)<w/2+260&&Math.abs(y-540)<60)||FRBOX.some(b=>x<b[2]+8&&x+w+8>b[0]&&y<b[3]+6&&y+h+6>b[1])));
   FRBOX.push([x,y,x+w,y+h]); return [x,y,r]; }
-const wFr=FRAGS.map((t,i)=>{ const tier=i===4?0:i%3, sz=i===4?28:[34,30,26][tier]; const d=el(W1.cam,'abs frag','', `font-size:${sz}px`); d._t=t; const [x,y,r]=fragPos(t,500+i,sz); d._x=x; d._y=y; d._d=(r()*6)|0;
-  d._tier=tier; d.style.filter=tier===1?'blur(1.2px)':tier===2?'blur(2.5px)':''; d.style.opacity=[1,.55,.3][tier]; d._ty=i%2; d._read=i===4; return d; });
+// la réf : ils naissent de 53 à 60 (24, 34, 44, 48 à l'écran), tapés en 2-4 images, sur trois profondeurs ; tout disparaît à la coupe (62)
+const W_FRB=FRAGS.map((t,i)=>i<24?53:i<34?54+(i%2):i<44?56+(i%3):59+(i%2));   // 24 à 53, 34 à 55, 44 à 58, 48 à 60 (réf)
+const wFr=FRAGS.map((t,i)=>{ const tier=i%10===9?2:i%7===3?1:0, sz=[26,23,21][tier]; const d=el(W1.cam,'abs frag','', `font-size:${sz}px;font-family:FM`); d._t=t; const [x,y,r]=fragPos(t,500+i,sz); d._x=x; d._y=y;
+  d._st=W_FRB[i]; d._tier=tier; d.style.filter=tier===1?'blur(1px)':tier===2?'blur(2.2px)':''; d.style.opacity=[1,.62,.34][tier];
+  d._col=r()<0.62?GINK:r()<0.3?'#2D6CDF':r()<0.5?GLV:GOR; d._pre=r()<0.3?(r()<0.5?'● ':'○ '):''; d._post=r()<0.25?(r()<0.5?' ●○':' ●'):''; d._hl=r()<0.12; return d; });
 // l'éclatement : onze sites recréés (js/sites.js), cinq en grand puis six qui rejoignent le collage
 const BR=[[0,0],[1180,0],[0,587],[330,783],[1090,640]].map(([x,y],i)=>[x,y,SITES[i].w,SITES[i].h,i]);
 const BCL=[[-200,-95,560,0],[210,-120,430,0],[-360,60,200,0],[-80,120,390,0],[260,95,470,0]];
@@ -63,8 +70,14 @@ const wCol=el(W1.cam,'abs','', 'inset:0;width:1920px;height:1080px'); let wColB=
 const wB=BR.map(([x,y,w,h,si])=>{ const d=el(wCol,'bshot',SITES[si].html, `left:0;top:0;width:${w}px;height:${h}px;transform-origin:0 0;background:${SITES[si].color}`); d._r=[x,y,w,h]; d._si=si; return d; });
 const wX=BXT.map(([si,w,h])=>{ const d=el(wCol,'bshot',SITES[si].html, `left:0;top:0;width:${w}px;height:${h}px;transform-origin:0 0;background:${SITES[si].color}`); d._w=w; d._h=h; d._si=si; return d; });
 const ease3=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
-function wPink(d,f){ if(!d._pk) d._pk=el(d,'','', 'position:absolute;inset:0;z-index:99;pointer-events:none;display:none;background:radial-gradient(circle at 34% 28%,rgba(255,255,255,.55),rgba(255,255,255,0) 62%),#FFC2CD');
-  const p=clamp((f-113)/6), e=p*p*(3-2*p); d._pk.style.display=e>0?'block':'none'; d._pk.style.opacity=e.toFixed(3); }
+(()=>{ const T=st=>{ const xs=st.map(c=>hex(c)); return [0,1,2].map(j=>xs.map(c=>(c[j]/255).toFixed(3)).join(' ')); };
+  const F=(id,st)=>{ const [r,g,b]=T(st); return `<filter id="${id}" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues="${r}"/><feFuncG type="table" tableValues="${g}"/><feFuncB type="table" tableValues="${b}"/></feComponentTransfer></filter>`; };
+  $('fx').innerHTML+=F('thA',['#E8732F','#F28C45','#F49A5A','#F2B9A6','#DCC9EC','#BFE4F4','#EAF7FB'])+F('thB',['#D86FD8','#E27FE0','#EBA0D8','#F1C1C6','#E3D3F0','#C9E6F5','#EEF7FB'])
+    +F('thIri',['#6E9BAA','#7FA9B8','#9CCFD8','#E8B9D8','#F3C9B0','#CFEFF4','#EEF9FA']); })();
+function wTint(f,i){ if(f<64+i) return 'url(#thA)'; if(f<67+i) return 'url(#thB)'; if(f>=114+i*0.6&&f<118) return 'url(#thIri)'; return ''; }
+// 115-120 : la pile fond dans une nacre cyan (réf 118-120), le disque bleu pâle la continue (121)
+function wPink(d,f){ if(!d._pk) d._pk=el(d,'','', 'position:absolute;inset:0;z-index:99;pointer-events:none;display:none;background:linear-gradient(135deg,#C7F4F3 0%,#BFE3F6 45%,#E6D4F4 75%,#F3D3E6 100%)');
+  const p=clamp((f-115)/4.5), e=p*p*(3-2*p); d._pk.style.display=e>0?'block':'none'; d._pk.style.opacity=e.toFixed(3); }
 // la carte du fondateur parmi les beaux sites (juge, ronde 3) : SON dashboard v1, bleu #2D6CDF + Arial, pas de teinte ;
 // elle arrive en dernier (92, quand « boring. » s'en va), au centre, le curseur « You » posé dessus ; la barre M2 la traverse et la déchirure l'emporte
 const wFo=el(wCol,'bshot','', 'left:0;top:0;width:560px;height:350px;transform-origin:0 0;background:#F4F6F9;display:none;overflow:hidden;border-radius:10px');
@@ -79,36 +92,33 @@ wFo.innerHTML=`<div class="ar" style="position:absolute;inset:0;font-family:'AR'
     ${[40,52,34,60,48,70,44,74,62,84,66,90].map((h,i)=>`<i style="position:absolute;left:${16+i*19}px;bottom:16px;width:12px;height:${h*1.25}px;background:#2D6CDF;display:block"></i>`).join('')}</div>
   <div style="position:absolute;left:402px;top:156px;width:142px;height:176px;background:#D9DCE1"><svg width="56" height="45" viewBox="0 0 120 96" style="position:absolute;left:43px;top:52px"><rect x="3" y="3" width="114" height="90" rx="6" fill="none" stroke="#A9AEB6" stroke-width="6"/><circle cx="84" cy="30" r="10" fill="#A9AEB6"/><path d="M8 84 L42 44 L66 70 L80 56 L112 84 Z" fill="#A9AEB6"/></svg>
     <div style="position:absolute;left:0;right:0;top:112px;text-align:center;font-size:8.5px;color:#8A8F97">stock_handshake_final_v3.jpg</div></div></div>`;
-[10,17,23,30].forEach((f,i)=>cue(f,'pluck',{n:[64,67,69,71][i],v:.3})); cue(8,'tick',{v:.4}); cue(42,'shimmer',{v:.3,end:49});
-[27,33,36,42,49].forEach(f=>cue(f,'tick',{v:.2})); cue(53,'shimmer',{v:.3,end:61}); cue(104,'riser',{v:.4,end:119}); cue(62,'swish',{v:.45,peak:64,dur:6}); cue(89,'whoosh',{v:.4,peak:99,dur:14}); [64,66,67,70].forEach(f=>cue(f,'tick',{v:.2})); cue(96,'swish',{v:.45,peak:97,dur:4}); cue(104,'shimmer',{v:.5,end:112}); cue(113,'whoosh',{v:.55,peak:120,dur:8}); cue(114,'reel',{v:.35,end:127});
+[17,24,44,49,55,61].forEach((f,i)=>cue(f,'pluck',{n:[64,67,69,71,72,74][i],v:.3})); cue(0,'tick',{v:.3}); cue(7,'tick',{v:.4}); [80,85].forEach(f=>cue(f,'tick',{v:.25})); 
+[26,30,31,36,38,43].forEach(f=>cue(f,'tick',{v:.14})); cue(53,'shimmer',{v:.3,end:61}); cue(104,'riser',{v:.4,end:119}); cue(62,'swish',{v:.45,peak:64,dur:6}); cue(89,'whoosh',{v:.4,peak:99,dur:14}); [64,66,67,70].forEach(f=>cue(f,'tick',{v:.2})); cue(96,'swish',{v:.45,peak:97,dur:4}); cue(104,'shimmer',{v:.5,end:112}); cue(113,'whoosh',{v:.55,peak:120,dur:8}); cue(114,'reel',{v:.35,end:127});
 function wState(f){ let st=['','']; for(const [wf,a,b] of WST) if(f>=wf) st=[a,b]; return st; }
 function shotW(f){ push(W1.cam,f,0,0.0009);
-  // la phrase
-  const [ta,tb]=wState(f); show(wWord,!!(ta||tb)); const ins=f>=43&&f<85;
-  wA.textContent=f>=80&&f<85?'is ':ta; wB2.textContent=tb;
-  const k=approach(f,43,6,0.2); wI.textContent=ins?W_INS:''; wI.style.width=ins?(W_INSW*k).toFixed(1)+'px':'0px';
-  if(ins){ morphIn(wI,morphT(f,42,7),6,0.9); wI.style.color=morphInk(f,42,7,10); } else { wI.style.opacity=''; wI.style.filter=''; wI.style.scale=''; wI.style.color=''; }
-  if(f>=85) wI.style.width='0px';
-  // à partir de 85, « boring. » passe dans la caméra, sous les sites : le beau travail l'enterre, la carte bleue du fondateur reste dessus
-  const buried=f>=85; if(buried&&wWord.parentNode!==wCol){ wCol.appendChild(wWord); } else if(!buried&&wWord.parentNode!==W1.s){ W1.s.appendChild(wWord); }
-  wWord.style.zIndex=buried?1:30;
-  if(ta||tb) place(wWord,960,540,buried?1/(1+0.0009*f):1);
-  wWord.style.opacity=f>=89?(1-clamp((f-89)/4)).toFixed(3):'';
+  // la phrase : centrée, à l'écran, elle change d'un coup sur l'image (comme la réf) ; « boring. » passe au lilas et s'efface (89-92)
+  const [ta,tb]=wState(f); show(wWord,!!(ta||tb)); wA.textContent=ta; wB2.textContent=tb; wI.textContent=''; wI.style.width='0px';
+  if(ta||tb) place(wWord,960,540,1/(1+0.0009*f));
+  wB2.style.color=f>=89?mixc('#2D6CDF','#B79AF0',clamp((f-88)/2)):''; wWord.style.opacity=f>=89?(1-clamp((f-89)/3.5)).toFixed(3):'';
   inkClear(wInk);
-  const grow=f<45?1:f<51?1.2:1.35;
-  GLY.forEach((g,i)=>{ const d=wGly[i]; const on=f>=g.born&&f<53; show(d,on); if(!on) return; let [x,y]=gpos(g,f);
-    if(!g.big){ const r=rng(90+i*7+(f>=51?2:f>=45?1:0)); x=x*grow+(f>=45?(r()-0.5)*40:0); y=y*grow+(f>=45?(r()-0.5)*30:0); }
-    const rot=i>=2&&i%2==1&&gch(g,f)!=='*'; d.textContent=rot?['/','|','\\','-'][(Math.floor(f/2)+i)%4]:gch(g,f);
-    // les glyphes naissent en couleur (bleu pâle, orangé, lilas, comme la réf) et sèchent à l'encre
-    d.style.color=mixc(['#C6D8F7','#FFB27A','#CDB3F2'][i%3],GINK,approach(f,g.born,8));
-    place(d,960+x,540+y,g.born===0?1:back(f,g.born-1,4)); });
-  wFr.forEach((d,i)=>{ const st=53+d._d; const on=f>=st&&f<(d._read?86:(i<5?64:62)); show(d,on); if(!on) return;
-    d.textContent=d._ty?d._t.slice(0,Math.max(3,(f-st+1)*2)):d._t; d.style.color=mixc(GBORN,'#2D6CDF',approach(f,st,4)); placeTL(d,d._x+(f-53)*0.6,d._y,back(f,st-1,4)); });
+  // le fantôme des sites à venir : présent dès 0, il se lève un peu avec le code, disparaît à la coupe
+  show(wGhost,f<62); wGhost.style.opacity=(0.055+0.05*clamp((f-50)/10)).toFixed(3);
+  // les deux grands signes
+  let br=null; for(const b of W_BRS) if(f>=b[0]) br=b;
+  W_BR.forEach((d,k)=>{ const on=br&&br[1]&&f>=[0,7][k]; show(d,!!on); if(!on) return; d.textContent=br[1][k]; d.style.color=br[3][k]; place(d,960+br[2][k],540); });
+  // le champ : chaque glyphe naît pâle et prend sa couleur en 3 images ; un sur deux tourne (/ | \ -) toutes les 2 images
+  const ph=f>=49?3:f>=44?2:1;
+  wFld.forEach((d,k)=>{ const on=f>=d._b&&f<53; show(d,on); if(!on) return; const [x,y]=d._P[ph];
+    d.textContent=d._spin?['/','|','\\','-'][(Math.floor(f/2)+k)%4]:d._ch; d.style.color=mixc('#E9E2F4',d._col,clamp((f-d._b+1)/3)); d.style.opacity=d._pale?'.45':''; place(d,960+x,540+y); });
+  // le code du fondateur (53-61) : tapé, avec puces et surlignages ; il ne survit pas à la coupe
+  wFr.forEach((d,i)=>{ const on=f>=d._st&&f<62; show(d,on); if(!on) return; const n=Math.max(2,Math.ceil((f-d._st+1)*d._t.length/3));
+    const t=d._t.slice(0,n), hl=d._hl&&n>=d._t.length?`<span style="background:${d._col===GINK?GOR:d._col};color:transparent;margin-left:6px">▆▆▆</span>`:'';
+    d.innerHTML=`${d._pre}${t.replace(/&/g,'&amp;').replace(/</g,'&lt;')}${n>=d._t.length?d._post:''}${hl}`; d.style.color=d._col; placeTL(d,d._x,d._y); });
   // collage : accélère progressivement à partir de 89 (comme la réf) ; à 113 il se déchire le long du trait M2
   // la pile est rebattue toutes les 2 images après le serrage ; teinte carte par carte à partir de 114, flou 6 → 24 px sur 117-120
   const shuf=f<97?0:Math.floor((f-97)/2)+1, bl=f>=117?` blur(${lerp(6,24,clamp((f-117)/3)).toFixed(1)}px)`:'';
   // entrée : quatre sites à 62, le cinquième à 64 ; chaque teinte sèche à son tour (carte i à 70 + i)
-  wB.forEach((d,i)=>{ if(f<(i==4?64:62)){ show(d,false); return; } show(d,true); const [x,y,w,h]=d._r, [cx,cy,cw]=BCL[i].map(v=>v*W_PK);
+  wB.forEach((d,i)=>{ if(f<(i==4?64:i==2?60:62)){ show(d,false); return; } show(d,true); const [x,y0,w,h]=d._r, [cx,cy,cw]=BCL[i].map(v=>v*W_PK), y=y0+(i==2?[90,40][f-60]||0:0);
     const pc=wSnap(f), dr=approach(f,62,27,0.08);
     // le collage ne tient jamais : toutes les 3 images (le battement de la réf), chaque carte saute de cadrage (zoom et recentrage
     // de son contenu), bouge de quelques pixels et passe devant ou derrière ; ça s'arrête au serrage (96)
@@ -119,16 +129,16 @@ function shotW(f){ push(W1.cam,f,0,0.0009);
     mblur(d,f>=96&&f<98?vel(t=>lerp(x+w/2,960+cx,wSnap(t)),f)*BLUR*0.6:0,f>=96&&f<98?vel(t=>lerp(y+h/2,540+cy,wSnap(t)),f)*BLUR*0.6:0);
     d.style.transform=`translate(${(X-w*S/2).toFixed(1)}px,${(Y-h*S/2).toFixed(1)}px) scale(${S.toFixed(4)})`;
     d.style.boxShadow=pc>0?`0 ${(20*pc).toFixed(0)}px ${(50*pc).toFixed(0)}px -20px rgba(40,30,30,${(.35*pc).toFixed(2)})`:''; d.style.borderRadius=(10*pc)+'px';
-    const tint=f>=62&&f<70+i; d.style.filter=((tint?DUO(d._si):'')+bl).trim(); wPink(d,f); });
+    d.style.filter=(wTint(f,i)+bl).trim(); wPink(d,f); });
   // les six autres naissent DANS la pile (97-98) : 40 px de décalage qui se résorbe, ×0,92 → 1, fondu de 2 images, un peu désaturés
   wX.forEach((d,i)=>{ const st=97+(i%2); if(f<st){ show(d,false); return; } show(d,true); const [cx,cy,cw]=BXC[i].slice(0,3).map(v=>v*W_PK), [,,,rot,ox,oy]=BXC[i]; const p=clamp((f-st+1)/2);
     const X=960+cx+ox*40*(1-p), Y=540+cy+oy*40*(1-p), S=cw/d._w*lerp(0.92,1,p); d.style.zIndex=10+((i+shuf)%6); d.style.opacity=p.toFixed(3);
     d.style.transform=`translate(${(X-d._w*S/2).toFixed(1)}px,${(Y-d._h*S/2).toFixed(1)}px) rotate(${rot}deg) scale(${S.toFixed(4)})`; d.style.borderRadius='10px'; d.style.boxShadow='0 20px 50px -20px rgba(40,30,30,.35)';
-    mblur(d,0,0); d.style.filter=bl.trim(); wPink(d,f); });   // les beaux sites gardent leur couleur : le contraste avec la carte bleue
+    mblur(d,0,0); d.style.filter=((f>=114+i*0.5&&f<118?'url(#thIri)':'')+bl).trim(); wPink(d,f); });   // les beaux sites gardent leur couleur : le contraste avec la carte bleue
   // la carte du fondateur : monte du bas à 88, se pose au centre, sur le dessus ; le curseur « You » se pose sur « Get Started » (il ne clique pas)
   const foOn=f>=96; show(wFo,foOn);
   if(foOn){ // elle tombe sur la pile en même temps que le serrage (70 % à 96, posée à 97), au centre, au-dessus de tout
-    const foY=t=>t<96?760:t<97?lerp(760,548,0.7*(t-95)):548;
+    const foY=t=>t<96?840:t<97?lerp(840,548,0.3*(t-95)):548;   // comme les autres : à peine engagée à 96, posée à 97
     const S=((f<97?1.04:1)+0.02*clamp((f-100)/12))*W_PK, X=960, Y=foY(f);
     wFo.style.zIndex=40; wFo.style.transform=`translate(${(X-280*S).toFixed(1)}px,${(Y-175*S).toFixed(1)}px) scale(${S.toFixed(4)})`;
     wFo.style.boxShadow='0 30px 60px -24px rgba(40,30,30,.45)'; mblur(wFo,0,f<98?vel(foY,f)*BLUR*0.5:0);
@@ -147,8 +157,8 @@ function wFoMorph(f){ dash2Morph(wFoD2,f,104,WFO_A,WFO_AEL,WFO_K); }
 // le regroupement (réf, largeurs mesurées image par image) : toute la pile se contracte vers le centre en accélérant,
 // ×0,28 de 113 à 120 (−27 %/image à la fin), avec un flou qui monte ; le disque du logo prend la suite au même rythme (121)
 const W_Z=[1,.85,.80,.74,.64,.55,.40,.284], wZ=f=>f<=113?1:f>=120?W_Z[7]:lerp(W_Z[Math.floor(f-113)],W_Z[Math.floor(f-113)+1],(f-113)%1);
-// le serrage : 15 % du chemin à 95 (les cartes rampent), 70 % à 96, posé à 97 (le temps fort)
-function wSnap(f){ return f<89?0:f<95?0.15*Math.pow((f-89)/6,1.6):f<96?lerp(0.15,0.70,f-95):f<97?lerp(0.70,1,f-96):1; }
+// le serrage : 12 % du chemin à 95 (les cartes rampent), 30 % à 96, posé à 97 (le temps fort)
+function wSnap(f){ return f<89?0:f<95?0.12*Math.pow((f-89)/6,1.6):f<96?lerp(0.12,0.3,f-95):f<97?lerp(0.3,1,f-96):1; }   // réf : à 96 les cartes ont à peine bougé, à 97 la pile est faite
 // la caméra de la pile : après le serrage elle continue de se resserrer (−1,4 %/image) en dérivant, puis la contraction finale
 const W_PK=1.35, wAmk=f=>f<113?1:lerp(1,1/W_PK,clamp((f-113)/7));
 function wCam(f){ const n=clamp(f,97,113)-97; return {z:Math.pow(0.986,n)*wZ(f)*wAmk(f),dx:4*n,dy:-3*n}; }
@@ -166,27 +176,22 @@ const lgSlash=el(lgBlob,'full','<svg viewBox="0 0 96 96" width="100%" height="10
 const lgInk=inkLayer(L1.s);
 const lgWord=el(L1.cam,'abs','vladan','font-size:84px;font-weight:600;letter-spacing:-0.04em;line-height:1');
 let LGW=330; function logoLayout(){ show(lgWord,true); LGW=lgWord.offsetWidth; show(lgWord,false); }
-// le mot sort de la marque en 2-3 images, bord adouci ; il naît rose pâle et sèche à l'encre
-function revealWord(d,f,f0){ const p=approach(f,f0,3), e=lerp(-15,118,p);
-  d.style.webkitMaskImage=d.style.maskImage=p<1?`linear-gradient(90deg,#000 ${(e-14).toFixed(1)}%,transparent ${(e+14).toFixed(1)}%)`:'';
-  d.style.background=''; d.style.webkitBackgroundClip=d.style.backgroundClip=''; d.style.color=mixc('#FFC2CD','#151413',approach(f,f0,8)); }
 cue(120,'drop',{}); cue(132,'boom',{v:.95}); cue(139,'shimmer',{v:.45,end:147});
-function shotLogo(f){ push(L1.cam,f,140,0.0007);
-  // le disque naît à la taille de la pile contractée (232) et continue de se resserrer (−27 %, −5 %, puis ≈ −3 %/image) : pas de zoom inversé à la coupe
-  const S0=f<=120?LG_IN:128+42*Math.exp(-(f-121)/6), S=f<137?S0:lerp(S0,81,vl(f,137,4));
-  const ww=LGW, gap=24, tot=81+gap+ww, slide=vl(f,137,4);
-  const x=lerp(960,960-tot/2+40.5,slide);
+function shotLogo(f){ push(L1.cam,f,140,0.0007); const G=f+1;   // G : numéro d'image du film (la scène est décalée d'une image)
+  // diamètres de la réf, image par image (243 → 128), puis la marque à 81 à 139 ; le disque glisse à gauche 136-138, le mot arrive entier à 139
+  const LS=[243,201,199,196,177,167,159,151,150,149,141,138,133,128,128,128,128,128], S=G>=139?81:LS[clamp(G-121,0,17)]*(1+0.0004*Math.max(0,G-134));
+  const ww=LGW, gap=24, tot=81+gap+ww, x=G>=139?960-tot/2+40.5:960-[0,0,0,11,21,42][clamp(G-133,0,5)];
   show(lgBlob,S>0.5); Object.assign(lgBlob.style,{width:S+'px',height:S+'px'}); lgBlob.style.transform=`translate(${(x-S/2).toFixed(1)}px,${(540-S/2).toFixed(1)}px)`;
-  // 120-127 : le trait finit de rentrer dans la fente ; la barre passe au papier quand le disque dépasse 60 %
-  const ix=inkClear(lgInk); const crisp=f>=128; lgSlash.style.opacity=crisp?1:0;
-  if(!crisp){ const p=morphT(f,121,6); lgSlash.style.opacity=p.toFixed(3); lgSlash.style.filter=p<0.99?`blur(${(4*(1-p)).toFixed(1)}px)`:''; } else lgSlash.style.filter='';
-  // le disque naît encre fraîche (rose pâle) et sèche au rouge, comme le mot « vladan »
-  // tant qu'elle est humide, l'encre a un reflet (le disque de la réf est en dégradé) ; il s'éteint en séchant
-  { const dry=approach(f,120,8,0.2); lgG3.style.background=`radial-gradient(circle at 34% 28%,rgba(255,255,255,${(0.42*(1-dry)).toFixed(3)}),rgba(255,255,255,0) 62%),${mixc('#FFC2CD','#FF3D5E',dry)}`; }
+  inkClear(lgInk);
+  { const p=morphT(G,131,3); lgSlash.style.opacity=p.toFixed(3); lgSlash.style.filter=p>0&&p<0.99?`blur(${(3*(1-p)).toFixed(1)}px)`:''; }   // la barre se pose à 132 (les rayures du soleil de la réf)
+  // né bleu pâle (le bleu du fondateur qui fond), il passe par le lilas, le rose, le corail et sèche au rouge de la marque (réf 121-134)
+  { const C=['#9CCFF8','#B6C6F8','#C9C4F7','#EFC8F3','#FFC2D6','#FFBDC1','#FFAFA8','#FF9C98','#FF8686','#FF6E77','#FF566A','#FF4762','#FF3D5E'], k=clamp(G-121,0,12), c0=C[k], c1=C[Math.min(12,k+1)];
+    lgG3.style.background=`linear-gradient(170deg,${c1} 0%,${c0} 70%)`; }
   // le geste d'origine, fantôme graphite à 7 % : main libre → marque nette
   // le fantôme gris de la barre se lisait comme une trace sale : retiré (le calque reste vide)
   inkClear(lgGhost);
-  show(lgWord,f>=139); if(f>=139){ placeTL(lgWord,x+40.5+gap,540-42,1+0.07*approach(f,139,16)); revealWord(lgWord,f,139); }
+  show(lgWord,G>=139); if(G>=139){ placeTL(lgWord,x+40.5+gap,540-42,1+0.07*approach(G,139,16)); lgWord.style.webkitMaskImage=lgWord.style.maskImage='';
+    lgWord.innerHTML=`<span style="color:${mixc('#E6A6D8','#151413',clamp((G-139)/3))}">vl</span>adan`; }
   L1.cam.style.translate=`0 ${(-12*accel(f,167,6,2)).toFixed(1)}px`;
 }
 
