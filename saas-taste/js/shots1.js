@@ -172,7 +172,9 @@ const LG_IN=232;
 const L1=scene('sLogo',120,173,f=>shotLogo(f));
 const lgGhost=inkLayer(L1.s,{ground:'dark'}); lgGhost.style.mixBlendMode='multiply';
 const lgBlob=el(L1.cam,'abs','', 'overflow:hidden;border-radius:50%'); const lgG3=el(lgBlob,'full','', 'background:#FF3D5E');
-const lgSlash=el(lgBlob,'full','<svg viewBox="0 0 96 96" width="100%" height="100%"><path d="M36 66 L60 30" stroke="#EEE9E4" stroke-width="9" stroke-linecap="round"/></svg>');
+const lgSlash=el(lgBlob,'full','<svg viewBox="0 0 96 96" width="100%" height="100%"><path d="M36 66 L60 30" pathLength="1" stroke-dasharray="1 2" stroke="#EEE9E4" stroke-width="9" stroke-linecap="round"/></svg>'), lgCut=q1(lgSlash,'path');
+// le flou de mouvement horizontal de la lettre qui sort de derrière la marque (réf : le « B » traîne sur 3 images)
+$('fx').innerHTML+=[1,2,3,4,5,6].map(n=>`<filter id="mbx${n}" x="-60%" y="0" width="220%" height="100%"><feGaussianBlur stdDeviation="${n*1.6} 0"/></filter>`).join('');
 const lgInk=inkLayer(L1.s);
 const lgWord=el(L1.cam,'abs','vladan','font-size:84px;font-weight:600;letter-spacing:-0.04em;line-height:1');
 let LGW=330; function logoLayout(){ show(lgWord,true); LGW=lgWord.offsetWidth; show(lgWord,false); }
@@ -183,15 +185,21 @@ function shotLogo(f){ push(L1.cam,f,140,0.0007); const G=f+1;   // G : numéro d
   const ww=LGW, gap=24, tot=81+gap+ww, x=G>=139?960-tot/2+40.5:960-[0,0,0,11,21,42][clamp(G-133,0,5)];
   show(lgBlob,S>0.5); Object.assign(lgBlob.style,{width:S+'px',height:S+'px'}); lgBlob.style.transform=`translate(${(x-S/2).toFixed(1)}px,${(540-S/2).toFixed(1)}px)`;
   inkClear(lgInk);
-  { const p=morphT(G,131,3); lgSlash.style.opacity=p.toFixed(3); lgSlash.style.filter=p>0&&p<0.99?`blur(${(3*(1-p)).toFixed(1)}px)`:''; }   // la barre se pose à 132 (les rayures du soleil de la réf)
-  // né bleu pâle (le bleu du fondateur qui fond), il passe par le lilas, le rose, le corail et sèche au rouge de la marque (réf 121-134)
-  { const C=['#9CCFF8','#B6C6F8','#C9C4F7','#EFC8F3','#FFC2D6','#FFBDC1','#FFAFA8','#FF9C98','#FF8686','#FF6E77','#FF566A','#FF4762','#FF3D5E'], k=clamp(G-121,0,12), c0=C[k], c1=C[Math.min(12,k+1)];
-    lgG3.style.background=`linear-gradient(170deg,${c1} 0%,${c0} 70%)`; }
+  // la barre est entaillée dans le disque, du bas vers le haut, au rythme des bandes du soleil de la réf (une à 132, deux à 134, trois à 137)
+  { const p=[0,.34,.5,.68,.8,.9,1][clamp(G-131,0,6)]; lgSlash.style.display=p>0?'':'none'; lgCut.setAttribute('stroke-dasharray',`${p} 2`); }
+  // né bleu pâle (le bleu du fondateur qui fond), il passe par le lilas, le rose, le corail et sèche au rouge de la marque (réf 121-134) ;
+  // deux teintes par image, bord doux, comme le soleil de la réf (lilas à gauche du bleu, puis pêche en haut à gauche du rose)
+  { const C=[['#9CCFF8','#9CCFF8',90],['#D4B9F4','#8FC6F7',95],['#D9B6F4','#93C2F7',100],['#F6BCEA','#D5B6F3',120],['#FFB9C9','#F4BCE8',130],['#FFAC98','#F6B4DC',135],
+      ['#FF9F88','#F8ABD0',135],['#FF9482','#FAA2BE',140],['#FF8679','#FC97AE',140],['#FF7672','#FE8A9F',145],['#FF6169','#FF7890',150],['#FF4D63','#FF6680',160],['#FF3D5E','#FF5573',170]],
+      [a,b,ang]=C[clamp(G-121,0,12)];
+    lgG3.style.background=G>=134?'#FF3D5E':`linear-gradient(${ang}deg,${a} 8%,${b} 92%)`; lgBlob.style.filter=G<132?`blur(${G<123?2:1.2}px)`:''; }
   // le geste d'origine, fantôme graphite à 7 % : main libre → marque nette
   // le fantôme gris de la barre se lisait comme une trace sale : retiré (le calque reste vide)
   inkClear(lgGhost);
   show(lgWord,G>=139); if(G>=139){ placeTL(lgWord,x+40.5+gap,540-42,1+0.07*approach(G,139,16)); lgWord.style.webkitMaskImage=lgWord.style.maskImage='';
-    lgWord.innerHTML=`<span style="color:${mixc('#E6A6D8','#151413',clamp((G-139)/3))}">vl</span>adan`; }
+    // la lettre qui sort de la marque garde ses couleurs (rouge → lilas), la suivante à peine ; elles sèchent à l'encre en 4 images (réf 139-142)
+    const t=clamp((G-139)/4), t2=clamp((G-139)/2), gr=(x,y)=>`background:linear-gradient(90deg,${x},${y});-webkit-background-clip:text;background-clip:text;color:transparent`;
+    lgWord.innerHTML=`<span style="${gr(mixc('#FF5E70','#151413',t),mixc('#D2B4F2','#151413',t))}">v</span><span style="color:${mixc('#D9A6DE','#151413',t2)}">l</span>adan`; }
   L1.cam.style.translate=`0 ${(-12*accel(f,167,6,2)).toFixed(1)}px`;
 }
 

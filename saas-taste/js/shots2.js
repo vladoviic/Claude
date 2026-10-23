@@ -661,8 +661,9 @@ const OU_G=[61,60,59,54,54,53,53];
 const ouFld=wFld.map(s=>{ const d=el(OU.cam,'abs c glyph','', 'display:none'); d._s=s; return d; });
 const OU_FG=[[52,2,1],[50,2,1],[46,1,.55],[38,1,.42],[34,1,.3]];   // [image de l'intro, phase, opacité] pour 1385-1389 ; la réf resserre déjà l'ellipse
 const ouDot=el(OU.cam,'abs','', 'border-radius:50%');
-const ouMark=el(OU.cam,'abs','', 'width:81px;height:81px'); ouMark.innerHTML=MARK_SVG;
-const ouWord=el(OU.cam,'abs','vladan','font-size:84px;font-weight:600;letter-spacing:-0.04em;line-height:1');
+const ouWord=el(OU.cam,'abs','<span class="ov" style="display:inline-block">v</span>ladan','font-size:84px;font-weight:600;letter-spacing:-0.04em;line-height:1'), ouV=q1(ouWord,'.ov');
+// la marque passe devant le mot : il sort de derrière elle (réf 1408-1411)
+const ouMark=el(OU.cam,'abs','', 'width:81px;height:81px;z-index:2'); ouMark.innerHTML=MARK_SVG.replace('<path ','<path pathLength="1" stroke-dasharray="1 2" '); const ouCut=q1(ouMark,'path');
 const ouLine=el(OU.cam,'abs m','Made in code. Marked up by hand.','font-size:26px;color:#6E6862');
 // la pill où le fondateur tape (en Arial) « Give it taste. »
 const ouPill=el(OU.cam,'abs',`<svg width="100%" height="100%" style="overflow:visible"><rect x="1.75" y="1.75" rx="41.5" pathLength="1" fill="none" stroke="#151413" stroke-width="3.5"/></svg>`,'height:86px;overflow:visible');
@@ -711,12 +712,16 @@ function shotOutro(F){ const f=F-2; push(OU.cam,f,1378,f<1489?0.0008:0);
   const DK=[[170,'radial-gradient(circle,#D9A2F0 0%,#E2B0EE 38%,rgba(236,190,236,0) 70%)',5],[160,'radial-gradient(circle,#F7DDEB 0%,#F0B8DE 42%,#EBA6D6 54%,rgba(235,166,214,0) 72%)',3],
     [124,'radial-gradient(circle,#FBD8C4 0%,#F6B69A 70%)',1.4],[120,'radial-gradient(circle,#F9B796 0%,#F7A082 70%)',.8],[116,'#FF8270',0],[112,'#FF6466',0],[108,'#FF3D5E',0]];
   const dk=DK[f-1390]; show(ouDot,!!dk); if(dk){ Object.assign(ouDot.style,{width:dk[0]+'px',height:dk[0]+'px',background:dk[1],filter:dk[2]?`blur(${dk[2]}px)`:''}); place(ouDot,960,540); }
-  // 1397 : la marque naît du disque, grande (106 px) ; elle dérive de 30 px, puis se range à 81 px quand « vladan » arrive (1408)
-  const tot=81+24+OUL.ww; const logoOn=f>=1397&&f<1448;
-  show(ouMark,logoOn); show(ouWord,logoOn&&f>=1408); show(ouLine,logoOn&&f>=1408);
-  if(logoOn){ const an=accel(f,1439,8,2), ex=-40*an, es=1-0.04*an, st=approach(f,1408,9), sn=approach(f,1408,3,0.35);
-    const mx=lerp(960-30*approach(f,1402,6),960-tot/2+40.5,sn)+ex; place(ouMark,mx,540,lerp(106/81,1,sn)*es);
-    if(f>=1408){ placeTL(ouWord,mx+40.5+24+12*st,540-42,es*(1+0.035*st)); ouWord.style.color=mixc('#FFC2CD','#151413',approach(f,1408,8));
+  // 1396-1400 : la barre est entaillée dans le disque, du bas vers le haut, comme les bandes du soleil de la réf (une, deux, trois)
+  // la marque est grande (106 px) ; elle dérive vers la gauche en accélérant (1402-1407), se range à 81 px d'un coup quand « vladan » arrive (1408)
+  const tot=81+24+OUL.ww; const logoOn=f>=1396&&f<1448;
+  show(ouDot,!!dk&&f<1396); show(ouMark,logoOn); show(ouWord,logoOn&&f>=1408); show(ouLine,logoOn&&f>=1408);
+  if(logoOn){ const an=accel(f,1439,8,2), ex=-40*an, es=1-0.04*an, st=approach(f,1408,9), sn=f<1408?0:[0.82,0.95,1][Math.min(2,f-1408)];
+    ouCut.setAttribute('stroke-dasharray',`${[.12,.4,.68,.88,1][clamp(f-1396,0,4)]} 2`);
+    const mx=lerp(960-36*accel(f,1402,5,2),960-tot/2+40.5,sn)+ex; place(ouMark,mx,540,lerp(106/81,1,sn)*es);
+    // le mot est à l'encre dès son arrivée : il glisse de 34 px hors de la marque, sa première lettre traîne un flou de mouvement (réf 1408-1411)
+    if(f>=1408){ const sl=[0,.6,.88,1][Math.min(3,f-1408)]; placeTL(ouWord,mx+40.5+24-34*(1-sl)+12*st,540-42,es*(1+0.035*st)); ouWord.style.color='#151413';
+      ouV.style.filter=f<1412?`url(#mbx${[6,4,2,1][f-1408]})`:'';
       const ds=clamp((f-1445)/3); [ouWord,ouLine].forEach(e=>e.style.webkitMaskImage=e.style.maskImage=ds>0?`linear-gradient(90deg,transparent ${(ds*100-10).toFixed(0)}%,#000 ${(ds*100+10).toFixed(0)}%)`:''); ouMark.style.opacity=(1-ds).toFixed(2);
       placeTL(ouLine,960-OUL.lw/2,540+42+64-26); ouLine.style.opacity=vl(f,1408,6).toFixed(3); } }
   // la pill : le fondateur tape « Give it taste. » en Arial ; elle se dé-trace (1486-1489) et la ligne devient le titre
