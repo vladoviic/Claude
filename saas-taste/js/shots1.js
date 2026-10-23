@@ -108,7 +108,7 @@ function shotW(f){ push(W1.cam,f,0,0.0009);
   // la pile est rebattue toutes les 2 images après le serrage ; teinte carte par carte à partir de 114, flou 6 → 24 px sur 117-120
   const shuf=f<97?0:Math.floor((f-97)/2)+1, bl=f>=117?` blur(${lerp(6,24,clamp((f-117)/3)).toFixed(1)}px)`:'';
   // entrée : quatre sites à 62, le cinquième à 64 ; chaque teinte sèche à son tour (carte i à 70 + i)
-  wB.forEach((d,i)=>{ if(f<(i==4?64:62)){ show(d,false); return; } show(d,true); const [x,y,w,h]=d._r, [cx,cy,cw]=BCL[i];
+  wB.forEach((d,i)=>{ if(f<(i==4?64:62)){ show(d,false); return; } show(d,true); const [x,y,w,h]=d._r, [cx,cy,cw]=BCL[i].map(v=>v*W_PK);
     const pc=wSnap(f), dr=approach(f,62,27,0.08);
     // le collage ne tient jamais : toutes les 3 images (le battement de la réf), chaque carte saute de cadrage (zoom et recentrage
     // de son contenu), bouge de quelques pixels et passe devant ou derrière ; ça s'arrête au serrage (96)
@@ -121,7 +121,7 @@ function shotW(f){ push(W1.cam,f,0,0.0009);
     d.style.boxShadow=pc>0?`0 ${(20*pc).toFixed(0)}px ${(50*pc).toFixed(0)}px -20px rgba(40,30,30,${(.35*pc).toFixed(2)})`:''; d.style.borderRadius=(10*pc)+'px';
     const tint=f>=62&&f<70+i; d.style.filter=((tint?DUO(d._si):'')+bl).trim(); wPink(d,f); });
   // les six autres naissent DANS la pile (97-98) : 40 px de décalage qui se résorbe, ×0,92 → 1, fondu de 2 images, un peu désaturés
-  wX.forEach((d,i)=>{ const st=97+(i%2); if(f<st){ show(d,false); return; } show(d,true); const [cx,cy,cw,rot,ox,oy]=BXC[i]; const p=clamp((f-st+1)/2);
+  wX.forEach((d,i)=>{ const st=97+(i%2); if(f<st){ show(d,false); return; } show(d,true); const [cx,cy,cw]=BXC[i].slice(0,3).map(v=>v*W_PK), [,,,rot,ox,oy]=BXC[i]; const p=clamp((f-st+1)/2);
     const X=960+cx+ox*40*(1-p), Y=540+cy+oy*40*(1-p), S=cw/d._w*lerp(0.92,1,p); d.style.zIndex=10+((i+shuf)%6); d.style.opacity=p.toFixed(3);
     d.style.transform=`translate(${(X-d._w*S/2).toFixed(1)}px,${(Y-d._h*S/2).toFixed(1)}px) rotate(${rot}deg) scale(${S.toFixed(4)})`; d.style.borderRadius='10px'; d.style.boxShadow='0 20px 50px -20px rgba(40,30,30,.35)';
     mblur(d,0,0); d.style.filter=bl.trim(); wPink(d,f); });   // les beaux sites gardent leur couleur : le contraste avec la carte bleue
@@ -129,7 +129,7 @@ function shotW(f){ push(W1.cam,f,0,0.0009);
   const foOn=f>=96; show(wFo,foOn);
   if(foOn){ // elle tombe sur la pile en même temps que le serrage (70 % à 96, posée à 97), au centre, au-dessus de tout
     const foY=t=>t<96?760:t<97?lerp(760,548,0.7*(t-95)):548;
-    const S=(f<97?1.04:1)+0.02*clamp((f-100)/12), X=960, Y=foY(f);
+    const S=((f<97?1.04:1)+0.02*clamp((f-100)/12))*W_PK, X=960, Y=foY(f);
     wFo.style.zIndex=40; wFo.style.transform=`translate(${(X-280*S).toFixed(1)}px,${(Y-175*S).toFixed(1)}px) scale(${S.toFixed(4)})`;
     wFo.style.boxShadow='0 30px 60px -24px rgba(40,30,30,.45)'; mblur(wFo,0,f<98?vel(foY,f)*BLUR*0.5:0);
     wFo.style.filter=bl.trim(); wPink(wFo,f);
@@ -150,10 +150,10 @@ const W_Z=[1,.85,.80,.74,.64,.55,.40,.284], wZ=f=>f<=113?1:f>=120?W_Z[7]:lerp(W_
 // le serrage : 15 % du chemin à 95 (les cartes rampent), 70 % à 96, posé à 97 (le temps fort)
 function wSnap(f){ return f<89?0:f<95?0.15*Math.pow((f-89)/6,1.6):f<96?lerp(0.15,0.70,f-95):f<97?lerp(0.70,1,f-96):1; }
 // la caméra de la pile : après le serrage elle continue de se resserrer (−1,4 %/image) en dérivant, puis la contraction finale
-const wAmk=f=>f<113?1+0.35*wSnap(f):1+0.35*(1-clamp((f-113)/7));
+const W_PK=1.35, wAmk=f=>f<113?1:lerp(1,1/W_PK,clamp((f-113)/7));
 function wCam(f){ const n=clamp(f,97,113)-97; return {z:Math.pow(0.986,n)*wZ(f)*wAmk(f),dx:4*n,dy:-3*n}; }
 function wMap(p,f){ const m=wCam(f); return [960+(p[0]-960+m.dx)*m.z,540+(p[1]-540+m.dy)*m.z]; }
-function gather(f){ if(f<89){ wCol.style.transform=''; return; } const m=wCam(f); wCol.style.transformOrigin='960px 540px';
+function gather(f){ if(f<97){ wCol.style.transform=''; return; } const m=wCam(f); wCol.style.transformOrigin='960px 540px';
   wCol.style.transform=`scale(${m.z.toFixed(4)}) translate(${m.dx.toFixed(1)}px,${m.dy.toFixed(1)}px)`; }
 // le disque du logo naît à la taille de la pile contractée
 const LG_IN=232;
