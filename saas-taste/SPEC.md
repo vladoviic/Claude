@@ -61,7 +61,7 @@ garde ses numéros internes et rend `f + décalage`, ses cues son sont avancés 
 | 27 | 1176-1250 | sombre : ⚠ rouges → cercles verts → convergence → bouclier (1233) | ⚠ rouges → cercles → convergence → notre marque |
 | 28 | 1251-1307 | ciel, bouton « Publish », curseur, clic (1293) | « Ship it » |
 | 29 | 1308-1373 | montage : 1308 · 1326 · 1338 · 1350 | palette ⌘K · pricing · dashboard · landing |
-| 30 | 1374-1391 | la landing passe en thermique → fragments de code → glyphes qui convergent | idem |
+| 30 | 1374-1391 | la landing passe en thermique → fragments de code → glyphes qui convergent | idem, l'intro à l'envers : thermique nette (25, 55, 100 %), les 46 fragments réglés à la place de leurs jumeaux, dé-tapés, le champ de glyphes en phases inverses, la lueur puis le disque qui chauffe au rouge |
 | 31 | 1392-1445 | cercle → icône → « Base 44 » | → « vladan » |
 | 32 | 1446-1514 | pill tapée « Build » · « Build it » · « Build it your way », flash, la pill disparaît | « Give » · « Give it » · « Give it *taste.* » ; puis **vladan@kwinndo.fr** jusqu'à 52 s |
 

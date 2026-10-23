@@ -621,18 +621,15 @@ const tplReport0=()=>`<div class="full" style="background:#F7F4F0;color:#151413"
   <div style="position:absolute;right:80px;bottom:70px;height:64px;line-height:64px;padding:0 30px;border-radius:12px;background:#151413;color:#F3EFEA;font-size:26px">Ship it</div></div>`;
 const moDa=el(MO.cam); const moDaD=framed(moDa,tplReport0(),1368,912,1240,730,'#F7F4F0'); const moBars=[...q1(moDaD,'.mbars').children];
 const moL=el(MO.cam); const moLD=framed(moL,tplVLanding(),1368,912,1240,730,VINK);
-const moTh=canvas(MO.s,1920,1080,'left:0;top:0;width:1920px;height:1080px;z-index:30;display:none;pointer-events:none');
+// 1374-1377 : la caméra thermique de la réf, nette, image par image (25, 55, 100, 100 %). La table est cyclique comme la sienne :
+// l'encre et le blanc pur chauffent à l'orange, les tons moyens passent rose, lilas, puis un long cyan (le mur clair reste froid)
+(()=>{ const T=st=>{ const xs=st.map(c=>hex(c)); return [0,1,2].map(j=>xs.map(c=>(c[j]/255).toFixed(3)).join(' ')); };
+  const [r,g,b]=T(['#EE8A4C','#F09A7A','#F2A2A8','#EEA3C6','#E3A6DA','#D6ADE6','#C9B6F0','#B9C6F2','#ABD6F1','#A9E2F0','#ABE8F0','#B0EBEF','#B6EDEE','#BCEFEE','#C2F0ED','#C8F1EC','#CEF2EC','#D6F3EB','#DFF4E8','#F2E6B0','#F29A5E']);
+  const M=(id,a)=>`<filter id="${id}" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feColorMatrix in="SourceGraphic" type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0" result="l"/><feComponentTransfer in="l" result="t"><feFuncR type="table" tableValues="${r}"/><feFuncG type="table" tableValues="${g}"/><feFuncB type="table" tableValues="${b}"/></feComponentTransfer><feComposite in="SourceGraphic" in2="t" operator="arithmetic" k1="0" k2="${(1-a).toFixed(2)}" k3="${a.toFixed(2)}" k4="0"/></filter>`;
+  $('fx').innerHTML+=M('thM1',0.25)+M('thM2',0.55)+M('thM3',1); })();
 const moLSeq=q1(moLD,'.vseq'), moLXr=q1(moLD,'.vxr'), moLh=qa(moLD,'.lnh'), moLT=qa(moLD,'.vix'), moStat=q1(moPD,'.mst'), moStat2=q1(moPD,'.mst2');
 const MOS=[[moP,1307],[moR,1325],[moDa,1336],[moL,1349]];
 cR29(1307,'impact',{v:.7}); cR29(1325,'impact',{v:.6}); cR29(1336,'impact',{v:.6}); cR29(1349,'impact',{v:.7}); [1312,1314,1315].forEach(f=>cR29(f,'tick',{v:.2})); cR29(1372,'shimmer',{v:.45,end:1378});
-// les fragments corrigés reviennent à la place exacte de leurs jumeaux ennuyeux (5, lisibles, 30 px), à cheval sur la fin du montage
-const OU_FIX=[[4,'/* done. it sits. */'],[10,'/* nothing is !important */'],[13,'cursor: you;'],[5,'<h1>Morning, Léa.</h1>'],[12,'ease: vladan;'],
-  [0,'font-family: "Inter Display";',1],[1,'color: #151413;',1],[2,'box-shadow: none;',1],[3,'border-radius: 20px;',1],[6,'copy: written.',1],[7,'img: room_04.jpg',1],
-  [8,'.btn { ink }',1],[9,'font-size: 46px;',1],[11,'z-index: auto;',1],[14,'text-align: left;',1],[15,'Plan with taste. ■',1]];
-const moFix=OU_FIX.map(([i,t,sm])=>{ const d=el(MO.s,'abs frag','',`font-size:${sm?20:30}px;z-index:20;display:none`); d.textContent=t; d._i=i; d._sm=sm; return d; });
-// les fragments ne figent plus puis ne sautent plus : ils se rassemblent vers le centre en accélérant (1379-1390), jusqu'au point
-function fixFrags(list,f,f0){ const G=1-0.92*accel(f,1379,11,2.2); list.forEach(d=>{ const on=f>=f0&&f<1390; show(d,on); if(!on) return; const src=wFr[d._i];
-  placeTL(d,960+(src._x-960)*G,540+(src._y-540)*G,G); d.style.color=mixc(d._sm?'#FFB27A':'#FFC2CD','#151413',clamp((f-f0)/(d._sm?9:6))); d.style.opacity=(1-clamp((f-1387)/3)).toFixed(2); }); }
 function shotMont(F){ const f=F-1; let cur=MOS[0]; for(const m of MOS) if(f>=m[1]) cur=m;
   MOS.forEach(m=>show(m[0],m===cur)); const a=f-cur[1];
   let sc=1; if(cur[0]===moP) sc=1+0.035*approach(f,1307,18,0.12); else if(cur[0]===moR) sc=1+0.0007*a; else if(cur[0]===moDa) sc=1+0.0016*a; else sc=1-0.03*accel(f,1366,12,2);
@@ -644,18 +641,25 @@ function shotMont(F){ const f=F-1; let cur=MOS[0]; for(const m of MOS) if(f>=m[1
   // la reprise : la même landing, loupe déjà ouverte sur le fauteuil
   if(cur[0]===moL){ seqDraw(moLSeq,SEQ.land,a*1.0,0.5,0.58); seqDraw(moLXr,SEQ.landX,a*1.0,0.5,0.58); landLens(moLD,110,lerp(1040,1095,a/29),330,'');
     place(cur[0],960-3*a,540,sc); moLh.forEach(h=>h.style.transform=`translateX(${(-0.8*a).toFixed(1)}px)`);
-    // la vague de chaleur : la même caméra thermique que la plongée (25, 60, 100 %), qui chauffe jusqu'au blanc avant les fragments
-    const hk=[0,.25,.6,1,1][clamp(f-1373,0,4)]; show(moTh,hk>0&&!!THERMAL); if(hk>0&&THERMAL){ landThermal(MO.s,moLD.parentNode.parentNode,moLSeq,q1(moLD,'.vmk'),moTh,{t:f}); moTh.style.opacity=hk; }
+    cur[0].style.filter=f>=1374?`url(#thM${[1,2,3,3][clamp(f-1374,0,3)]})`:'';
     moLT.forEach((t,i)=>{ const p=approach(f,1350+i,8,0.2); t.style.translate=`0 ${((1-p)*24).toFixed(1)}px`; }); }
-  // les fragments corrigés n'arrivent qu'au sommet de la vague de chaleur (1376) : ils ne se posent plus sur l'index de la landing
-  fixFrags(moFix,f,1376);
 }
 
 /* ---------- 31-32 · fragments corrigés → anneau → marque → « vladan » + « Made in code. Marked up by hand. » → la carte de fin : le brief était un e-mail à Vladan ---------- */
 const OU=scene('sOutro',1380,1559,f=>shotOutro(f));
 const cR31=cueAt(2);
-const ouFix=OU_FIX.map(([i,t,sm])=>{ const d=el(OU.s,'abs frag','',`font-size:${sm?20:30}px;z-index:20;display:none`); d.textContent=t; d._i=i; d._sm=sm; return d; });   // textContent : « <h1> » reste du code
-const ouGl=gset(16,77,420,190).map(g=>{ const d=el(OU.cam,'abs c glyph'); d._g=g; d.textContent=g[0]; d.style.color=GINK; return d; });
+// l'outro est l'intro à l'envers (réf 1378-1397 ↔ 61-0) : les 46 fragments reviennent à la place, à la taille et à la profondeur de
+// leurs jumeaux ennuyeux, mais réglés ; le bleu du fondateur est passé au lilas. Puis ils se dé-tapent, le champ de glyphes se resserre,
+// et tout se condense en un disque qui chauffe jusqu'au rouge de la marque
+const OU_FX=['font-family: "Inter Display";','color: #151413;','box-shadow: none;','border-radius: 20px;','/* done. it sits. */','<h1>Morning, Léa.</h1>','copy: written.','img: room_04.jpg','.btn { ink }','font-size: 46px;','/* nothing is !important */','z-index: auto;','ease: vladan;','cursor: you;','text-align: left;','Plan with taste. ■',
+  'padding: 32px;','line-height: 1.38;','background: #EEE9E4;','"Sit with taste."','name: "Léa"','motion: { land: "soft" }','.card { calm }','font-weight: 500;','Book a demo →','ease: out;','#FF3D5E','"Besley", italic',
+  'opacity: 1;','max-width: 65ch;','{ taste }',':focus-visible','display: grid;','<section class="room">','room_eye.jpg','gap: 24px;','margin-inline: auto;','.','done','v2','<main>','color: ink;','font: 500 18px/1.4 ID','<dl>','grid-template-columns','€0 to start'];
+const ouFr=wFr.map((s,i)=>{ const d=el(OU.cam,'abs frag','', `font-size:${[26,23,21][s._tier]}px;font-family:FM;display:none`); d._t=OU_FX[i]; d._st=s._st; d._tail=i%3===1;
+  d.style.filter=s.style.filter; d.style.opacity=s.style.opacity; d._col=s._col==='#2D6CDF'?GLV:s._col; return d; });
+// l'image de l'intro que montre chaque image de l'outro : dense (61, 60, 59), puis à moitié dé-tapé (54, 53)
+const OU_G=[61,60,59,54,54,53,53];
+const ouFld=wFld.map(s=>{ const d=el(OU.cam,'abs c glyph','', 'display:none'); d._s=s; return d; });
+const OU_FG=[[52,2,1],[50,2,1],[46,1,.55],[38,1,.42],[34,1,.3]];   // [image de l'intro, phase, opacité] pour 1385-1389 ; la réf resserre déjà l'ellipse
 const ouDot=el(OU.cam,'abs','', 'border-radius:50%');
 const ouMark=el(OU.cam,'abs','', 'width:81px;height:81px'); ouMark.innerHTML=MARK_SVG;
 const ouWord=el(OU.cam,'abs','vladan','font-size:84px;font-weight:600;letter-spacing:-0.04em;line-height:1');
@@ -696,14 +700,22 @@ function ouLineGeom(f){ const sp=12, pad=30; const TW=OUW.map((_,i)=>OUL.ws.slic
   const h=vl(f,1489,10); const S=lerp(1,200/48,h); const x0=lerp(960-tw/2,144,h), y0=lerp(540-26,120,h); return {tw,S,x0,y0,sp,pad,h}; }
 function shotOutro(F){ const f=F-2; push(OU.cam,f,1378,f<1489?0.0008:0);
   const OS=f>=1520?1+0.015*(1-Math.pow(1-clamp((f-1520)/39),2)):1; if(f>=1520) OU.cam.style.transform=`scale(${OS.toFixed(4)})`;   // l'affiche respire : 1,5 % de poussée, pas un arrêt sur image
-  fixFrags(ouFix,f,1376);
-  // anneau de glyphes à l'encre (1385-1391), le point à l'encre puis rouge à l'arrivée de la marque (1398)
-  const k=lerp(1,0.7,approach(f,1387,6)); ouGl.forEach((d,i)=>{ const on=f>=1385&&f<1392; show(d,on); if(!on) return; const g=d._g; place(d,960+g[1]*k,540+g[2]*k); });
-  const dOn=f>=1390&&f<1398; show(ouDot,dOn); if(dOn){ const S=f<1394?lerp(90,120,(f-1390)/4):lerp(120,81,approach(f,1394,4)); Object.assign(ouDot.style,{width:S+'px',height:S+'px',background:f<1396?mixc('#CDB9F2','#FF8FA3',clamp((f-1390)/6)):'#FF3D5E'}); place(ouDot,960,540); }
-  const tot=81+24+OUL.ww; const slide=approach(f,1404,4); const logoOn=f>=1398&&f<1448;
+  // 1378-1384 : le code réglé, puis dé-tapé à l'envers de sa frappe (une ligne sur trois garde sa fin, comme la réf)
+  ouFr.forEach((d,i)=>{ const g=OU_G[f-1378], on=g!==undefined&&g>=d._st; show(d,on); if(!on) return; const L=d._t.length, n=Math.min(L,Math.max(2,Math.ceil((g-d._st+1)*L/3)));
+    const t=d._tail&&n<L?d._t.slice(L-n):d._t.slice(0,n), src=wFr[i], hl=src._hl&&n>=L?`<span style="background:${d._col===GINK?GOR:d._col};color:transparent;margin-left:6px">▆▆▆</span>`:'';
+    d.innerHTML=`${src._pre}${t.replace(/&/g,'&amp;').replace(/</g,'&lt;')}${n>=L?src._post:''}${hl}`; d.style.color=d._col; placeTL(d,src._x,src._y); });
+  // 1385-1389 : le champ de glyphes de l'intro, ses phases à l'envers (2, 2, 1, 1, 1) ; il pâlit, et ses accents passent au corail de la marque
+  ouFld.forEach((d,k)=>{ const q=OU_FG[f-1385], s=d._s, on=!!q&&q[0]>=s._b; show(d,on); if(!on) return; const [x,y]=s._P[q[1]], pale=q[2]<1;
+    d.textContent=s._spin?['/','|','\\','-'][(Math.floor(f/2)+k)%4]:s._ch; d.style.color=!pale?s._col:s._col===GINK?'#B9A9E6':'#FF6F6A'; d.style.opacity=(s._col===GINK?q[2]:Math.min(1,q[2]+0.4)).toFixed(2); place(d,960+x,540+y); });
+  // 1390-1396 : la lueur lilas-rose (170 px), son anneau, puis le disque pêche qui chauffe au corail et au rouge (124 → 108 px)
+  const DK=[[170,'radial-gradient(circle,#D9A2F0 0%,#E2B0EE 38%,rgba(236,190,236,0) 70%)',5],[160,'radial-gradient(circle,#F7DDEB 0%,#F0B8DE 42%,#EBA6D6 54%,rgba(235,166,214,0) 72%)',3],
+    [124,'radial-gradient(circle,#FBD8C4 0%,#F6B69A 70%)',1.4],[120,'radial-gradient(circle,#F9B796 0%,#F7A082 70%)',.8],[116,'#FF8270',0],[112,'#FF6466',0],[108,'#FF3D5E',0]];
+  const dk=DK[f-1390]; show(ouDot,!!dk); if(dk){ Object.assign(ouDot.style,{width:dk[0]+'px',height:dk[0]+'px',background:dk[1],filter:dk[2]?`blur(${dk[2]}px)`:''}); place(ouDot,960,540); }
+  // 1397 : la marque naît du disque, grande (106 px) ; elle dérive de 30 px, puis se range à 81 px quand « vladan » arrive (1408)
+  const tot=81+24+OUL.ww; const logoOn=f>=1397&&f<1448;
   show(ouMark,logoOn); show(ouWord,logoOn&&f>=1408); show(ouLine,logoOn&&f>=1408);
-  if(logoOn){ const an=accel(f,1439,8,2), ex=-40*an, es=1-0.04*an, st=approach(f,1408,9);
-    const mx=lerp(960,960-tot/2+40.5,slide)+ex; place(ouMark,mx,540,(f<1400?lerp(0.9,1,(f-1398)/2):1)*es);
+  if(logoOn){ const an=accel(f,1439,8,2), ex=-40*an, es=1-0.04*an, st=approach(f,1408,9), sn=approach(f,1408,3,0.35);
+    const mx=lerp(960-30*approach(f,1402,6),960-tot/2+40.5,sn)+ex; place(ouMark,mx,540,lerp(106/81,1,sn)*es);
     if(f>=1408){ placeTL(ouWord,mx+40.5+24+12*st,540-42,es*(1+0.035*st)); ouWord.style.color=mixc('#FFC2CD','#151413',approach(f,1408,8));
       const ds=clamp((f-1445)/3); [ouWord,ouLine].forEach(e=>e.style.webkitMaskImage=e.style.maskImage=ds>0?`linear-gradient(90deg,transparent ${(ds*100-10).toFixed(0)}%,#000 ${(ds*100+10).toFixed(0)}%)`:''); ouMark.style.opacity=(1-ds).toFixed(2);
       placeTL(ouLine,960-OUL.lw/2,540+42+64-26); ouLine.style.opacity=vl(f,1408,6).toFixed(3); } }
