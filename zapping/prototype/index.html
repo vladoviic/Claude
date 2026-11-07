@@ -1,0 +1,280 @@
+<title>Zapping</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Azeret+Mono:wght@400;600&display=swap">
+<style>
+/* Layout : une seule colonne, le mur de CRT au centre, la régie (score, zap) au-dessus. Monde unique, bichromie rouge. */
+:root {
+  color-scheme: dark;
+  --brun: #1e0e0c;        /* noirs bruns de la réf. Mur Télé */
+  --facade: #3a1a14;      /* coque des téléviseurs */
+  --ecran: #d23019;       /* écran vide allumé ≈ 210/48/25 */
+  --braise: #ff7a4d;      /* signal, texte vif */
+  --cendre: #b88a7c;      /* texte secondaire */
+  --display: "Dela Gothic One", "Arial Black", Impact, sans-serif;
+  --mono: "Azeret Mono", ui-monospace, Menlo, monospace;
+}
+html, body { height: 100%; }
+[hidden] { display: none !important; }
+body {
+  background: var(--brun); color: var(--braise); font-family: var(--mono);
+  display: flex; flex-direction: column; align-items: center; overflow: hidden;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px; box-sizing: border-box; gap: 10px;
+}
+header { width: 100%; max-width: 560px; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(28px, 7vw, 44px); line-height: .9; margin: 0; letter-spacing: .02em; color: var(--braise); text-shadow: 0 0 18px rgba(255,90,50,.45); }
+.regie { display: flex; gap: 18px; font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--cendre); font-variant-numeric: tabular-nums; }
+.regie b { display: block; font-size: 20px; color: var(--braise); letter-spacing: 0; font-weight: 600; }
+#jauge { width: 54px; height: 6px; background: var(--facade); margin-top: 7px; border-radius: 3px; overflow: hidden; }
+#jauge i { display: block; height: 100%; width: 100%; background: var(--braise); }
+.scene { position: relative; flex: 1; min-height: 0; width: 100%; display: flex; justify-content: center; }
+canvas { display: block; height: 100%; max-width: 100%; aspect-ratio: 9 / 14; touch-action: none; border-radius: 6px; }
+#voile { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.carton { background: rgba(30,14,12,.92); border: 1px solid var(--facade); padding: 22px 24px; max-width: 320px; text-align: left; display: grid; gap: 12px; border-radius: 4px; }
+.carton h2 { font-family: var(--display); font-weight: 400; margin: 0; font-size: 26px; line-height: 1; text-wrap: balance; }
+.carton p { margin: 0; color: var(--cendre); font-size: 12.5px; line-height: 1.55; }
+.carton kbd { font-family: var(--mono); color: var(--braise); border: 1px solid var(--facade); padding: 0 5px; border-radius: 3px; }
+button { font-family: var(--display); font-size: 18px; background: var(--ecran); color: var(--brun); border: 0; padding: 12px 16px; cursor: pointer; border-radius: 3px; }
+button:focus-visible { outline: 2px solid var(--braise); outline-offset: 3px; }
+footer { font-size: 11px; color: var(--cendre); letter-spacing: .08em; text-transform: uppercase; }
+</style>
+
+<header>
+  <h1>ZAPPING</h1>
+  <div class="regie">
+    <div>Score<b id="score">0</b></div>
+    <div>Record<b id="record">0</b></div>
+    <div>Zap<div id="jauge"><i></i></div></div>
+  </div>
+</header>
+<div class="scene">
+  <canvas id="mur" width="540" height="840" aria-label="Mur de téléviseurs, zone de jeu"></canvas>
+  <div id="voile">
+    <div class="carton" id="carton">
+      <h2>Plus de signal.</h2>
+      <p>Tu es le dernier signal du mur. Passe d'écran en écran pour les rallumer. Attrape les yeux, fuis la neige qui se propage.</p>
+      <p><kbd>←↑→↓</kbd> ou <kbd>ZQSD</kbd> pour zapper d'un écran · <kbd>Espace</kbd> pour sauter 3 écrans. Sur téléphone : glisse, et touche pour sauter.</p>
+      <button id="go" type="button">Allumer</button>
+    </div>
+  </div>
+</div>
+<footer>Prototype de gameplay · marble.studio · réf. Unreal : Zapping.uproject</footer>
+
+<script>
+(() => {
+const COLS = 9, ROWS = 14;
+const cv = document.getElementById('mur'), ctx = cv.getContext('2d');
+const W = cv.width, H = cv.height, CW = W / COLS, CH = H / ROWS;
+const $ = id => document.getElementById(id);
+const reduit = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Paramètres de game design (les mêmes qu'on reportera dans Unreal, voir GDD.md)
+const P = {
+  dureeAllume: 9,        // s avant qu'un écran rallumé ne s'éteigne
+  pointsEcran: 1, pointsOeil: 25,
+  neigeDepart: 1, pasNeige: 0.62, pasNeigeMin: 0.24, accel: 0.985,
+  zapRecharge: 4, zapPortee: 3, dureeTrace: 2.5,
+};
+
+let best = 0;
+try { best = +localStorage.getItem('zapping.record') || 0; } catch (e) {}
+
+let S; // état de partie
+function nouvellePartie() {
+  const grille = [];
+  for (let i = 0; i < COLS * ROWS; i++) grille.push({ allume: 0, trace: 0, zap: Math.random() * 10 });
+  S = {
+    grille, joueur: { x: 4, y: 7, dir: [0, -1], anim: 0 }, neiges: [], oeil: null,
+    score: 0, t: 0, pas: P.pasNeige, horloge: -1.5, // 1,5 s de répit au départ
+    zap: P.zapRecharge, enCours: true, flash: 0,
+  };
+  for (let i = 0; i < P.neigeDepart; i++) ajouterNeige();
+  placerOeil();
+  allumer(S.joueur.x, S.joueur.y);
+}
+const cell = (x, y) => S.grille[y * COLS + x];
+const dedans = (x, y) => x >= 0 && y >= 0 && x < COLS && y < ROWS;
+function caseLibre(loinDe) {
+  for (let essai = 0; essai < 200; essai++) {
+    const x = Math.random() * COLS | 0, y = Math.random() * ROWS | 0;
+    if (loinDe && Math.abs(x - loinDe.x) + Math.abs(y - loinDe.y) < 5) continue;
+    if (S.neiges.some(n => n.x === x && n.y === y)) continue;
+    if (S.oeil && S.oeil.x === x && S.oeil.y === y) continue;
+    return { x, y };
+  }
+  return { x: 0, y: 0 };
+}
+function ajouterNeige() { S.neiges.push(caseLibre(S.joueur)); }
+function placerOeil() { S.oeil = caseLibre(S.joueur); }
+function allumer(x, y) {
+  const c = cell(x, y);
+  if (c.allume <= 0) S.score += P.pointsEcran;
+  c.allume = P.dureeAllume; c.trace = 0;
+}
+
+function bouger(dx, dy, portee = 1) {
+  if (!S || !S.enCours) return;
+  const j = S.joueur; j.dir = [dx, dy];
+  for (let i = 0; i < portee; i++) {
+    const nx = j.x + dx, ny = j.y + dy;
+    if (!dedans(nx, ny)) break;
+    j.x = nx; j.y = ny; allumer(nx, ny);
+  }
+  j.anim = 1;
+  if (S.oeil && j.x === S.oeil.x && j.y === S.oeil.y) {
+    S.score += P.pointsOeil; S.flash = 1; ajouterNeige(); placerOeil();
+  }
+  verifierContact();
+}
+function sauter() {
+  if (!S || !S.enCours || S.zap < P.zapRecharge) return;
+  S.zap = 0; bouger(S.joueur.dir[0], S.joueur.dir[1], P.zapPortee);
+}
+function verifierContact() {
+  if (S.neiges.some(n => n.x === S.joueur.x && n.y === S.joueur.y)) finPartie();
+}
+function avancerNeige() {
+  const j = S.joueur;
+  for (const n of S.neiges) {
+    // 70 % du temps la neige se rapproche, sinon elle dérive : elle doit rester esquivable
+    const options = [[1,0],[-1,0],[0,1],[0,-1]].filter(([dx, dy]) => dedans(n.x + dx, n.y + dy));
+    let choix;
+    if (Math.random() < 0.7) {
+      options.sort((a, b) => (Math.abs(n.x + a[0] - j.x) + Math.abs(n.y + a[1] - j.y)) - (Math.abs(n.x + b[0] - j.x) + Math.abs(n.y + b[1] - j.y)));
+      choix = options[0];
+    } else choix = options[Math.random() * options.length | 0];
+    n.x += choix[0]; n.y += choix[1];
+    const c = cell(n.x, n.y); c.allume = 0; c.trace = P.dureeTrace;
+  }
+  verifierContact();
+}
+function finPartie() {
+  S.enCours = false;
+  if (S.score > best) { best = S.score; try { localStorage.setItem('zapping.record', best); } catch (e) {} }
+  majRegie();
+  $('carton').innerHTML = `<h2>Neige.</h2><p>Tu as tenu ${S.t.toFixed(0)} s et rallumé l'équivalent de ${S.score} écrans.</p><p>Record : ${best}</p><button id="go" type="button">Rallumer</button>`;
+  $('voile').hidden = false; $('go').onclick = lancer; $('go').focus();
+}
+function lancer() { nouvellePartie(); $('voile').hidden = true; cv.focus?.(); }
+$('go').onclick = lancer;
+
+function majRegie() {
+  $('score').textContent = S ? S.score : 0; $('record').textContent = best;
+  $('jauge').firstElementChild.style.width = (S ? Math.min(1, S.zap / P.zapRecharge) * 100 : 100) + '%';
+}
+
+// Commandes
+const touches = { ArrowLeft:[-1,0], ArrowRight:[1,0], ArrowUp:[0,-1], ArrowDown:[0,1], a:[-1,0], q:[-1,0], d:[1,0], w:[0,-1], z:[0,-1], s:[0,1] };
+addEventListener('keydown', e => {
+  const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  if (touches[k]) { e.preventDefault(); bouger(...touches[k]); }
+  else if (k === ' ') { e.preventDefault(); if (S && S.enCours) sauter(); else if (!$('voile').hidden) lancer(); }
+});
+let depart = null;
+cv.addEventListener('pointerdown', e => { depart = { x: e.clientX, y: e.clientY }; });
+cv.addEventListener('pointerup', e => {
+  if (!depart) return;
+  const dx = e.clientX - depart.x, dy = e.clientY - depart.y; depart = null;
+  if (Math.hypot(dx, dy) < 18) return sauter();
+  Math.abs(dx) > Math.abs(dy) ? bouger(Math.sign(dx), 0) : bouger(0, Math.sign(dy));
+});
+
+// Rendu : chaque case est un CRT (coque brune, dalle bombée, lignes de balayage)
+const bruit = [];
+for (let f = 0; f < 6; f++) {
+  const c = document.createElement('canvas'); c.width = 48; c.height = 48;
+  const g = c.getContext('2d'), img = g.createImageData(48, 48);
+  for (let i = 0; i < img.data.length; i += 4) { const v = Math.random() * 255; img.data[i] = v; img.data[i+1] = v * .45; img.data[i+2] = v * .35; img.data[i+3] = 255; }
+  g.putImageData(img, 0, 0); bruit.push(c);
+}
+function dalle(x, y, w, h) {
+  const r = Math.min(w, h) * .16;
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.quadraticCurveTo(x + w / 2, y + h * .04, x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r); ctx.quadraticCurveTo(x + w - w * .03, y + h / 2, x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h); ctx.quadraticCurveTo(x + w / 2, y + h - h * .04, x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r); ctx.quadraticCurveTo(x + w * .03, y + h / 2, x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath();
+}
+function oeil(cx, cy, s, ouverture) {
+  ctx.save(); ctx.translate(cx, cy);
+  ctx.beginPath(); ctx.ellipse(0, 0, s, s * .55 * ouverture, 0, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffd9c7'; ctx.fill();
+  ctx.clip();
+  ctx.beginPath(); ctx.arc(0, 0, s * .45, 0, Math.PI * 2); ctx.fillStyle = '#7a1408'; ctx.fill();
+  ctx.beginPath(); ctx.arc(0, 0, s * .2, 0, Math.PI * 2); ctx.fillStyle = '#1e0e0c'; ctx.fill();
+  ctx.beginPath(); ctx.arc(-s * .14, -s * .14, s * .08, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
+  ctx.restore();
+}
+function dessiner(temps) {
+  ctx.fillStyle = '#1e0e0c'; ctx.fillRect(0, 0, W, H);
+  const fb = bruit[(temps * 24 | 0) % bruit.length];
+  for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
+    const c = cell(x, y), px = x * CW, py = y * CH;
+    ctx.fillStyle = '#3a1a14'; ctx.fillRect(px + 2, py + 2, CW - 4, CH - 4);
+    const ix = px + 7, iy = py + 7, iw = CW - 14, ih = CH - 16;
+    dalle(ix, iy, iw, ih); ctx.save(); ctx.clip();
+    if (c.trace > 0) {
+      ctx.drawImage(fb, ix, iy, iw, ih);
+      ctx.fillStyle = `rgba(30,14,12,${1 - c.trace / P.dureeTrace})`; ctx.fillRect(ix, iy, iw, ih);
+    } else {
+      const k = Math.max(0, c.allume / P.dureeAllume);
+      // éteint ≈ brun 58/22/17 → allumé ≈ rouge réf. 210/48/25, avec une pointe plus chaude à l'allumage
+      const r = 58 + 152 * k + 25 * k * k * k, g = 22 + 26 * k + 22 * k * k * k, b = 17 + 8 * k + 10 * k * k * k;
+      ctx.fillStyle = `rgb(${r|0},${g|0},${b|0})`; ctx.fillRect(ix, iy, iw, ih);
+      if (k > 0) { // tirets « sans signal » de la réf.
+        ctx.fillStyle = `rgba(255,220,200,${.35 * k})`;
+        const off = reduit ? 0 : (temps * 6 + c.zap) % 3;
+        for (let i = 0; i < 3; i++) ctx.fillRect(ix + iw * .2 + i * iw * .22 + off, iy + ih * .5, iw * .12, 2);
+      }
+    }
+    ctx.fillStyle = 'rgba(0,0,0,.18)';
+    for (let l = iy; l < iy + ih; l += 3) ctx.fillRect(ix, l, iw, 1);
+    const reflet = ctx.createRadialGradient(ix + iw * .3, iy + ih * .25, 1, ix + iw * .3, iy + ih * .25, iw);
+    reflet.addColorStop(0, 'rgba(255,255,255,.12)'); reflet.addColorStop(1, 'rgba(0,0,0,.25)');
+    ctx.fillStyle = reflet; ctx.fillRect(ix, iy, iw, ih);
+    ctx.restore();
+    ctx.fillStyle = '#5a2a20'; ctx.fillRect(px + CW - 14, py + CH - 8, 4, 3); ctx.fillRect(px + CW - 22, py + CH - 8, 4, 3);
+  }
+  const centre = (x, y) => [x * CW + CW / 2, y * CH + CH / 2 - 2];
+  if (S.oeil) { const [cx, cy] = centre(S.oeil.x, S.oeil.y); oeil(cx, cy, CW * .3, .75 + .25 * Math.sin(temps * 3)); }
+  for (const n of S.neiges) {
+    const [cx, cy] = centre(n.x, n.y);
+    ctx.save(); dalle(n.x * CW + 7, n.y * CH + 7, CW - 14, CH - 16); ctx.clip();
+    ctx.drawImage(fb, n.x * CW, n.y * CH, CW, CH);
+    ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(n.x * CW, cy - 3 + Math.sin(temps * 20) * 8, CW, 3);
+    ctx.restore();
+  }
+  const j = S.joueur, [jx, jy] = centre(j.x, j.y);
+  const halo = ctx.createRadialGradient(jx, jy, 2, jx, jy, CW * .9);
+  halo.addColorStop(0, 'rgba(255,170,120,.7)'); halo.addColorStop(1, 'rgba(255,90,50,0)');
+  ctx.fillStyle = halo; ctx.fillRect(jx - CW, jy - CW, CW * 2, CW * 2);
+  oeil(jx, jy, CW * (.34 + .06 * j.anim), 1);
+  if (S.flash > 0) { ctx.fillStyle = `rgba(255,200,170,${S.flash * .25})`; ctx.fillRect(0, 0, W, H); }
+}
+
+let avant = performance.now();
+function boucle(maintenant) {
+  const dt = Math.min(.1, (maintenant - avant) / 1000); avant = maintenant;
+  if (S && S.enCours) {
+    S.t += dt; S.zap = Math.min(P.zapRecharge, S.zap + dt); S.horloge += dt;
+    for (const c of S.grille) { if (c.allume > 0) c.allume -= dt; if (c.trace > 0) c.trace -= dt; }
+    if (S.horloge >= S.pas) { S.horloge = 0; avancerNeige(); S.pas = Math.max(P.pasNeigeMin, S.pas * P.accel); }
+    if (S.t > 20 * S.neiges.length) ajouterNeige(); // une neige de plus toutes les 20 s
+  }
+  if (S) { S.joueur.anim *= .85; S.flash *= .9; dessiner(maintenant / 1000); }
+  majRegie();
+  requestAnimationFrame(boucle);
+}
+
+function start(data) {
+  if (data && data.best > best) best = data.best;
+  nouvellePartie(); S.enCours = false; // mur visible derrière le carton d'accueil
+  requestAnimationFrame(boucle);
+}
+window.claude?.hot?.snapshot?.(() => ({ best }));
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+})();
+</script>
